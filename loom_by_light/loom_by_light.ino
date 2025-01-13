@@ -14,6 +14,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #include "SD.h"
 
 #define CHIP_SELECT 10
+#define NUM_LIGHTS 144
 
 class BitmapHandler {
   //instance variables
@@ -221,7 +222,78 @@ class BitmapHandler {
       Serial.println(this->importantColors);
     }
 
+  /**
+  *is passed the file and the row number, returns an array of bytes, representing if each pixel is true or
+  *false in that row.
+  */
+  byte getLightsArray(File bmpFile, int pixelRow) {
+    uint8_t pixelBuffer[3];
+    int pixelBufferCounter = 0;
+    byte lightsArray[NUM_LIGHTS / 8];
+    int lightsArrayCounter = sizeof(pixelBuffer);;
+    int shiftInByte = 0;
+    int bytesPerRow;
+    int displayedWidth, displayedHeight;
+    int pixelCol;
+    uint32_t pixelRowFileOffset;
+    uint8_t r,g,b;
+    if (!this->fileOK) {
+      return false;
+    }
+    if (NUM_LIGHTS > imageWidth) {
+      Serial.println("image width greater than number of lights.");
+      return false;
+    }
+    // bytes per row rounded up to next 4 byte boundary
+    bytesPerRow = (3 * this->imageWidth) + ((4 - ((3 * this->imageWidth) % 4)) % 4);
+      
+    // open file
+    this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
 
+    // image stored bottom to top, screen top to bottom
+    pixelRowFileOffset = this->imageOffset + ((this->imageHeight - pixelRow - 1) * bytesPerRow);
+    // for (lightsArrayCounter = 0; lightsArrayCounter < (sizeof(lightsArray) / sizeof(lightsArray[0])); lightsArrayCounter++) {
+    //set read position to pixel row offset.
+    this->bmpFile.seek(pixelRowFileOffset);
+
+    
+    // reset buffer
+    pixelBufferCounter = sizeof(pixelBuffer);
+
+    // output pixels in row
+    for (pixelCol = 0; pixelCol < displayedWidth; pixelCol ++) {
+      if (pixelBufferCounter >= sizeof(pixelBuffer)){
+        // need to read more from sd card
+        this->bmpFile.read(pixelBuffer, sizeof(pixelBuffer));
+        pixelBufferCounter = 0;
+      }
+      
+      // get next pixel colours
+      b = pixelBuffer[pixelBufferCounter++];
+      g = pixelBuffer[pixelBufferCounter++];
+      r = pixelBuffer[pixelBufferCounter++];
+        
+      // lightsArray[lightsArrayCounter] = (lightsArray[lightsArrayCounter] | (isPixelTrue(b, r, g) << shiftInByte));
+      if (shiftInByte <= 7){
+        shiftInByte ++;
+      } else {
+        shiftInByte = 0;
+      lightsArrayCounter ++;
+      }
+    }
+    return lightsArray;
+  }
+
+  /**
+  *is passed 3 colors, checks the combined saturation and returns if the pixel is true or false.
+  */
+  // bool isPixelTrue(uint8_t blue, uint8_t red, uint8_t green) {
+  //   uint8_t total = blue + red + green;
+  //   if (total >= 384) {
+  //     return true;
+  //   }
+  //   return false;
+  // }
 };
 
 /**
