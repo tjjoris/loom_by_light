@@ -267,26 +267,30 @@ class BitmapHandler {
     pixelBufferCounter = sizeof(pixelBuffer);
 
     // output pixels in row
-    for (pixelCol = 0; pixelCol < displayedWidth; pixelCol ++) {
-      if (pixelBufferCounter >= sizeof(pixelBuffer)){
-        // need to read more from sd card
-        this->bmpFile.read(pixelBuffer, sizeof(pixelBuffer));
-        pixelBufferCounter = 0;
-      }
-      
-      // get next pixel colours
-      b = pixelBuffer[pixelBufferCounter++];
-      g = pixelBuffer[pixelBufferCounter++];
-      r = pixelBuffer[pixelBufferCounter++];
-        
-      lightsArray[lightsArrayCounter] = (lightsArray[lightsArrayCounter] | (isPixelTrue(b, r, g) << shiftInByte));
-      if (shiftInByte <= 7){
-        shiftInByte ++;
-      } else {
-        shiftInByte = 0;
-      lightsArrayCounter ++;
-      }
+    // for (pixelCol = 0; pixelCol < displayedWidth; pixelCol ++) {
+    if (pixelBufferCounter >= sizeof(pixelBuffer)){
+      // need to read more from sd card
+      this->bmpFile.read(pixelBuffer, sizeof(pixelBuffer));
+      pixelBufferCounter = 0;
     }
+    
+    // get next pixel colours
+    b = pixelBuffer[pixelBufferCounter++];
+    g = pixelBuffer[pixelBufferCounter++];
+    r = pixelBuffer[pixelBufferCounter++];
+
+    //check if pixel is true. 
+    bool pixelTrue = isPixelTrue(b, r, g);
+    pixelTrue = (pixelTrue & (lightsArrayCounter <= imageWidth - 1));
+    lightsArray[lightsArrayCounter] = (lightsArray[lightsArrayCounter] | (pixelTrue << shiftInByte));
+    if (shiftInByte < 7){
+      shiftInByte ++;
+    } else {
+      shiftInByte = 0;
+      lightsArrayCounter ++;
+      pixelCol ++;
+    }
+    // }
   }
 
   /**
@@ -334,17 +338,15 @@ void setup() {
   //create bitmap handler object, and pass it the bitmap to read.
   BitmapHandler bmh = BitmapHandler("bitmap.bmp");
   bmh.serialPrintHeaders();
-  //print a row in of the pixel
-  bmh.setLightsArray(1);
-  //print lights array.
-  byte testByte = 1;
-  printBinary(testByte);
-  Serial.println();
-  testByte = 16;
-  printBinary(testByte);
-  Serial.println();
-  for (int i = 0; i<bmh.lightsArraySize; i++) {
-    printBinary(bmh.lightsArray[i]);
+  for (int j=0; j<bmh.imageHeight; j++) {
+    //print a row in of the pixel
+    bmh.setLightsArray(j);
+    //print lights array.
+    
+    for (int i = 0; i<bmh.lightsArraySize; i++) {
+      printBinary(bmh.lightsArray[i]);
+    }
+    Serial.println();
   }
 }
 
