@@ -315,6 +315,17 @@ void initializeCard() {
   Serial.println("----------------------------\n");
 }
 
+/**
+*prints a byte as a binary string, source: 
+*https://forum.arduino.cc/t/from-byte-to-binary-conversion-solved/341856/5
+*/
+void printBinary(byte b) {
+   for (int i = 7; i >= 0; i-- )
+  {
+    Serial.print((b >> i) & 0X01);//shift and select first bit
+  }
+}
+
 void setup() {
   // put your setup code here, to run once:
   //set serial to dispaly on ide
@@ -325,6 +336,16 @@ void setup() {
   bmh.serialPrintHeaders();
   //print a row in of the pixel
   bmh.setLightsArray(1);
+  //print lights array.
+  byte testByte = 1;
+  printBinary(testByte);
+  Serial.println();
+  testByte = 16;
+  printBinary(testByte);
+  Serial.println();
+  for (int i = 0; i<bmh.lightsArraySize; i++) {
+    printBinary(bmh.lightsArray[i]);
+  }
 }
 
 void loop() {
