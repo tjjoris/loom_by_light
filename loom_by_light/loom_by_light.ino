@@ -279,6 +279,18 @@ class BitmapHandler {
     g = pixelBuffer[pixelBufferCounter++];
     r = pixelBuffer[pixelBufferCounter++];
 
+    //debug
+    Serial.print(" pixel row file offset ");
+    Serial.print(pixelRowFileOffset);
+    Serial.print(" shiftInByte ");
+    Serial.print(shiftInByte);
+    Serial.print(" lights array counter ");
+    Serial.print(lightsArrayCounter);
+    Serial.print(" lightsArrayCounter ");
+    Serial.print(lightsArrayCounter);
+    Serial.print(" pixelCol ");
+    Serial.println(pixelCol);
+
     //check if pixel is true. 
     bool pixelTrue = isPixelTrue(b, r, g);
     pixelTrue = (pixelTrue & (lightsArrayCounter <= imageWidth - 1));
