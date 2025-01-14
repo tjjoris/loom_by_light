@@ -97,7 +97,8 @@ class BitmapHandler {
     BitmapHandler(String filename){
       this->fileOK = false;
       this->bmpFilename = filename;
-      this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
+      // this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
+      openFile();
       if (!this->bmpFile) {
         Serial.print(F("BitmapHandler : Unable to open file "));
         Serial.println(this->bmpFilename);
@@ -120,7 +121,7 @@ class BitmapHandler {
           }       
         }
         // close file
-        this->bmpFile.close();
+        // this->bmpFile.close();
       }
     }
 
@@ -226,6 +227,16 @@ class BitmapHandler {
       Serial.println(this->importantColors);
     }
 
+    void openFile() {
+    // open file
+    this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
+    }
+
+    void closeFile() {
+      //close file
+      this->bmpFile.close();
+    }
+
   /**
   *is passed the lights array and passed the row number, returns an array of bytes, representing if each pixel is true or
   *false in that row.
@@ -258,8 +269,8 @@ class BitmapHandler {
     // bytes per row rounded up to next 4 byte boundary
     bytesPerRow = (3 * this->imageWidth) + numEmptyBytesPerRow;
       
-    // open file
-    this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
+    // // open file
+    // this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
 
     //find the initial binary shift
     initialBinaryShift = 8 - imageWidth;
@@ -457,6 +468,7 @@ void setup() {
   initializeCard();
   //create bitmap handler object, and pass it the bitmap to read.
   BitmapHandler bmh = BitmapHandler("bitmap.bmp");
+  // bmh.openFile("bitmap.bmp");
   bmh.serialPrintHeaders();
   for (int j=0; j< bmh.imageHeight; j++) {
     //print a row in of the pixel
@@ -468,6 +480,7 @@ void setup() {
     }
     Serial.println();
   }
+  bmh.closeFile();
 }
 
 void loop() {
