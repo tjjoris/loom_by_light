@@ -271,13 +271,13 @@ class BitmapHandler {
 
     // image stored bottom to top, screen top to bottom
     pixelRowFileOffset = this->imageOffset + ((this->imageHeight - pixelRow - 1) * bytesPerRow);
+    //set reader to seek location based on image offset.
     this->bmpFile.seek(pixelRowFileOffset);
+    //loop for each light.
     for (numLightsCounter = 0; numLightsCounter < NUM_LIGHTS; numLightsCounter++) {
       //only read if within image bounds.
       if (numLightsCounter < imageWidth) {
         this->bmpFile.read(pixelBuffer, pixelBufferSize);
-        //increase seek offset.
-        pixelRowFileOffset += pixelBufferSize;
       }
       // get next pixel colours
       b = pixelBuffer[0];
@@ -285,13 +285,14 @@ class BitmapHandler {
       r = pixelBuffer[2];
       //check if pixel is true. 
       bool pixelTrue = isPixelTrue(b, r, g);
+      //pixel is also only true if within image bounds.
       pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1));
       //add bit to byte
       byteForLightsArray = byteForLightsArray | (pixelTrue << ((7 - shiftInByte - initialBinaryShift)));
+      //increment bit in byte shift.
       shiftInByte ++;
-
-      if (shiftInByte <= 7){
-      } else {
+      //a byte is complete, add it to the array.
+      if (shiftInByte > 7){
         //set byte to lights array
         lightsArray[lightsArrayCounter] = byteForLightsArray;
         shiftInByte = 0;
