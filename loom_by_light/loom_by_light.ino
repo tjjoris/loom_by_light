@@ -295,10 +295,12 @@ class BitmapHandler {
       if (shiftInByte > 7){
         //set byte to lights array
         lightsArray[lightsArrayCounter] = byteForLightsArray;
-        shiftInByte = 0;
+        //increment lightsArrayCounter, not to be confused with numLightsCounter
         lightsArrayCounter ++;
+        //reset byte
         byteForLightsArray = 0;
         initialBinaryShift = 0;
+        shiftInByte = 0;
       }
     }
   }
@@ -320,27 +322,10 @@ class BitmapHandler {
   */
   bool isPixelTrue(uint8_t blue, uint8_t red, uint8_t green) {
     uint8_t total = blue + red + green;
-    // Serial.print(" blue ");
-    // Serial.print(blue);
-    // Serial.print(" red ");
-    // Serial.print(red);
-    // Serial.print(" green ");
-    // Serial.print(green);
-    // Serial.print (" total ");
-    // Serial.print(total);
-    int redInt = red;
-    int blueInt = blue;
-    int greenInt = green;
+    int redInt = (int)red;
+    int blueInt = (int)blue;
+    int greenInt = (int)green;
     int totalInt = redInt + blueInt + greenInt;
-    // Serial.print(" blue int ");
-    // Serial.print(blueInt);
-    // Serial.print(" green int ");
-    // Serial.print(green);
-    // Serial.print(" total int ");
-    // Serial.print(totalInt);
-    // Serial.print(" red int ");
-    // Serial.print(redInt);
-    // Serial.println();
     if (totalInt < 384) {
       return true;
     }
