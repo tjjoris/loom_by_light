@@ -287,12 +287,21 @@ class BitmapHandler {
         //check if pixel is true. 
         bool pixelTrue = isPixelTrue(b, r, g);
         //debug if pixel true
-        Serial.print(" is pixel true ");
-        Serial.print(pixelTrue);
-        if (pixelTrue) {
-          Serial.print(" pixelCol ");
-          Serial.println(pixelCol);
-        }
+        // Serial.print(" is pixel true ");
+        // Serial.print(pixelTrue);
+
+        //debug saturation
+        // Serial.print(" saturation ");
+        // Serial.print(pixelBuffer[pixelBufferCounter]);
+        // Serial.print(" column ");
+        // Serial.print(pixelCol);
+        // Serial.print(" colour ");
+        // Serial.print(pixelBufferCounter);
+        // Serial.println();
+        // if (pixelTrue) {
+        //   Serial.print(" pixelCol T");
+        //   Serial.println(pixelCol);
+        // }
         pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1));
         //add bit to byte
         byteForLightsArray = byteForLightsArray | (pixelTrue << shiftInByte);
@@ -330,7 +339,28 @@ class BitmapHandler {
   */
   bool isPixelTrue(uint8_t blue, uint8_t red, uint8_t green) {
     uint8_t total = blue + red + green;
-    if (total >= 384) {
+    // Serial.print(" blue ");
+    // Serial.print(blue);
+    // Serial.print(" red ");
+    // Serial.print(red);
+    // Serial.print(" green ");
+    // Serial.print(green);
+    // Serial.print (" total ");
+    // Serial.print(total);
+    int redInt = red;
+    int blueInt = blue;
+    int greenInt = green;
+    int totalInt = redInt + blueInt + greenInt;
+    // Serial.print(" blue int ");
+    // Serial.print(blueInt);
+    // Serial.print(" green int ");
+    // Serial.print(green);
+    // Serial.print(" total int ");
+    // Serial.print(totalInt);
+    // Serial.print(" red int ");
+    // Serial.print(redInt);
+    // Serial.println();
+    if (totalInt >= 384) {
       return true;
     }
     return false;
@@ -370,7 +400,7 @@ void setup() {
   //create bitmap handler object, and pass it the bitmap to read.
   BitmapHandler bmh = BitmapHandler("bitmap.bmp");
   bmh.serialPrintHeaders();
-  for (int j=0; j<2; j++) {
+  for (int j=0; j< bmh.imageHeight; j++) {
     //print a row in of the pixel
     bmh.setLightsArray(j);
     //print lights array.
