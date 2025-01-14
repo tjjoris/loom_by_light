@@ -14,7 +14,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #include "SD.h"
 
 #define CHIP_SELECT 10
-#define NUM_LIGHTS 144
+#define NUM_LIGHTS 40
 
 class BitmapHandler {
   //instance variables
@@ -232,12 +232,12 @@ class BitmapHandler {
   */
   void setLightsArray(int pixelRow) {
     uint8_t pixelBuffer[3];
-    int pixelBufferCounter = 0;
+    int pixelBufferCounter = sizeof(pixelBuffer);
     int lightsArrayCounter = sizeof(pixelBuffer);;
     int shiftInByte = 0;
     int bytesPerRow;
     int displayedWidth, displayedHeight;
-    int pixelCol;
+    int pixelCol = 0;
     uint32_t pixelRowFileOffset;
     uint8_t r,g,b;
     if (!this->fileOK) {
@@ -258,51 +258,63 @@ class BitmapHandler {
 
     // image stored bottom to top, screen top to bottom
     pixelRowFileOffset = this->imageOffset + ((this->imageHeight - pixelRow - 1) * bytesPerRow);
-    // for (lightsArrayCounter = 0; lightsArrayCounter < (sizeof(lightsArray) / sizeof(lightsArray[0])); lightsArrayCounter++) {
-    //set read position to pixel row offset.
-    this->bmpFile.seek(pixelRowFileOffset);
+    for (lightsArrayCounter = 0; lightsArrayCounter < NUM_LIGHTS; lightsArrayCounter++) {
+      //set read position to pixel row offset.
+      this->bmpFile.seek(pixelRowFileOffset);
 
-    
-    // reset buffer
-    pixelBufferCounter = sizeof(pixelBuffer);
+      
 
-    // output pixels in row
-    // for (pixelCol = 0; pixelCol < displayedWidth; pixelCol ++) {
-    if (pixelBufferCounter >= sizeof(pixelBuffer)){
-      // need to read more from sd card
-      this->bmpFile.read(pixelBuffer, sizeof(pixelBuffer));
-      pixelBufferCounter = 0;
+      // pixel buffer filled, reset pixel buffer.
+      // for (pixelCol = 0; pixelCol < displayedWidth; pixelCol ++) {
+      if (pixelBufferCounter >= sizeof(pixelBuffer) - 1){
+        // need to read more from sd card
+        this->bmpFile.read(pixelBuffer, sizeof(pixelBuffer));
+        pixelBufferCounter = 0;
+        pixelCol ++;
+      } else {
+        pixelBufferCounter ++;
+      }
+
+      //if lights array count is higher than image width set pixel buffer values to 0.
+      if (lightsArrayCounter >= imageWidth) {
+        // for (int i=0; i<3; i++) {
+          pixelBuffer[pixelBufferCounter] = 0;
+        // }
+      }
+      
+      //pixel buffer maxed, save pixel
+      if (pixelBufferCounter >= sizeof(pixelBufferCounter)) {
+        // get next pixel colours
+        b = pixelBuffer[0];
+        g = pixelBuffer[1];
+        r = pixelBuffer[2];
+        //check if pixel is true. 
+        bool pixelTrue = isPixelTrue(b, r, g);
+        pixelTrue = (pixelTrue & (lightsArrayCounter <= imageWidth - 1));
+        lightsArray[lightsArrayCounter] = (lightsArray[lightsArrayCounter] | (pixelTrue << shiftInByte));
+      }
+
+      if (shiftInByte < 7){
+        shiftInByte ++;
+      } else {
+        shiftInByte = 0;
+        // lightsArrayCounter ++;
+      }
+      //debug
+      Serial.print(" bytes per row ");
+      Serial.print(bytesPerRow);
+      Serial.print(" pixel row ");
+      Serial.print(pixelRow);
+      Serial.print(" pixel row file offset ");
+      Serial.print(pixelRowFileOffset);
+      Serial.print(" shiftInByte ");
+      Serial.print(shiftInByte);
+      Serial.print(" lightsArrayCounter ");
+      Serial.print(lightsArrayCounter);
+      Serial.print(" pixelCol ");
+      Serial.println(pixelCol);
+
     }
-    
-    // get next pixel colours
-    b = pixelBuffer[pixelBufferCounter++];
-    g = pixelBuffer[pixelBufferCounter++];
-    r = pixelBuffer[pixelBufferCounter++];
-
-    //debug
-    Serial.print(" pixel row file offset ");
-    Serial.print(pixelRowFileOffset);
-    Serial.print(" shiftInByte ");
-    Serial.print(shiftInByte);
-    Serial.print(" lights array counter ");
-    Serial.print(lightsArrayCounter);
-    Serial.print(" lightsArrayCounter ");
-    Serial.print(lightsArrayCounter);
-    Serial.print(" pixelCol ");
-    Serial.println(pixelCol);
-
-    //check if pixel is true. 
-    bool pixelTrue = isPixelTrue(b, r, g);
-    pixelTrue = (pixelTrue & (lightsArrayCounter <= imageWidth - 1));
-    lightsArray[lightsArrayCounter] = (lightsArray[lightsArrayCounter] | (pixelTrue << shiftInByte));
-    if (shiftInByte < 7){
-      shiftInByte ++;
-    } else {
-      shiftInByte = 0;
-      lightsArrayCounter ++;
-      pixelCol ++;
-    }
-    // }
   }
 
   /**
@@ -350,7 +362,7 @@ void setup() {
   //create bitmap handler object, and pass it the bitmap to read.
   BitmapHandler bmh = BitmapHandler("bitmap.bmp");
   bmh.serialPrintHeaders();
-  for (int j=0; j<bmh.imageHeight; j++) {
+  for (int j=0; j<2; j++) {
     //print a row in of the pixel
     bmh.setLightsArray(j);
     //print lights array.
