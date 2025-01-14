@@ -238,22 +238,20 @@ class BitmapHandler {
     }
 
   /**
-  *is passed the lights array and passed the row number, returns an array of bytes, representing if each pixel is true or
+  *is passed a row number, sets array of bytes, representing if each pixel is true or
   *false in that row.
   */
   void setLightsArray(int pixelRow) {
-    uint8_t pixelBuffer[3];
-    int pixelBufferSize = 3;
-    int pixelBufferCounter = sizeof(pixelBuffer);
+    int pixelBufferSize = 3; //the size of the pixel buffer array
+    uint8_t pixelBuffer[pixelBufferSize]; //the pixel buffer array which is used to read from the sd card
     int numLightsCounter =0; //counter for each light
     int lightsArrayCounter = 0; //counter for each byte int he lights array
-    int shiftInByte = 0;
-    int initialBinaryShift = 0;
-    int numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4);
-    int bytesPerRow;
-    byte byteForLightsArray = 0;
+    int shiftInByte = 0; //the needed binary shift to store binary values in the bit.
+    int initialBinaryShift = 0; //this is used for the shifting of the initial byte in the lights array.
+    int numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4); //the empty bytes in a row, becase a row must be a multiple of 4 bytes.
+    int bytesPerRow; //number of bytes in a row.
+    byte byteForLightsArray = 0; //the byte used to store bits for the lights array.
     // int displayedWidth, displayedHeight;
-    int pixelCol = 0;
     uint32_t pixelRowFileOffset;
     uint8_t r,g,b;
     if (!this->fileOK) {
@@ -268,10 +266,6 @@ class BitmapHandler {
     }
     // bytes per row rounded up to next 4 byte boundary
     bytesPerRow = (3 * this->imageWidth) + numEmptyBytesPerRow;
-      
-    // // open file
-    // this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
-
     //find the initial binary shift
     initialBinaryShift = 8 - imageWidth;
     if (initialBinaryShift < 0) {
@@ -279,103 +273,26 @@ class BitmapHandler {
     }
     // image stored bottom to top, screen top to bottom
     pixelRowFileOffset = this->imageOffset + ((this->imageHeight - pixelRow - 1) * bytesPerRow);
-
-    //debug
-    
-      // Serial.print(" pixel row file offset ");
-      // Serial.print(pixelRowFileOffset);
-      // Serial.print(" ");
-      // Serial.print(" bytes per row ");
-      // Serial.print(bytesPerRow);
-      // Serial.print(" pixel row ");
-      // Serial.print(pixelRow);
-
     this->bmpFile.seek(pixelRowFileOffset);
     for (numLightsCounter = 0; numLightsCounter < NUM_LIGHTS; numLightsCounter++) {
-      //set read position to pixel row offset.
-      // this->bmpFile.seek(pixelRowFileOffset);
-
-      
-
-      // pixel buffer filled, reset pixel buffer.
-      // for (pixelCol = 0; pixelCol < displayedWidth; pixelCol ++) {
-      // if (pixelBufferCounter >= sizeof(pixelBuffer) - 1){
       //only read if within image bounds.
-      if (pixelCol < imageWidth) {
-        //seek at new location
-        // this->bmpFile.seek(pixelRowFileOffset);
-        // need to read more from sd card
+      if (numLightsCounter < imageWidth) {
         this->bmpFile.read(pixelBuffer, pixelBufferSize);
-        // pixelBufferCounter = 0;
-        //debug
-        // Serial.print(" pixels ");
-        // Serial.print(pixelBuffer[0]);
-        // Serial.print(pixelBuffer[1]);
-        // Serial.print(pixelBuffer[2]);
         //increase seek offset.
         pixelRowFileOffset += pixelBufferSize;
-        pixelCol ++;
       }
-      // } else {
-      //   pixelBufferCounter ++;
-      // }
-
-      
-      //pixel buffer maxed, save pixel
-      // if (pixelBufferCounter >= sizeof(pixelBufferCounter)) {
       // get next pixel colours
       b = pixelBuffer[0];
       g = pixelBuffer[1];
       r = pixelBuffer[2];
       //check if pixel is true. 
       bool pixelTrue = isPixelTrue(b, r, g);
-      //debug if pixel true
-      // Serial.print(" pixel true ");
-      // Serial.print(pixelTrue);
-      // if ((pixelRow == 15)) {
-      //   Serial.print(" r ");
-      //   Serial.print(r);
-      //   Serial.print(" b ");
-      //   Serial.print(b);
-      //   Serial.print(" g ");
-      //   Serial.print(g);
-      // }
-
-      //debug saturation
-      // Serial.print(" saturation ");
-      // Serial.print(pixelBuffer[pixelBufferCounter]);
-      // Serial.print(" column ");
-      // Serial.print(pixelCol);
-      // Serial.print(" colour ");
-      // Serial.print(pixelBufferCounter);
-      // Serial.print(" true ");
-      // Serial.print(pixelTrue);
-      // Serial.println();
-      // if (pixelTrue) {
-      //   Serial.print(" pixelCol T");
-      //   Serial.println(pixelCol);
-      // }
-      // Serial.print(" num lights counter ");
-      // Serial.print(numLightsCounter);
       pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1));
-      
-      // if ((pixelRow == 0) && (1)) {
-      //   Serial.print(" numLightsCounter ");
-      //   Serial.print(numLightsCounter);
-      //   Serial.print(" shiftInByte ");
-      //   Serial.print(shiftInByte);
-      //   Serial.print(" pixelTrue ");
-      //   Serial.print(pixelTrue);
-      //   Serial.println();
-      // }
       //add bit to byte
       byteForLightsArray = byteForLightsArray | (pixelTrue << ((7 - shiftInByte - initialBinaryShift)));
       shiftInByte ++;
-      // lightsArray[lightsArrayCounter]= (lightsArray[lightsArrayCounter] | (pixelTrue << shiftInByte));
-      // }
 
       if (shiftInByte <= 7){
-        // shiftInByte ++;
       } else {
         //set byte to lights array
         lightsArray[lightsArrayCounter] = byteForLightsArray;
@@ -384,22 +301,6 @@ class BitmapHandler {
         byteForLightsArray = 0;
         initialBinaryShift = 0;
       }
-      //debug
-      // Serial.print(" bytes per row ");
-      // Serial.print(bytesPerRow);
-      // Serial.print(" pixel row ");
-      // Serial.print(pixelRow);
-      // Serial.print(" pixel row file offset ");
-      // Serial.print(pixelRowFileOffset);
-      // Serial.print(" pixel buffer " );
-      // Serial.print(pixelBufferCounter);
-      // Serial.print(" shiftInByte ");
-      // Serial.print(shiftInByte);
-      // Serial.print(" lightsArrayCounter ");
-      // Serial.print(lightsArrayCounter);
-      // Serial.print(" pixelCol ");
-      // Serial.println(pixelCol);
-
     }
   }
 
