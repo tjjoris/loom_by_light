@@ -267,7 +267,8 @@ class BitmapHandler {
     // bytes per row rounded up to next 4 byte boundary
     bytesPerRow = (3 * this->imageWidth) + numEmptyBytesPerRow;
     //find the initial binary shift
-    initialBinaryShift = calculateInitialBinaryShift();
+    initialBinaryShift = calculateInitialBinaryShift(imageWidth);
+
     // image stored bottom to top, screen top to bottom
     pixelRowFileOffset = this->imageOffset + ((this->imageHeight - pixelRow - 1) * bytesPerRow);
     this->bmpFile.seek(pixelRowFileOffset);
@@ -305,7 +306,7 @@ class BitmapHandler {
   *this find the initial binary shift which additionally shifts the 
   * binary values of the first byte in the lights array.
   */
-  int calculateInitialBinaryShift() {
+  int calculateInitialBinaryShift(int imageWidth) {
       int initialBinaryShift = 8 - imageWidth;
     if (initialBinaryShift < 0) {
       initialBinaryShift = 0;
