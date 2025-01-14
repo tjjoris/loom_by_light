@@ -338,12 +338,21 @@ class BitmapHandler {
       // Serial.print(numLightsCounter);
       pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1));
       //add bit to byte
-      byteForLightsArray = byteForLightsArray | (pixelTrue << (shiftInByte + initialBinaryShift));
+      if ((pixelRow == 0) && (1)) {
+        Serial.print(" numLightsCounter ");
+        Serial.print(numLightsCounter);
+        Serial.print(" shiftInByte ");
+        Serial.print(shiftInByte);
+        Serial.print(" pixelTrue ");
+        Serial.print(pixelTrue);
+        Serial.println();
+      }
+      byteForLightsArray = byteForLightsArray | (pixelTrue << ((7 - shiftInByte - initialBinaryShift)));
       shiftInByte ++;
       // lightsArray[lightsArrayCounter]= (lightsArray[lightsArrayCounter] | (pixelTrue << shiftInByte));
       // }
 
-      if (shiftInByte < 7){
+      if (shiftInByte <= 7){
         // shiftInByte ++;
       } else {
         //set byte to lights array
