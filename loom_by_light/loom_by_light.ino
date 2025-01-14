@@ -237,6 +237,7 @@ class BitmapHandler {
     int lightsArrayCounter = 0;
     int shiftInByte = 0;
     int bytesPerRow;
+    byte byteForLightsArray = 0;
     int displayedWidth, displayedHeight;
     int pixelCol = 0;
     uint32_t pixelRowFileOffset;
@@ -276,12 +277,6 @@ class BitmapHandler {
         pixelBufferCounter ++;
       }
 
-      //if lights array count is higher than image width set pixel buffer values to 0.
-      if (numLightsCounter >= imageWidth) {
-        // for (int i=0; i<3; i++) {
-          pixelBuffer[pixelBufferCounter] = 0;
-        // }
-      }
       
       //pixel buffer maxed, save pixel
       if (pixelBufferCounter >= sizeof(pixelBufferCounter)) {
@@ -292,19 +287,26 @@ class BitmapHandler {
         //check if pixel is true. 
         bool pixelTrue = isPixelTrue(b, r, g);
         //debug if pixel true
+        Serial.print(" is pixel true ");
+        Serial.print(pixelTrue);
         if (pixelTrue) {
           Serial.print(" pixelCol ");
           Serial.println(pixelCol);
         }
         pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1));
-        lightsArray[lightsArrayCounter]= (lightsArray[lightsArrayCounter] | (pixelTrue << shiftInByte));
+        //add bit to byte
+        byteForLightsArray = byteForLightsArray | (pixelTrue << shiftInByte);
+        // lightsArray[lightsArrayCounter]= (lightsArray[lightsArrayCounter] | (pixelTrue << shiftInByte));
       }
 
       if (shiftInByte < 7){
         shiftInByte ++;
       } else {
+        //set byte to lights array
+        lightsArray[lightsArrayCounter] = byteForLightsArray;
         shiftInByte = 0;
         lightsArrayCounter ++;
+        byteForLightsArray = 0;
       }
       //debug
       // Serial.print(" bytes per row ");
