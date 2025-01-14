@@ -234,8 +234,8 @@ class BitmapHandler {
     uint8_t pixelBuffer[3];
     int pixelBufferSize = 3;
     int pixelBufferCounter = sizeof(pixelBuffer);
-    int numLightsCounter =0;
-    int lightsArrayCounter = 0;
+    int numLightsCounter =0; //counter for each light
+    int lightsArrayCounter = 0; //counter for each byte int he lights array
     int shiftInByte = 0;
     int initialBinaryShift = 0;
     int numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4);
@@ -271,16 +271,18 @@ class BitmapHandler {
 
     //debug
     
-      // Serial.print(" pixel row file offset ");
-      // Serial.print(pixelRowFileOffset);
+      Serial.print(" pixel row file offset ");
+      Serial.print(pixelRowFileOffset);
+      Serial.print(" ");
       // Serial.print(" bytes per row ");
       // Serial.print(bytesPerRow);
       // Serial.print(" pixel row ");
       // Serial.print(pixelRow);
 
+    this->bmpFile.seek(pixelRowFileOffset);
     for (numLightsCounter = 0; numLightsCounter < NUM_LIGHTS; numLightsCounter++) {
       //set read position to pixel row offset.
-      this->bmpFile.seek(pixelRowFileOffset);
+      // this->bmpFile.seek(pixelRowFileOffset);
 
       
 
@@ -290,7 +292,7 @@ class BitmapHandler {
       //only read if within image bounds.
       if (pixelCol < imageWidth) {
         //seek at new location
-        this->bmpFile.seek(pixelRowFileOffset);
+        // this->bmpFile.seek(pixelRowFileOffset);
         // need to read more from sd card
         this->bmpFile.read(pixelBuffer, pixelBufferSize);
         // pixelBufferCounter = 0;
@@ -319,6 +321,14 @@ class BitmapHandler {
       //debug if pixel true
       // Serial.print(" pixel true ");
       // Serial.print(pixelTrue);
+      // if ((pixelRow == 15)) {
+      //   Serial.print(" r ");
+      //   Serial.print(r);
+      //   Serial.print(" b ");
+      //   Serial.print(b);
+      //   Serial.print(" g ");
+      //   Serial.print(g);
+      // }
 
       //debug saturation
       // Serial.print(" saturation ");
@@ -337,16 +347,17 @@ class BitmapHandler {
       // Serial.print(" num lights counter ");
       // Serial.print(numLightsCounter);
       pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1));
+      
+      // if ((pixelRow == 0) && (1)) {
+      //   Serial.print(" numLightsCounter ");
+      //   Serial.print(numLightsCounter);
+      //   Serial.print(" shiftInByte ");
+      //   Serial.print(shiftInByte);
+      //   Serial.print(" pixelTrue ");
+      //   Serial.print(pixelTrue);
+      //   Serial.println();
+      // }
       //add bit to byte
-      if ((pixelRow == 0) && (1)) {
-        Serial.print(" numLightsCounter ");
-        Serial.print(numLightsCounter);
-        Serial.print(" shiftInByte ");
-        Serial.print(shiftInByte);
-        Serial.print(" pixelTrue ");
-        Serial.print(pixelTrue);
-        Serial.println();
-      }
       byteForLightsArray = byteForLightsArray | (pixelTrue << ((7 - shiftInByte - initialBinaryShift)));
       shiftInByte ++;
       // lightsArray[lightsArrayCounter]= (lightsArray[lightsArrayCounter] | (pixelTrue << shiftInByte));
