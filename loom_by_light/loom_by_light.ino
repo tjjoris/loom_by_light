@@ -282,9 +282,9 @@ class BitmapHandler {
 
     //debug
     
-      Serial.print(" pixel row file offset ");
-      Serial.print(pixelRowFileOffset);
-      Serial.print(" ");
+      // Serial.print(" pixel row file offset ");
+      // Serial.print(pixelRowFileOffset);
+      // Serial.print(" ");
       // Serial.print(" bytes per row ");
       // Serial.print(bytesPerRow);
       // Serial.print(" pixel row ");
@@ -429,7 +429,7 @@ class BitmapHandler {
     // Serial.print(" red int ");
     // Serial.print(redInt);
     // Serial.println();
-    if (totalInt >= 384) {
+    if (totalInt < 384) {
       return true;
     }
     return false;
@@ -457,7 +457,14 @@ void initializeCard() {
 void printBinary(byte b) {
    for (int i = 7; i >= 0; i-- )
   {
-    Serial.print((b >> i) & 0X01);//shift and select first bit
+    // Serial.print((b >> i) & 0X01);//shift and select first bit
+    bool myBool = ((b >> i) & 0X01);//shift and select first bit
+    if (myBool) {
+      Serial.write(1);
+    }
+    else {
+      Serial.print(" ");
+    }
   }
 }
 
