@@ -4,10 +4,10 @@
 for a custom loom, which allows the user to manually choose which of 2 colours to use on each loom heddle, 
 *thereby creating custom 2d loom images based off a bitmap.
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, the organizer of the project.
-*some of the code was modified after being taken from bitsnbytes.co.uk:
+*some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-January-13
+*@date 2025-January-14
 */
 
 #include <SPI.h>
@@ -17,18 +17,17 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define NUM_LIGHTS 40
 
 class BitmapHandler {
-  //instance variables
+  //instance variables:
   private:
-  bool fileOK = false; //if file is ok to use
-  File bmpFile; //the file itself
-  String bmpFilename; //the file name
+    bool fileOK = false; //if file is ok to use
+    File bmpFile; //the file itself
+    String bmpFilename; //the file name
 
-    public:
+  public:
 
     const int lightsArraySize = NUM_LIGHTS / 8;
     //the byte array to store lights binary values.
     byte lightsArray[NUM_LIGHTS / 8];
-    
     // BMP header fields
     uint16_t headerField;
     uint32_t fileSize;
@@ -45,11 +44,11 @@ class BitmapHandler {
     uint32_t yPixelsPerMeter;
     uint32_t totalColors;
     uint32_t importantColors;
-
-
-  /**
-  *read a byte and return it as an unsigned 8 bit int.
-  */
+    /**
+    *read a byte and return it as an unsigned 8 bit int.
+    * code was sourced from: 
+    *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+    */
     uint8_t read8Bit(){
       if (!this->bmpFile) {
        return 0;
@@ -59,9 +58,11 @@ class BitmapHandler {
       }
     }
 
-  /**
-  *read 2 bytes, and return them as an unsigned 16 bit int.
-  */
+    /**
+    *read 2 bytes, and return them as an unsigned 16 bit int.
+    * code sourced from: 
+    *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+    */
     uint16_t read16Bit(){
       uint16_t lsb, msb;
       if (!this->bmpFile) {
@@ -74,9 +75,11 @@ class BitmapHandler {
       }
     }
 
-/**
-*read 4 bytes, an return them as an unsigned 32 bit int.
-*/
+    /**
+    *read 4 bytes, an return them as an unsigned 32 bit int.
+    * code was sourced from: 
+    *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+    */
     uint32_t read32Bit(){
       uint32_t lsb, b2, b3, msb;
       if (!this->bmpFile) {
@@ -92,13 +95,19 @@ class BitmapHandler {
     }
 
     /**
-    *attempts to open file, and if opened, reads the headers, then checks the headers, then prints ok message.
+    *constructor, sets instance variables for filename.
     */
     BitmapHandler(String filename){
       this->fileOK = false;
       this->bmpFilename = filename;
-      // this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
-      openFile();
+    }
+
+    /**
+    *verify the opened file.
+    * code modified after being sourced from: 
+    *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+    */
+    bool verifyFile() {
       if (!this->bmpFile) {
         Serial.print(F("BitmapHandler : Unable to open file "));
         Serial.println(this->bmpFilename);
@@ -120,13 +129,13 @@ class BitmapHandler {
             this->fileOK = true;
           }       
         }
-        // close file
-        // this->bmpFile.close();
       }
     }
 
     /**
     *read file headers from file and set instance variables.
+    * code modified after being sourced from: 
+    *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
     */
     bool readFileHeaders(){
       if (this->bmpFile) {
@@ -152,8 +161,6 @@ class BitmapHandler {
         this->yPixelsPerMeter = this->read32Bit();
         this->totalColors = this->read32Bit();
         this->importantColors = this->read32Bit();
-
-        // close file
         return true;
       }
       else {
@@ -163,6 +170,8 @@ class BitmapHandler {
 
     /**
     *check file header values are valid.
+    * code was sourced from: 
+    *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
     */
     bool checkFileHeaders(){
 
@@ -192,6 +201,8 @@ class BitmapHandler {
 
     /**
     *print file hader values to serial.
+    * code sourced from: 
+    *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
     */
     void serialPrintHeaders() {
       Serial.print(F("filename : "));
@@ -227,15 +238,27 @@ class BitmapHandler {
       Serial.println(this->importantColors);
     }
 
-    void openFile() {
-    // open file
+    /**
+    *open the file, print an error message if it is not opened. return true if the file is opened, otherwise false.
+    */
+    bool openFile() {
     this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
+    if (!this->bmpFile) {
+        Serial.print(F("BitmapHandler : Unable to open file "));
+        Serial.println(this->bmpFilename);
+        this->fileOK = false;
+        return false;
+      }
+      return true;
     }
 
+    /**
+    *close the file.
+    */
     void closeFile() {
-      //close file
       this->bmpFile.close();
     }
+
 
   /**
   *is passed a row number, sets array of bytes, representing if each pixel is true or
@@ -348,43 +371,47 @@ void initializeCard() {
 }
 
 /**
-*prints a byte as a binary string, source: 
+*prints a byte as a binary string, reference source: 
 *https://forum.arduino.cc/t/from-byte-to-binary-conversion-solved/341856/5
 */
 void printBinary(byte b) {
    for (int i = 7; i >= 0; i-- )
   {
-    // Serial.print((b >> i) & 0X01);//shift and select first bit
-    bool myBool = ((b >> i) & 0X01);//shift and select first bit
+    bool myBool = ((b >> i) & 0X01);//convert bit we at index to boolean.
     if (myBool) {
-      Serial.write(1);
+      Serial.write(1); //if true write as a character.
     }
     else {
-      Serial.print(" ");
+      Serial.print(" "); //if false, leave an empty space.
     }
   }
 }
 
 void setup() {
-  // put your setup code here, to run once:
   //set serial to dispaly on ide
   Serial.begin(9600);
+  //initialize the SD card
   initializeCard();
   //create bitmap handler object, and pass it the bitmap to read.
   BitmapHandler bmh = BitmapHandler("bitmap.bmp");
-  // bmh.openFile("bitmap.bmp");
+  //open the file
+  bmh.openFile();
+  //verify file, this includes reading the headers which is necessary to decode the bitmap.
+  bmh.verifyFile();
+  //print the headers.
   bmh.serialPrintHeaders();
+  //loop for each row.
   for (int j=0; j< bmh.imageHeight; j++) {
-    //print a row in of the pixel
+    //set the lights array.
     bmh.setLightsArray(j);
-    //print lights array.
-    
+    //loop for each column.
     for (int i = 0; i<bmh.lightsArraySize; i++) {
+      //print the current byte element in the lights array.
       printBinary(bmh.lightsArray[i]);
     }
-    Serial.println();
+    Serial.println(); //new line
   }
-  bmh.closeFile();
+  bmh.closeFile(); //close the file
 }
 
 void loop() {
