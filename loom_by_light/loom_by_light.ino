@@ -20,6 +20,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define CHIP_SELECT 10
 #define NUM_LIGHTS 144
 
+
 /**
 lblInterace - loom by light interface, displays the lcd output on a 16 x 2 display
 and reads the input of the buttons. the pin layout can be configured to work with 
@@ -158,6 +159,15 @@ class BitmapHandler {
   uint32_t totalColors;
   uint32_t importantColors;
 
+  
+  /**
+  *constructor, sets instance variables for filename.
+  */
+  BitmapHandler(String filename){
+    this->fileOK = false;
+    this->bmpFilename = filename;
+  }
+
   /**
   *read a byte and return it as an unsigned 8 bit int.
   * code was sourced from: 
@@ -206,14 +216,6 @@ class BitmapHandler {
       msb = this->bmpFile.read();
       return (msb<<24) + (b3<<16) + (b2<<8) + lsb;
     }
-  }
-
-  /**
-  *constructor, sets instance variables for filename.
-  */
-  BitmapHandler(String filename){
-    this->fileOK = false;
-    this->bmpFilename = filename;
   }
 
   /**
@@ -500,6 +502,11 @@ void printBinary(byte b) {
   }
 }
 
+//global class variables:
+LblInterface * lblInterface;
+BitmapHandler * bmh;
+
+
 /**
 *creates bitmap handler object, then opens bitmap file, reads the headers, then loops each row in the bitmap
 *and decodes each row, printing the binary values based on saturation.
@@ -508,43 +515,46 @@ void setup() {
   //set serial to dispaly on ide
   Serial.begin(9600);
   //loom by light interface object.
-  LblInterface lblInterface = LblInterface();
-  while(lblInterface.update() != 2) { //loop main program.
-    lblInterface.setMessage("hello");
-  }
-  while(1) {
-    lblInterface.setMessage("world");
-    lblInterface.update();
-  }
-
-
+  lblInterface = new LblInterface();
 
   //initialize the SD card
   initializeCard();
   //create bitmap handler object, and pass it the bitmap to read.
-  BitmapHandler bmh = BitmapHandler("bitmap.bmp");
+  bmh = new BitmapHandler("bitmap.bmp");
   //open the file
-  bmh.openFile();
+  bmh->openFile();
   //verify file, this includes reading the headers which is necessary to decode the bitmap.
-  if (bmh.verifyFile()) {
+  if (bmh->verifyFile()) {
     //print the headers.
-    bmh.serialPrintHeaders();
+    bmh->serialPrintHeaders();
     //loop for each row.
-    for (int j=0; j< bmh.imageHeight; j++) {
+    for (int j=0; j< bmh->imageHeight; j++) {
       //set the lights array.
-      bmh.setLightsArray(j);
+      bmh->setLightsArray(j);
       //loop for each column.
-      for (int i = 0; i<bmh.lightsArraySize; i++) {
+      for (int i = 0; i<bmh->lightsArraySize; i++) {
         //print the current byte element in the lights array.
-        printBinary(bmh.lightsArray[i]);
+        printBinary(bmh->lightsArray[i]);
       }
       Serial.println(); //new line
     }
   }
-  bmh.closeFile(); //close the file
+  bmh->closeFile(); //close the file
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  
+  while(lblInterface->update() != 2) { //loop main program.
+    String message = "Width: ";
+    message += bmh->imageWidth;
+    message += " Height: ";
+    message += bmh->imageHeight;
+    lblInterface->setMessage(message);
+    lblInterface->update();
+  }
+  while(1) {
+    lblInterface->setMessage("world");
+    lblInterface->update();
+  }
 
 }
