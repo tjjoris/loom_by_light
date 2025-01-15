@@ -540,7 +540,7 @@ void showLightsForRow() {
 void printRow() {
   for (int i = 0; i<bmh->lightsArraySize; i++) {
     //print the current byte element in the lights array.
-    printBinary(bmh->lightsArray[bmh->currentRow]);
+    printBinary(bmh->lightsArray[i]);
   }
 }
 
@@ -565,19 +565,19 @@ void setup() {
     //print the headers.
     bmh->serialPrintHeaders();
 
-    // loop for each row.
-    for (int j=0; j< bmh->imageHeight; j++) {
-      //set the lights array.
-      bmh->setLightsArray(j);
-      //loop for each column.
-      for (int i = 0; i<bmh->lightsArraySize; i++) {
-        //print the current byte element in the lights array.
+    // // loop for each row.
+    // for (int j=0; j< bmh->imageHeight; j++) {
+    //   //set the lights array.
+    //   bmh->setLightsArray(j);
+    //   //loop for each column.
+    //   for (int i = 0; i<bmh->lightsArraySize; i++) {
+    //     //print the current byte element in the lights array.
         
-        printBinary(bmh->lightsArray[i]);
-      }
-      Serial.println(); //new line
-      // bmh->incrementRow();
-    }
+    //     printBinary(bmh->lightsArray[i]);
+    //   }
+    //   Serial.println(); //new line
+    //   // bmh->incrementRow();
+    // }
   }
   // bmh->closeFile(); //close the file
 }
