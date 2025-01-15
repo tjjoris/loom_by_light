@@ -14,7 +14,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #include "SD.h"
 
 #define CHIP_SELECT 10
-#define NUM_LIGHTS 40
+#define NUM_LIGHTS 144
 
 class BitmapHandler {
   //instance variables:
@@ -113,24 +113,31 @@ class BitmapHandler {
       Serial.print(F("BitmapHandler : Unable to open file "));
       Serial.println(this->bmpFilename);
       this->fileOK = false;
+      return false;
     }
-    else {
-      if (!this->readFileHeaders()){
-        Serial.println(F("Unable to read file headers"));
-        this->fileOK = false;
-      }
-      else {
-        if (!this->checkFileHeaders()){
-          Serial.println(F("Not compatible file"));
-          this->fileOK = false;
-        }
-        else {
-          // all OK
-          Serial.println(F("BMP file all OK"));
-          this->fileOK = true;
-        }       
-      }
+    if (!this->readFileHeaders()){
+      Serial.println(F("Unable to read file headers"));
+      this->fileOK = false;
+      return false;
     }
+    if (!this->checkFileHeaders()){
+      Serial.println(F("Not compatible file"));
+      this->fileOK = false;
+      return false;
+    }
+    if (NUM_LIGHTS < imageWidth) {
+      Serial.println("image width greater than number of lights.");
+      this->fileOK = false;
+      return false;
+    }
+    if (lightsArraySize < NUM_LIGHTS / 8) {
+      Serial.println("lights array size was too small");
+      this->fileOK = false;
+    }
+    // all OK
+    Serial.println(F("BMP file all OK"));
+    this->fileOK = true;
+    return true;
   }
 
   /**
@@ -280,13 +287,6 @@ class BitmapHandler {
     if (!this->fileOK) {
       return false;
     }
-    if (NUM_LIGHTS < imageWidth) {
-      Serial.println("image width greater than number of lights.");
-      return false;
-    }
-    if (lightsArraySize < NUM_LIGHTS / 8) {
-      Serial.println("lights array size was too small");
-    }
     // bytes per row rounded up to next 4 byte boundary
     bytesPerRow = (3 * this->imageWidth) + numEmptyBytesPerRow;
     //find the initial binary shift
@@ -401,19 +401,20 @@ void setup() {
   //open the file
   bmh.openFile();
   //verify file, this includes reading the headers which is necessary to decode the bitmap.
-  bmh.verifyFile();
-  //print the headers.
-  bmh.serialPrintHeaders();
-  //loop for each row.
-  for (int j=0; j< bmh.imageHeight; j++) {
-    //set the lights array.
-    bmh.setLightsArray(j);
-    //loop for each column.
-    for (int i = 0; i<bmh.lightsArraySize; i++) {
-      //print the current byte element in the lights array.
-      printBinary(bmh.lightsArray[i]);
+  if (bmh.verifyFile()) {
+    //print the headers.
+    bmh.serialPrintHeaders();
+    //loop for each row.
+    for (int j=0; j< bmh.imageHeight; j++) {
+      //set the lights array.
+      bmh.setLightsArray(j);
+      //loop for each column.
+      for (int i = 0; i<bmh.lightsArraySize; i++) {
+        //print the current byte element in the lights array.
+        printBinary(bmh.lightsArray[i]);
+      }
+      Serial.println(); //new line
     }
-    Serial.println(); //new line
   }
   bmh.closeFile(); //close the file
 }
