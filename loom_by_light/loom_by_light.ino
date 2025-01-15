@@ -34,6 +34,10 @@ class LblInterface {
     LiquidCrystal lcd;
     const int charPerRow = 16; //the number of characters in a row on the lcd screen.
     const int charPerCol = 2; //the number of characters in a column on the lcd screen.
+    int timer = 0;
+    const int timerMax = 3000;
+    String origionalMessage;
+    String currentMessage;
 
     //constructor for LblInterface, also calls the constructor for lcd.
     LblInterface() : lcd(rs, en, d4, d5, d6, d7) {
@@ -50,7 +54,17 @@ class LblInterface {
     #define btnSELECT 0
     #define btnNONE   0
 
-    
+/**
+update the lcd, updating the display, and reading inputs.
+*/
+int update() {
+  updateLcd(100);
+  int input = readLcdButtons();
+  Serial.print(input);
+  return input;
+}
+
+
 // read the buttons
 int readLcdButtons()
 {
@@ -77,6 +91,42 @@ int readLcdButtons()
 
  return btnNONE;  // when all others fail, return this...
 }
+
+
+/**
+set the string message to display.
+*/
+  void setMessage(String message) {
+    this->origionalMessage = message;
+    this->currentMessage = message;
+  }
+
+/**
+update the lcd display and delay the amount.
+*/
+  void updateLcd(int delayAmount) {
+    int charCount = 0;
+    lcd.clear();
+    for (int row = 0; row < charPerCol; row++) {
+      lcd.setCursor(0, row);
+      for (int col = 0; col < charPerRow; col++) {
+        if (charCount < currentMessage.length()) {
+          lcd.write(currentMessage[charCount]);
+          charCount++;
+        }
+      }
+    }
+    if (timer >= timerMax) {
+      if (charCount < currentMessage.length()) {
+        currentMessage = currentMessage.substring(charCount);
+      } else {
+        currentMessage = origionalMessage;
+      }
+      timer = 0;
+    }
+    timer ++;
+    delay(delayAmount);
+  }
 
     /**
     displays a message of the passed string, uses recursion to extend it if 
@@ -491,10 +541,15 @@ void setup() {
   Serial.begin(9600);
   //loom by light interface object.
   LblInterface lblInterface = LblInterface();
-  while(1) { //loop main program.
-    lblInterface.displayMessage("Hello world");
-    delay(100);
+  while(lblInterface.update() != 2) { //loop main program.
+    lblInterface.setMessage("hello");
   }
+  while(1) {
+    lblInterface.setMessage("world");
+    lblInterface.update();
+  }
+
+
 
   //initialize the SD card
   initializeCard();
