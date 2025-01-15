@@ -45,14 +45,15 @@ class LblInterface {
       lcd.begin(charPerRow, charPerCol);
     }
     // define some values used by the panel and buttons
-    int lcd_key     = 0;
+    int buttonPressed     = 0;
+    int buttonSaved = 0;
     int adcKeyIn  = 0;
     int answer = 0;
-    #define btnRIGHT  0
+    #define btnRIGHT  4
     #define btnUP     1
     #define btnDOWN   2
-    #define btnLEFT   0
-    #define btnSELECT 0
+    #define btnLEFT   3
+    #define btnSELECT 5
     #define btnNONE   0
 
 /**
@@ -60,7 +61,7 @@ update the lcd, updating the display, and reading inputs.
 */
 int update() {
   updateLcd();
-  delay(500);
+  delay(50);
   int input = readLcdButtons();
   return input;
 }
@@ -82,13 +83,19 @@ int readLcdButtons()
 
 
  // we add approx 50 to those values and check to see if we are close
- if (adcKeyIn > 1000) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
+ if (adcKeyIn > 1000) buttonPressed = btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
  // For V1.1 us this threshold
- if (adcKeyIn < 50)   return btnRIGHT;  
- if (adcKeyIn < 250)  return btnUP; 
- if (adcKeyIn < 450)  return btnDOWN; 
- if (adcKeyIn < 650)  return btnLEFT; 
- if (adcKeyIn < 850)  return btnSELECT;  
+ else if (adcKeyIn < 50)   buttonPressed = btnRIGHT;  
+ else if (adcKeyIn < 250)  buttonPressed = btnUP; 
+ else if (adcKeyIn < 450)  buttonPressed = btnDOWN; 
+ else if (adcKeyIn < 650)  buttonPressed = btnLEFT; 
+ else if (adcKeyIn < 850)  buttonPressed = btnSELECT; 
+
+ if (buttonSaved != buttonPressed) {
+  buttonSaved = buttonPressed;
+  Serial.println(buttonSaved);
+  return buttonPressed;
+ } 
 
  return btnNONE;  // when all others fail, return this...
 }
