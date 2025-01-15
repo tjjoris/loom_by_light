@@ -51,6 +51,10 @@ class LblInterface {
     #define btnSELECT 0
     #define btnNONE   0
 
+    /**
+    displays a message of the passed string, uses recursion to extend it if 
+    its too long to fit on the lcd screen.
+    */
     void displayMessage(LiquidCrystal lcd, String message) {
       int charCount = 0;
       lcd.clear();
@@ -62,7 +66,14 @@ class LblInterface {
             charCount++;
           }
         }
-        Serial.println();
+      } 
+      Serial.print(charCount);
+      Serial.print(message.length());
+      delay(3000);
+      //use recursion to continue a message too long for the screen.
+      if (charCount < message.length() ) {
+        message = message.substring(charCount);
+        displayMessage(lcd, message);
       }
     }
     char validateChar(char charToValidate) {
@@ -461,7 +472,7 @@ void setup() {
     lcd.clear();
     // lcd.setCursor(0,0);
     // lcd.print("hi");
-    lblInterface.displayMessage(lcd, "hello world");
+    lblInterface.displayMessage(lcd, "Howdy ho, my oh my, what a great day it is to be me.");
     delay(100);
   }
 
