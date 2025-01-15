@@ -12,6 +12,8 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 
 #include <SPI.h>
 #include "SD.h"
+#include <AddressableLedStrip.h>
+
 
 #define CHIP_SELECT 10
 #define NUM_LIGHTS 144
@@ -394,6 +396,14 @@ void printBinary(byte b) {
 void setup() {
   //set serial to dispaly on ide
   Serial.begin(9600);
+
+  //test class
+  AddressableLedStrip addressableLedStrip("hello world!!");
+  Serial.println(addressableLedStrip.getMyString());
+
+  //infinate loop
+  while(1);
+
   //initialize the SD card
   initializeCard();
   //create bitmap handler object, and pass it the bitmap to read.
