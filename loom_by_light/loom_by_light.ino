@@ -20,16 +20,25 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define CHIP_SELECT 10
 #define NUM_LIGHTS 144
 
+/**
+lblInterace - loom by light interface, displays the lcd output on a 16 x 2 display
+and reads the input of the buttons. the pin layout can be configured to work with 
+a different display.
+*/
 class LblInterface {
-  // initialize the library by associating any needed LCD interface pin
-  // with the arduino pin number it is connected to
+ 
   public:
-    const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7;
-    LiquidCrystal lcd;
+
+    // initialize the library by associating any needed LCD interface pin
+    // with the arduino pin number it is connected to
+    // const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7;
+    // LiquidCrystal lcd;
+    const int charPerRow = 16; //the number of characters in a row on the lcd screen.
+    const int charPerCol = 2; //the number of characters in a column on the lcd screen.
 
     //constructor for LblInterface, also calls the constructor for lcd.
-    LblInterface() : lcd(rs, en, d4, d5, d6, d7) {
-      
+    LblInterface() {
+      // this->lcd = lcd;
     }
     // define some values used by the panel and buttons
     int lcd_key     = 0;
@@ -41,6 +50,27 @@ class LblInterface {
     #define btnLEFT   0
     #define btnSELECT 0
     #define btnNONE   0
+
+    void displayMessage(LiquidCrystal lcd, String message) {
+      int charCount = 0;
+      lcd.clear();
+      for (int row = 0; row < charPerCol; row++) {
+        lcd.setCursor(0, row);
+        for (int col = 0; col < charPerRow; col++) {
+          if (charCount < message.length()) {
+            lcd.print(message[charCount]);
+            charCount++;
+          }
+        }
+        Serial.println();
+      }
+    }
+    char validateChar(char charToValidate) {
+      if (charToValidate == 0) {
+        charToValidate = " ";
+      }
+      return charToValidate;
+    }
 };
 
 class BitmapHandler {
@@ -421,6 +451,19 @@ void printBinary(byte b) {
 void setup() {
   //set serial to dispaly on ide
   Serial.begin(9600);
+
+  
+  // lblInterface.displayMessage("hello world");
+  LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+  lcd.begin(16,2);
+  LblInterface lblInterface = LblInterface();
+  while(1) {
+    lcd.clear();
+    // lcd.setCursor(0,0);
+    // lcd.print("hi");
+    lblInterface.displayMessage(lcd, "hello world");
+    delay(100);
+  }
 
   //initialize the SD card
   initializeCard();
