@@ -26,19 +26,18 @@ and reads the input of the buttons. the pin layout can be configured to work wit
 a different display.
 */
 class LblInterface {
- 
   public:
 
     // initialize the library by associating any needed LCD interface pin
     // with the arduino pin number it is connected to
-    // const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7;
-    // LiquidCrystal lcd;
+    const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7;
+    LiquidCrystal lcd;
     const int charPerRow = 16; //the number of characters in a row on the lcd screen.
     const int charPerCol = 2; //the number of characters in a column on the lcd screen.
 
     //constructor for LblInterface, also calls the constructor for lcd.
-    LblInterface() {
-      // this->lcd = lcd;
+    LblInterface() : lcd(rs, en, d4, d5, d6, d7) {
+      lcd.begin(charPerRow, charPerCol);
     }
     // define some values used by the panel and buttons
     int lcd_key     = 0;
@@ -55,7 +54,7 @@ class LblInterface {
     displays a message of the passed string, uses recursion to extend it if 
     its too long to fit on the lcd screen.
     */
-    void displayMessage(LiquidCrystal lcd, String message) {
+    void displayMessage(String message) {
       int charCount = 0;
       lcd.clear();
       for (int row = 0; row < charPerCol; row++) {
@@ -73,7 +72,7 @@ class LblInterface {
       //use recursion to continue a message too long for the screen.
       if (charCount < message.length() ) {
         message = message.substring(charCount);
-        displayMessage(lcd, message);
+        displayMessage(message);
       }
     }
     char validateChar(char charToValidate) {
@@ -465,14 +464,12 @@ void setup() {
 
   
   // lblInterface.displayMessage("hello world");
-  LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-  lcd.begin(16,2);
+  // LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+  // lcd.begin(16,2);
   LblInterface lblInterface = LblInterface();
   while(1) {
-    lcd.clear();
-    // lcd.setCursor(0,0);
-    // lcd.print("hi");
-    lblInterface.displayMessage(lcd, "Howdy ho, my oh my, what a great day it is to be me.");
+    // lcd.clear();
+    lblInterface.displayMessage("Howdy ho, my oh my, what a great day it is to be me.");
     delay(100);
   }
 
