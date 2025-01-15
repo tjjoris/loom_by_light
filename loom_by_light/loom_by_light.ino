@@ -59,9 +59,9 @@ class LblInterface {
 update the lcd, updating the display, and reading inputs.
 */
 int update() {
-  updateLcd(100);
+  updateLcd();
+  delay(500);
   int input = readLcdButtons();
-  Serial.print(input);
   return input;
 }
 
@@ -103,9 +103,10 @@ set the string message to display.
   }
 
 /**
-update the lcd display and delay the amount.
+clear the lcd, and update it with the string message.
+If the message is too long, continue the message after a certain count.
 */
-  void updateLcd(int delayAmount) {
+  void updateLcd() {
     int charCount = 0;
     lcd.clear();
     for (int row = 0; row < charPerCol; row++) {
@@ -126,7 +127,6 @@ update the lcd display and delay the amount.
       timer = 0;
     }
     timer ++;
-    delay(delayAmount);
   }
 };
 
@@ -139,6 +139,7 @@ class BitmapHandler {
 
   public:
 
+  int currentRow; //current row of bitmap being displayed.
   const int lightsArraySize = NUM_LIGHTS / 8;
   //the byte array to store lights binary values.
   byte lightsArray[NUM_LIGHTS / 8];
@@ -166,6 +167,21 @@ class BitmapHandler {
   BitmapHandler(String filename){
     this->fileOK = false;
     this->bmpFilename = filename;
+    currentRow = 0;
+  }
+
+  void incrementRow() {
+    currentRow++;
+    if (currentRow >= imageHeight) {
+      currentRow = 0;
+    }
+  }
+
+  void decrementRow() {
+    currentRow--;
+    if (currentRow < 0) {
+      currentRow = imageHeight - 1;
+    }
   }
 
   /**
@@ -527,24 +543,25 @@ void setup() {
   if (bmh->verifyFile()) {
     //print the headers.
     bmh->serialPrintHeaders();
+
     //loop for each row.
-    for (int j=0; j< bmh->imageHeight; j++) {
-      //set the lights array.
-      bmh->setLightsArray(j);
-      //loop for each column.
-      for (int i = 0; i<bmh->lightsArraySize; i++) {
-        //print the current byte element in the lights array.
-        printBinary(bmh->lightsArray[i]);
-      }
-      Serial.println(); //new line
-    }
+  //   for (int j=0; j< bmh->imageHeight; j++) {
+  //     //set the lights array.
+  //     bmh->setLightsArray(j);
+  //     //loop for each column.
+  //     for (int i = 0; i<bmh->lightsArraySize; i++) {
+  //       //print the current byte element in the lights array.
+  //       printBinary(bmh->lightsArray[i]);
+  //     }
+  //     Serial.println(); //new line
+  //   }
   }
-  bmh->closeFile(); //close the file
+  // bmh->closeFile(); //close the file
 }
 
 void loop() {
-  
-  while(lblInterface->update() != 2) { //loop main program.
+  //intro, display width and height.
+  while(lblInterface->update() != 2) { 
     String message = "Width: ";
     message += bmh->imageWidth;
     message += " Height: ";
@@ -553,8 +570,16 @@ void loop() {
     lblInterface->update();
   }
   while(1) {
-    lblInterface->setMessage("world");
-    lblInterface->update();
+    String message = "current row:";
+    message += bmh->currentRow;
+    lblInterface->setMessage(message);
+    int input = lblInterface->update();
+    if (input == 1) {
+      bmh->incrementRow();
+    }
+    else if (input == 2) {
+      bmh->decrementRow();
+    }
   }
 
 }
