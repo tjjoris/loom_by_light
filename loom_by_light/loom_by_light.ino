@@ -17,8 +17,8 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #include <SD.h>
 
 
-#define CHIP_SELECT 10
-#define NUM_LIGHTS 144
+#define CHIP_SELECT 10 //the chip select used for the SD card.
+#define NUM_LIGHTS 144 //the number of lights on the light strip.
 
 
 /**
@@ -56,49 +56,46 @@ class LblInterface {
     #define btnSELECT 5
     #define btnNONE   0
 
-/**
-update the lcd, updating the display, and reading inputs.
-*/
-int update() {
-  updateLcd();
-  delay(50);
-  int input = readLcdButtons();
-  return input;
-}
+    /**
+    update the lcd, updating the display, and reading inputs.
+    */
+    int update() {
+      updateLcd();
+      delay(50);
+      int input = readLcdButtons();
+      return input;
+    }
 
 
-// read the buttons
-int readLcdButtons()
-{
- adcKeyIn = analogRead(0);      // read the value from the sensor 
- // the values that came with the program are: 0, 144, 329, 504, 741
- //my displayed values are:
- //1023 default
- //720/721 far left
- //480 left center
-//131 up
-//307 down
- //0 right center
- //far right 1023 reset
+    // read the buttons
+    int readLcdButtons()
+    {
+      adcKeyIn = analogRead(0);      // read the value from the sensor 
+      //my displayed values are:
+      //1023 default
+      //720/721 far left
+      //480 left center
+      //131 up
+      //307 down
+      //0 right center
+      //far right 1023 reset
 
+      // we add approx 50 to those values and check to see if we are close
+      if (adcKeyIn > 1000) buttonPressed = btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
+      // For V1.1 us this threshold
+      else if (adcKeyIn < 50)   buttonPressed = btnRIGHT;  
+      else if (adcKeyIn < 250)  buttonPressed = btnUP; 
+      else if (adcKeyIn < 450)  buttonPressed = btnDOWN; 
+      else if (adcKeyIn < 650)  buttonPressed = btnLEFT; 
+      else if (adcKeyIn < 850)  buttonPressed = btnSELECT; 
 
- // we add approx 50 to those values and check to see if we are close
- if (adcKeyIn > 1000) buttonPressed = btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
- // For V1.1 us this threshold
- else if (adcKeyIn < 50)   buttonPressed = btnRIGHT;  
- else if (adcKeyIn < 250)  buttonPressed = btnUP; 
- else if (adcKeyIn < 450)  buttonPressed = btnDOWN; 
- else if (adcKeyIn < 650)  buttonPressed = btnLEFT; 
- else if (adcKeyIn < 850)  buttonPressed = btnSELECT; 
-
- if (buttonSaved != buttonPressed) {
-  buttonSaved = buttonPressed;
-  Serial.println(buttonSaved);
-  return buttonPressed;
- } 
-
- return btnNONE;  // when all others fail, return this...
-}
+      //this check prevents the button from being repeated if it is held down.
+      if (buttonSaved != buttonPressed) {
+        buttonSaved = buttonPressed;
+        return buttonPressed;
+      } 
+      return btnNONE;  // when all others fail, return this...
+    }
 
 
 /**
@@ -137,6 +134,11 @@ If the message is too long, continue the message after a certain count.
   }
 };
 
+/**
+This class is for opening the bitmap on the SD card, and decoding it.
+it sets the lightsArray of bytes which stores the binary values of a specific
+row of pixels of the bitmap which have been converted based on their saturation.
+*/
 class BitmapHandler {
   //instance variables:
   private:
@@ -529,6 +531,18 @@ void printBinary(byte b) {
 LblInterface * lblInterface;
 BitmapHandler * bmh;
 
+void showLightsForRow() {
+  bmh->setLightsArray(bmh->currentRow);
+  printRow();
+  Serial.println();
+}
+
+void printRow() {
+  for (int i = 0; i<bmh->lightsArraySize; i++) {
+    //print the current byte element in the lights array.
+    printBinary(bmh->lightsArray[bmh->currentRow]);
+  }
+}
 
 /**
 *creates bitmap handler object, then opens bitmap file, reads the headers, then loops each row in the bitmap
@@ -551,17 +565,19 @@ void setup() {
     //print the headers.
     bmh->serialPrintHeaders();
 
-    //loop for each row.
-  //   for (int j=0; j< bmh->imageHeight; j++) {
-  //     //set the lights array.
-  //     bmh->setLightsArray(j);
-  //     //loop for each column.
-  //     for (int i = 0; i<bmh->lightsArraySize; i++) {
-  //       //print the current byte element in the lights array.
-  //       printBinary(bmh->lightsArray[i]);
-  //     }
-  //     Serial.println(); //new line
-  //   }
+    // loop for each row.
+    for (int j=0; j< bmh->imageHeight; j++) {
+      //set the lights array.
+      bmh->setLightsArray(j);
+      //loop for each column.
+      for (int i = 0; i<bmh->lightsArraySize; i++) {
+        //print the current byte element in the lights array.
+        
+        printBinary(bmh->lightsArray[i]);
+      }
+      Serial.println(); //new line
+      // bmh->incrementRow();
+    }
   }
   // bmh->closeFile(); //close the file
 }
@@ -576,6 +592,7 @@ void loop() {
     lblInterface->setMessage(message);
     lblInterface->update();
   }
+  showLightsForRow();
   while(1) {
     String message = "current row:";
     message += bmh->currentRow;
@@ -583,9 +600,11 @@ void loop() {
     int input = lblInterface->update();
     if (input == 1) {
       bmh->incrementRow();
+      showLightsForRow();
     }
     else if (input == 2) {
       bmh->decrementRow();
+      showLightsForRow();
     }
   }
 
