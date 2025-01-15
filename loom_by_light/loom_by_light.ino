@@ -1,4 +1,7 @@
+#include <LiquidCrystal.h>
+
 /**
+Required libraries: LiquidCrystal by Arduino, Adafruit, last used version: 1.0.7
 *this sketch is intended to load a bitmap from an sd card and display each row of the bitmap's pixels in a 
 *addressable light strip as one of two values based on the saturation of the pixel.
 *The purpose of this is for a custom loom, which allows the user to manually choose which of 2 colours to use
@@ -7,16 +10,38 @@
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-January-14
+*@date 2025-January-15
 */
 
 #include <SPI.h>
-#include "SD.h"
-#include <AddressableLedStrip.h>
+#include <SD.h>
 
 
 #define CHIP_SELECT 10
 #define NUM_LIGHTS 144
+
+class LblInterface {
+  // initialize the library by associating any needed LCD interface pin
+  // with the arduino pin number it is connected to
+  public:
+    const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7;
+    LiquidCrystal lcd;
+
+    //constructor for LblInterface, also calls the constructor for lcd.
+    LblInterface() : lcd(rs, en, d4, d5, d6, d7) {
+      
+    }
+    // define some values used by the panel and buttons
+    int lcd_key     = 0;
+    int adc_key_in  = 0;
+    int answer = 0;
+    #define btnRIGHT  0
+    #define btnUP     1
+    #define btnDOWN   2
+    #define btnLEFT   0
+    #define btnSELECT 0
+    #define btnNONE   0
+};
 
 class BitmapHandler {
   //instance variables:
@@ -396,13 +421,6 @@ void printBinary(byte b) {
 void setup() {
   //set serial to dispaly on ide
   Serial.begin(9600);
-
-  //test class
-  AddressableLedStrip addressableLedStrip("hello world!!");
-  Serial.println(addressableLedStrip.getMyString());
-
-  //infinate loop
-  while(1);
 
   //initialize the SD card
   initializeCard();
