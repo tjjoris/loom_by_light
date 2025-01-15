@@ -41,7 +41,7 @@ class LblInterface {
     }
     // define some values used by the panel and buttons
     int lcd_key     = 0;
-    int adc_key_in  = 0;
+    int adcKeyIn  = 0;
     int answer = 0;
     #define btnRIGHT  0
     #define btnUP     1
@@ -49,6 +49,34 @@ class LblInterface {
     #define btnLEFT   0
     #define btnSELECT 0
     #define btnNONE   0
+
+    
+// read the buttons
+int readLcdButtons()
+{
+ adcKeyIn = analogRead(0);      // read the value from the sensor 
+ // the values that came with the program are: 0, 144, 329, 504, 741
+ //my displayed values are:
+ //1023 default
+ //720/721 far left
+ //480 left center
+//131 up
+//307 down
+ //0 right center
+ //far right 1023 reset
+
+
+ // we add approx 50 to those values and check to see if we are close
+ if (adcKeyIn > 1000) return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
+ // For V1.1 us this threshold
+ if (adcKeyIn < 50)   return btnRIGHT;  
+ if (adcKeyIn < 250)  return btnUP; 
+ if (adcKeyIn < 450)  return btnDOWN; 
+ if (adcKeyIn < 650)  return btnLEFT; 
+ if (adcKeyIn < 850)  return btnSELECT;  
+
+ return btnNONE;  // when all others fail, return this...
+}
 
     /**
     displays a message of the passed string, uses recursion to extend it if 
@@ -461,15 +489,10 @@ void printBinary(byte b) {
 void setup() {
   //set serial to dispaly on ide
   Serial.begin(9600);
-
-  
-  // lblInterface.displayMessage("hello world");
-  // LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-  // lcd.begin(16,2);
+  //loom by light interface object.
   LblInterface lblInterface = LblInterface();
-  while(1) {
-    // lcd.clear();
-    lblInterface.displayMessage("Howdy ho, my oh my, what a great day it is to be me.");
+  while(1) { //loop main program.
+    lblInterface.displayMessage("Hello world");
     delay(100);
   }
 
