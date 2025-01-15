@@ -127,38 +127,6 @@ update the lcd display and delay the amount.
     timer ++;
     delay(delayAmount);
   }
-
-    /**
-    displays a message of the passed string, uses recursion to extend it if 
-    its too long to fit on the lcd screen.
-    */
-    void displayMessage(String message) {
-      int charCount = 0;
-      lcd.clear();
-      for (int row = 0; row < charPerCol; row++) {
-        lcd.setCursor(0, row);
-        for (int col = 0; col < charPerRow; col++) {
-          if (charCount < message.length()) {
-            lcd.print(message[charCount]);
-            charCount++;
-          }
-        }
-      } 
-      Serial.print(charCount);
-      Serial.print(message.length());
-      delay(3000);
-      //use recursion to continue a message too long for the screen.
-      if (charCount < message.length() ) {
-        message = message.substring(charCount);
-        displayMessage(message);
-      }
-    }
-    char validateChar(char charToValidate) {
-      if (charToValidate == 0) {
-        charToValidate = " ";
-      }
-      return charToValidate;
-    }
 };
 
 class BitmapHandler {
