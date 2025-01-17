@@ -514,6 +514,30 @@ class BitmapHandler {
     }
     return false;
   }
+
+  
+  /**
+  return true if bit at position in byte is 1,
+  for byte in array. Note the bit postion goes from left to right.
+  */
+  bool isTrueForBitInByteArray(int pixelIndex) {
+    int byteIndex = pixelIndex / 8;
+    int bitInByteIndex = (pixelIndex % (byteIndex * 8));
+    byte myByte = lightsArray[byteIndex];
+    bool isBitTrue = isBitTrueInByte(myByte, bitInByteIndex);
+    return isBitTrue;
+  }
+
+  
+  /**
+  return true if bit in byte is true at bit position, 
+  note: position goes from left to right.
+  */
+  bool isBitTrueInByte(byte myByte, int bitPos) {
+    bitPos = 7 - bitPos;
+    bool isBitTrue = ((myByte >> bitPos) & 0X01);
+    return isBitTrue;
+  }
 };
 
 /**
@@ -530,28 +554,27 @@ void initializeCard() {
   Serial.println("----------------------------\n");
 }
 
-/**
-return true if bit at position in byte is 1,
-for byte in array. Note the bit postion goes from left to right.
-*/
-bool isTrueForBitInByteArray(int pixelIndex) {
-  int byteIndex = pixelIndex / 8;
-  int bitInByteIndex = (pixelIndex % (byteIndex * 8));
-  //debug to make sure bit and byte indexes are right:
-    // Serial.print(" index ");
-    // Serial.print(pixelIndex);
-    // Serial.print(" byte index ");
-    // Serial.print(byteIndex);
-    // Serial.print(" bit in byte index ");
-    // Serial.print(bitInByteIndex);
-    // Serial.println();
-  // byte myByte = 
-}
+// /**
+// return true if bit at position in byte is 1,
+// for byte in array. Note the bit postion goes from left to right.
+// */
+// bool isTrueForBitInByteArray(int pixelIndex) {
+//   int byteIndex = pixelIndex / 8;
+//   int bitInByteIndex = (pixelIndex % (byteIndex * 8));
+//   byte myByte = lightsArray[byteIndex];
+//   bool isBitTrue = isBitTrueInByte(myByte, bitInByteIndex);
+//   return isBitTrue;
+// }
 
-/**
-return true if bit in byte is true at byte position, 
-note position goes from left to right.
-*/
+// /**
+// return true if bit in byte is true at bit position, 
+// note: position goes from left to right.
+// */
+// bool isBitTrueInByte(byte myByte, int bitPos) {
+//   bitPos = 7 - bitPos;
+//   bool isBitTrue = ((myByte >> i) & 0X01);
+//   return isBitTrue;
+// }
 
 /**
 *prints a byte as a binary string, reference source: 
@@ -567,6 +590,15 @@ void printBinary(byte b) {
     else {
       Serial.print(" "); //if false, leave an empty space.
     }
+  }
+}
+
+void printBool(bool boolToPrint) {
+  if (boolToPrint) {
+    Serial.write(1);
+  }
+  else {
+    Serial.print(" ");
   }
 }
 
@@ -586,10 +618,11 @@ gets the row from BitmapHandler and uses print binary to print it.
 it does this in order and does not need to know the position of each column on the row.
 */
 void printRow() {
-  for (int i = 0; i<bmh->lightsArraySize; i++) {
+  for (int i = 0; i< LED_COUNT; i++) {
     //print the current byte element in the lights array.
     // printBinary(bmh->lightsArray[i]);
-    isTrueForBitInByteArray(i);
+    bool isBitTrue = bmh->isTrueForBitInByteArray(i);
+    printBool(isBitTrue);
   }
 }
 
