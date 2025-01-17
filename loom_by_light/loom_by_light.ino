@@ -644,22 +644,22 @@ void setup() {
   // Serial.begin(9600);
   //loom by light interface object.
   lblInterface = new LblInterface();
-  //test loom by light interface.
-  while (1) {
-    bool loopCondition = true;
-    lblInterface->setMessage("hello world");
-    lblInterface->updateLcd();
-    // lblInterface->update();
-    while(loopCondition) {
-      int buttonInupt = lblInterface->readLcdButtons();
-      if (buttonInupt == 2) {
-        loopCondition = false;
-      }
-    }
-    lblInterface->setMessage("good day me");
-    lblInterface->updateLcd();
-    delay (10000);
-  }
+  // //test loom by light interface.
+  // while (1) {
+  //   bool loopCondition = true;
+  //   lblInterface->setMessage("hello world");
+  //   lblInterface->updateLcd();
+  //   // lblInterface->update();
+  //   while(loopCondition) {
+  //     int buttonInupt = lblInterface->readLcdButtons();
+  //     if (buttonInupt == 2) {
+  //       loopCondition = false;
+  //     }
+  //   }
+  //   lblInterface->setMessage("good day me");
+  //   lblInterface->updateLcd();
+  //   delay (10000);
+  // }
 
   //initialize the SD card
   initializeCard();
@@ -717,6 +717,22 @@ void setup() {
 }
 
 void loop() {
+  //test loom by light interface.
+  while (1) {
+    bool loopCondition = true;
+    lblInterface->setMessage("hello me");
+    lblInterface->updateLcd();
+    // lblInterface->update();
+    while(loopCondition) {
+      int buttonInupt = lblInterface->readLcdButtons();
+      if (buttonInupt == 2) {
+        loopCondition = false;
+      }
+    }
+    lblInterface->setMessage("good day me");
+    lblInterface->updateLcd();
+    delay (10000);
+  }
   //intro, display width and height.
   while(lblInterface->update() != 2) { 
     String message = "Width: ";
