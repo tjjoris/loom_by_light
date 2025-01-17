@@ -1,7 +1,11 @@
+#include <Adafruit_NeoPixel.h>
+
 #include <LiquidCrystal.h>
 
 /**
-Required libraries: LiquidCrystal by Arduino, Adafruit, last used version: 1.0.7
+Required libraries: 
+  LiquidCrystal by Arduino, Adafruit -version last tested: 1.0.7. 
+  Adafruit NeoPixel by Adafruit -version last tested: 1.12.4, 
 *this sketch is intended to load a bitmap from an sd card and display each row of the bitmap's pixels in a 
 *addressable light strip as one of two values based on the saturation of the pixel.
 *The purpose of this is for a custom loom, which allows the user to manually choose which of 2 colours to use
@@ -18,9 +22,25 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 
 
 #define CHIP_SELECT 10 //the chip select used for the SD card.
-#define NUM_LIGHTS 144 //the number of lights on the light strip.
+#define LED_COUNT 144 //the number of lights on the light strip.
+#define LED_PIN     1 //the pin the data line for the addressable LED strip is connected to.
+// NeoPixel brightness, 0 (min) to 255 (max)
+#define BRIGHTNESS 50 // Set BRIGHTNESS to about 1/5 (max = 255)
 
+/**
+LblLedStripHandler - the class to create the NeoPixel strip object, 
+and display the specific lights
+*/
+class LblLedStripHandler {
+  public:
+    Adafruit_NeoPixel strip;
 
+    LblLedStripHandler() : strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800) {
+      strip.begin(); //initialize NeoPixel strip object (REQUIRED)
+      strip.show(); //turn off all pixels.
+      strip.setBrightness(BRIGHTNESS); //set the brightness.
+    }
+};
 /**
 lblInterace - loom by light interface, displays the lcd output on a 16 x 2 display
 and reads the input of the buttons. the pin layout can be configured to work with 
@@ -149,9 +169,9 @@ class BitmapHandler {
   public:
 
   int currentRow; //current row of bitmap being displayed.
-  const int lightsArraySize = NUM_LIGHTS / 8;
+  const int lightsArraySize = LED_COUNT / 8;
   //the byte array to store lights binary values.
-  byte lightsArray[NUM_LIGHTS / 8];
+  byte lightsArray[LED_COUNT / 8];
   // BMP header fields
   uint16_t headerField;
   uint32_t fileSize;
@@ -265,12 +285,12 @@ class BitmapHandler {
       this->fileOK = false;
       return false;
     }
-    if (NUM_LIGHTS < imageWidth) {
+    if (LED_COUNT < imageWidth) {
       Serial.println("image width greater than number of lights.");
       this->fileOK = false;
       return false;
     }
-    if (lightsArraySize < NUM_LIGHTS / 8) {
+    if (lightsArraySize < LED_COUNT / 8) {
       Serial.println("lights array size was too small");
       this->fileOK = false;
     }
@@ -437,7 +457,7 @@ class BitmapHandler {
     //set reader to seek location based on image offset.
     this->bmpFile.seek(pixelRowFileOffset);
     //loop for each light.
-    for (numLightsCounter = 0; numLightsCounter < NUM_LIGHTS; numLightsCounter++) {
+    for (numLightsCounter = 0; numLightsCounter < LED_COUNT; numLightsCounter++) {
       //only read if within image bounds.
       if (numLightsCounter < imageWidth) {
         this->bmpFile.read(pixelBuffer, pixelBufferSize);
