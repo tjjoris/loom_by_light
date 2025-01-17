@@ -554,45 +554,9 @@ void initializeCard() {
   Serial.println("----------------------------\n");
 }
 
-// /**
-// return true if bit at position in byte is 1,
-// for byte in array. Note the bit postion goes from left to right.
-// */
-// bool isTrueForBitInByteArray(int pixelIndex) {
-//   int byteIndex = pixelIndex / 8;
-//   int bitInByteIndex = (pixelIndex % (byteIndex * 8));
-//   byte myByte = lightsArray[byteIndex];
-//   bool isBitTrue = isBitTrueInByte(myByte, bitInByteIndex);
-//   return isBitTrue;
-// }
-
-// /**
-// return true if bit in byte is true at bit position, 
-// note: position goes from left to right.
-// */
-// bool isBitTrueInByte(byte myByte, int bitPos) {
-//   bitPos = 7 - bitPos;
-//   bool isBitTrue = ((myByte >> i) & 0X01);
-//   return isBitTrue;
-// }
-
 /**
-*prints a byte as a binary string, reference source: 
-*https://forum.arduino.cc/t/from-byte-to-binary-conversion-solved/341856/5
+print a different character if the value is true or false.
 */
-void printBinary(byte b) {
-   for (int i = 7; i >= 0; i-- )
-  {
-    bool myBool = ((b >> i) & 0X01);//convert bit we at index to boolean.
-    if (myBool) {
-      Serial.write(1); //if true write as a character.
-    }
-    else {
-      Serial.print(" "); //if false, leave an empty space.
-    }
-  }
-}
-
 void printBool(bool boolToPrint) {
   if (boolToPrint) {
     Serial.write(1);
