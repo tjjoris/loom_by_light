@@ -1,4 +1,7 @@
 #include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+ #include <avr/power.h> // Required for 16 MHz Adafruit Trinket
+#endif
 
 #include <LiquidCrystal.h>
 
@@ -22,10 +25,12 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 
 
 #define CHIP_SELECT 10 //the chip select used for the SD card.
-#define LED_COUNT 144 //the number of lights on the light strip.
-#define LED_PIN     1 //the pin the data line for the addressable LED strip is connected to.
+#define LED_COUNT 60 //the number of lights on the light strip.
+#define LED_PIN 1 //the pin the data line for the addressable LED strip is connected to.
 // NeoPixel brightness, 0 (min) to 255 (max)
 #define BRIGHTNESS 50 // Set BRIGHTNESS to about 1/5 (max = 255)
+
+Adafruit_NeoPixel myStrip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 /**
 LblLedStripHandler - the class to create the NeoPixel strip object, 
@@ -36,9 +41,33 @@ class LblLedStripHandler {
     Adafruit_NeoPixel strip;
 
     LblLedStripHandler() : strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800) {
+      Serial.println("LblLedStripHandler constructor called.");
       strip.begin(); //initialize NeoPixel strip object (REQUIRED)
       strip.show(); //turn off all pixels.
       strip.setBrightness(BRIGHTNESS); //set the brightness.
+    }
+
+    /**
+    set a pixel to true or false at a specific location
+    */
+    void setPixel(int pixelIndex, bool isTrue) {
+      if (isTrue) {
+        strip.setPixelColor(pixelIndex, strip.Color(0,0,255));
+        Serial.print("set pixel to true at index ");
+        Serial.print(pixelIndex);
+      }
+      else {
+        strip.setPixelColor(pixelIndex, strip.Color(0,0,0));
+        Serial.print("set pixel to false at index ");
+        Serial.print(pixelIndex);
+      }
+    }
+
+    /**
+    display the set lights on the light strip.
+    */
+    void showStrip() {
+      strip.show();
     }
 };
 /**
@@ -569,11 +598,18 @@ void printBool(bool boolToPrint) {
 //global class variables:
 LblInterface * lblInterface;
 BitmapHandler * bmh;
+LblLedStripHandler * lblLedStripHandler;
 
 void showLightsForRow() {
   bmh->setLightsArray(bmh->currentRow);
+  //debug the row to the terminal.
   printRow();
   Serial.println();
+  for (int i=0; i<LED_COUNT; i++) {
+    //set the pixel at i, if it is true in lights array at i.
+    lblLedStripHandler->setPixel(i, bmh->isTrueForBitInByteArray(i));
+    lblLedStripHandler->showStrip();
+  }
 }
 
 /**
@@ -590,20 +626,48 @@ void printRow() {
   }
 }
 
+// Adafruit_NeoPixel myStrip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+
 /**
 *creates bitmap handler object, then opens bitmap file, reads the headers, then loops each row in the bitmap
 *and decodes each row, printing the binary values based on saturation.
 */
 void setup() {
   //set serial to dispaly on ide
-  Serial.begin(9600);
-  //loom by light interface object.
-  lblInterface = new LblInterface();
+  // Serial.begin(9600);
+  // //loom by light interface object.
+  // lblInterface = new LblInterface();
 
-  //initialize the SD card
-  initializeCard();
-  //create bitmap handler object, and pass it the bitmap to read.
-  bmh = new BitmapHandler("bitmap.bmp");
+  // //initialize the SD card
+  // initializeCard();
+  // //create bitmap handler object, and pass it the bitmap to read.
+  // bmh = new BitmapHandler("bitmap.bmp");
+
+  // //instantiate light strip handler
+  // // lblLedStripHandler = new LblLedStripHandler();
+  myStrip.begin();
+  myStrip.show();
+  myStrip.setBrightness(BRIGHTNESS);
+  int count = 0;
+  while(1) {
+    // lblLedStripHandler->setPixel(2, false);
+    // lblLedStripHandler->setPixel(3, true);
+    // lblLedStripHandler->showStrip();
+    Serial.print("showing strip test, count");
+    Serial.println(count);
+    // delay(10000);
+    myStrip.setPixelColor(count, myStrip.Color(155, 155, 255));
+    myStrip.show();
+    delay (500);
+
+    myStrip.setPixelColor(count, myStrip.Color(0, 0, 0));
+    myStrip.show();
+    count +=2;
+    if (count >= LED_COUNT) {
+      count = 0;
+    }
+  }
+
   //open the file
   bmh->openFile();
   //verify file, this includes reading the headers which is necessary to decode the bitmap.
