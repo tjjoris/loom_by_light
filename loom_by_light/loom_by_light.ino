@@ -30,7 +30,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 // NeoPixel brightness, 0 (min) to 255 (max)
 #define BRIGHTNESS 50 // Set BRIGHTNESS to about 1/5 (max = 255)
 
-Adafruit_NeoPixel myStrip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+// Adafruit_NeoPixel myStrip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 /**
 LblLedStripHandler - the class to create the NeoPixel strip object, 
@@ -633,47 +633,49 @@ void printRow() {
 *and decodes each row, printing the binary values based on saturation.
 */
 void setup() {
-  //set serial to dispaly on ide
+  //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
+  //library, or it interferes with the light strip.
   // Serial.begin(9600);
-  // //loom by light interface object.
-  // lblInterface = new LblInterface();
+  //loom by light interface object.
+  lblInterface = new LblInterface();
 
-  // //initialize the SD card
-  // initializeCard();
-  // //create bitmap handler object, and pass it the bitmap to read.
-  // bmh = new BitmapHandler("bitmap.bmp");
+  //initialize the SD card
+  initializeCard();
+  //create bitmap handler object, and pass it the bitmap to read.
+  bmh = new BitmapHandler("bitmap.bmp");
 
-  // //instantiate light strip handler
-  // // lblLedStripHandler = new LblLedStripHandler();
-  myStrip.begin();
-  myStrip.show();
-  myStrip.setBrightness(BRIGHTNESS);
-  int count = 0;
-  while(1) {
-    // lblLedStripHandler->setPixel(2, false);
-    // lblLedStripHandler->setPixel(3, true);
-    // lblLedStripHandler->showStrip();
-    Serial.print("showing strip test, count");
-    Serial.println(count);
-    // delay(10000);
-    myStrip.setPixelColor(count, myStrip.Color(155, 155, 255));
-    myStrip.show();
-    delay (500);
+  //instantiate light strip handler
+  lblLedStripHandler = new LblLedStripHandler();
+  // myStrip.begin();
+  // myStrip.show();
+  // myStrip.setBrightness(BRIGHTNESS);
+  //tes to test light strip is working.
+  // int count = 0;
+  // while(1) {
+  //   // lblLedStripHandler->setPixel(2, false);
+  //   // lblLedStripHandler->setPixel(3, true);
+  //   // lblLedStripHandler->showStrip();
+  //   Serial.print("showing strip test, count");
+  //   Serial.println(count);
+  //   // delay(10000);
+  //   myStrip.setPixelColor(count, myStrip.Color(155, 155, 255));
+  //   myStrip.show();
+  //   delay (500);
 
-    myStrip.setPixelColor(count, myStrip.Color(0, 0, 0));
-    myStrip.show();
-    count +=2;
-    if (count >= LED_COUNT) {
-      count = 0;
-    }
-  }
+  //   myStrip.setPixelColor(count, myStrip.Color(0, 0, 0));
+  //   myStrip.show();
+  //   count +=2;
+  //   if (count >= LED_COUNT) {
+  //     count = 0;
+  //   }
+  // }
 
   //open the file
   bmh->openFile();
   //verify file, this includes reading the headers which is necessary to decode the bitmap.
   if (bmh->verifyFile()) {
     //print the headers.
-    bmh->serialPrintHeaders();
+    // bmh->serialPrintHeaders();
 
     // // loop for each row.
     // for (int j=0; j< bmh->imageHeight; j++) {
