@@ -97,8 +97,9 @@ class LblInterface {
       lcd.begin(charPerRow, charPerCol);
     }
     // define some values used by the panel and buttons
-    int buttonPressed     = 0;
-    int buttonSaved = 0;
+    int buttonPressed     = 0; //this is temporarily used to store the button press.
+    int buttonSaved = 0; //this is set to the button number when the button is pressed, after it is set back to 0.
+    int buttonToTest = 0; //this is the button to test bool functions on. it is set until the set value is read.
     int adcKeyIn  = 0;
     int answer = 0;
     #define btnRIGHT  4
@@ -121,7 +122,42 @@ class LblInterface {
       return input;
     }
 
+    /**
+    set the lcd button instance variable by reading the lcd buttons. The instance variable
+    can be used to test if a button has been pressed or not easily.
+    */
+    void setLcdButton() {
+      buttonToTest = readLcdButtons();
+    }
 
+    /**
+    reset the button to test so it can be used again.
+    */
+    void resetLcdButton() {
+      buttonToTest = 0;
+    }
+
+    /**
+    test if the lcd button to test is equal to up.
+    */
+    void isButtonUp() {
+      if (buttonToTest == 2) {
+        resetLcdButton();
+        return true;
+      }
+      return false;
+    }
+
+    /**
+    test if the lcd button to test is equal to down.
+    */
+    void isButtonDown() {
+      if (buttonToTest == 1) {
+        resetLcdButton();
+        return true;
+      }
+      return false;
+    }
     // read the buttons
     int readLcdButtons()
     {
