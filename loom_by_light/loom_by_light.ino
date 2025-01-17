@@ -86,8 +86,11 @@ class LblInterface {
     const int charPerCol = 2; //the number of characters in a column on the lcd screen.
     int timer = 0;
     const int timerMax = 3000;
-    String origionalMessage;
-    String currentMessage;
+    String completeMessage;//this is the complete message to be held as a reference.
+    String cutMessage; //this is the origional message which as had the beginning cut off so it can 
+    //continue from a certain point to dispaly more than one screen of text.
+    String lastStoredMessage; //this is the message to compare the origional message to to see if the screen needs
+    //to be updated.
 
     //constructor for LblInterface, also calls the constructor for lcd.
     LblInterface() : lcd(rs, en, d4, d5, d6, d7) {
@@ -109,7 +112,10 @@ class LblInterface {
     update the lcd, updating the display, and reading inputs.
     */
     int update() {
-      updateLcd();
+      if (!completeMessage.equals(lastStoredMessage)) {
+        this->lastStoredMessage = completeMessage;
+        updateLcd();
+      }
       delay(50);
       int input = readLcdButtons();
       return input;
@@ -151,8 +157,8 @@ class LblInterface {
 set the string message to display.
 */
   void setMessage(String message) {
-    this->origionalMessage = message;
-    this->currentMessage = message;
+    this->completeMessage = message;
+    this->cutMessage = message;
   }
 
 /**
@@ -165,17 +171,17 @@ If the message is too long, continue the message after a certain count.
     for (int row = 0; row < charPerCol; row++) {
       lcd.setCursor(0, row);
       for (int col = 0; col < charPerRow; col++) {
-        if (charCount < currentMessage.length()) {
-          lcd.write(currentMessage[charCount]);
+        if (charCount < cutMessage.length()) {
+          lcd.write(cutMessage[charCount]);
           charCount++;
         }
       }
     }
     if (timer >= timerMax) {
-      if (charCount < currentMessage.length()) {
-        currentMessage = currentMessage.substring(charCount);
+      if (charCount < cutMessage.length()) {
+        cutMessage = cutMessage.substring(charCount);
       } else {
-        currentMessage = origionalMessage;
+        cutMessage = completeMessage;
       }
       timer = 0;
     }
@@ -638,6 +644,22 @@ void setup() {
   // Serial.begin(9600);
   //loom by light interface object.
   lblInterface = new LblInterface();
+  //test loom by light interface.
+  while (1) {
+    bool loopCondition = true;
+    lblInterface->setMessage("hello world");
+    lblInterface->updateLcd();
+    // lblInterface->update();
+    while(loopCondition) {
+      int buttonInupt = lblInterface->readLcdButtons();
+      if (buttonInupt == 2) {
+        loopCondition = false;
+      }
+    }
+    lblInterface->setMessage("good day me");
+    lblInterface->updateLcd();
+    delay (10000);
+  }
 
   //initialize the SD card
   initializeCard();
