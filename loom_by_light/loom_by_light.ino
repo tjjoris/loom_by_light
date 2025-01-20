@@ -75,11 +75,13 @@ lcd class for displaying messages to the lcd display.
 class LblLcdDisplay {
   private:
     LiquidCrystal * _lcd;
-    String _storedMessage;    //the stored message to be compared to if the message needs to be updated.
-    String _messageBeingDisplayed;  //the message being displayed, if this is different form the stored message, 
+    String _storedMessage = "";    //the stored message to be compared to if the message needs to be updated.
+    String _messageBeingDisplayed = "";  //the message being displayed, if this is different form the stored message, 
     //the lcd needs to be updated.
-    String _messageBeingDispalyedSubString; //the sub string of the displayed message, this is used for when
+    String _messageBeingDispalyedSubString = ""; //the sub string of the displayed message, this is used for when
     //the entire message cannot fit on the lcd screen.
+    int _updateCounter = 0; //the counter to determine if the substring should be continued.
+    int _updateCounterMax = 100; //the max the counter should go for the substring to be continued.
 
   public:
 
@@ -88,6 +90,31 @@ class LblLcdDisplay {
     */
     LblLcdDisplay (LiquidCrystal * lcd) {
       _lcd = lcd;
+      _lcd->begin(LCD_COLS, LCD_ROWS);
+    }
+
+    /**
+    set the stored lcd message, this is what update uses to know if it needs to update the screen.
+    */
+    void storeMessage(String message) {
+      _storedMessage = message;
+    }
+
+    /**
+    check if the displayed message is different from the stored message, and update it if it is.
+    */
+    void update() {
+      //the stored message and the message being displayed are the same, therefore this function should end.
+      if (_storedMessage == _messageBeingDisplayed) {
+        return;
+      }
+      //the update counter is less than the update counter max, therefore this function should end.
+      if (_updateCounter < _updateCounterMax) {
+        _updateCounter ++;
+        return;
+      }
+      //update the lcd screen, and set the update counter to 0.
+      _lcd->clear();
     }
 
 
