@@ -59,18 +59,6 @@ TestClass::TestClass(LblLcdDisplay * lcdDisplay) {
 }
 
 /**
-testing class B. this implements Class B withiout a class header.
-*/
-class ClassB {
-  private:
-    LblLcdDisplay * _lblLcdDisplay;
-  public:
-    ClassB (LblLcdDisplay * lblLcdDisplay) {
-      _lblLcdDisplay = lblLcdDisplay;
-    }
-};
-
-/**
 lcd class for displaying messages to the lcd display.
 */
 class LblLcdDisplay {
@@ -305,160 +293,6 @@ class LblButtons {
     }
 };
 
-/**
-lblInterace - loom by light interface, displays the lcd output on a 16 x 2 display
-and reads the input of the buttons. the pin layout can be configured to work with 
-a different display.
-*/
-class LblInterface {
-  public:
-
-    // initialize the library by associating any needed LCD interface pin
-    // with the arduino pin number it is connected to
-    const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7;
-    LiquidCrystal lcd;
-    const int charPerRow = 16; //the number of characters in a row on the lcd screen.
-    const int charPerCol = 2; //the number of characters in a column on the lcd screen.
-    int timer = 0;
-    const int timerMax = 3000;
-    String completeMessage;//this is the complete message to be held as a reference.
-    String cutMessage; //this is the origional message which as had the beginning cut off so it can 
-    //continue from a certain point to dispaly more than one screen of text.
-    String lastStoredMessage; //this is the message to compare the origional message to to see if the screen needs
-    //to be updated.
-
-    //constructor for LblInterface, also calls the constructor for lcd.
-    LblInterface() : lcd(rs, en, d4, d5, d6, d7) {
-      lcd.begin(charPerRow, charPerCol);
-    }
-    // define some values used by the panel and buttons
-    int buttonPressed     = 0; //this is temporarily used to store the button press.
-    int buttonSaved = 0; //this is set to the button number when the button is pressed, after it is set back to 0.
-    int buttonToTest = 0; //this is the button to test bool functions on. it is set until the set value is read.
-    int adcKeyIn  = 0;
-    int answer = 0;
-    #define btnRIGHT  4
-    #define btnUP     1
-    #define btnDOWN   2
-    #define btnLEFT   3
-    #define btnSELECT 5
-    #define btnNONE   0
-
-    /**
-    update the lcd, updating the display, and reading inputs.
-    */
-    int update() {
-      if (!completeMessage.equals(lastStoredMessage)) {
-        this->lastStoredMessage = completeMessage;
-        updateLcd();
-      }
-      delay(100);
-      int input = readLcdButtons();
-      return input;
-    }
-
-    /**
-    set the lcd button instance variable by reading the lcd buttons. The instance variable
-    can be used to test if a button has been pressed or not easily.
-    */
-    void setLcdButton() {
-      buttonToTest = readLcdButtons();
-    }
-
-    /**
-    reset the button to test so it can be used again.
-    */
-    void resetLcdButton() {
-      buttonToTest = 0;
-    }
-
-    /**
-    test if the lcd button to test is equal to up.
-    */
-    bool isButtonUp() {
-      if (buttonToTest == 1) {
-        resetLcdButton();
-        return true;
-      }
-      return false;
-    }
-
-    /**
-    test if the lcd button to test is equal to down.
-    */
-    bool isButtonDown() {
-      if (buttonToTest == 2) {
-        resetLcdButton();
-        return true;
-      }
-      return false;
-    }
-    // read the buttons
-    int readLcdButtons()
-    {
-      adcKeyIn = analogRead(0);      // read the value from the sensor 
-      //my displayed values are:
-      //1023 default
-      //720/721 far left
-      //480 left center
-      //131 up
-      //307 down
-      //0 right center
-      //far right 1023 reset
-
-      // we add approx 50 to those values and check to see if we are close
-      if (adcKeyIn > 1000) buttonPressed = btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
-      // For V1.1 us this threshold
-      else if (adcKeyIn < 50)   buttonPressed = btnRIGHT;  
-      else if (adcKeyIn < 250)  buttonPressed = btnUP; 
-      else if (adcKeyIn < 450)  buttonPressed = btnDOWN; 
-      else if (adcKeyIn < 650)  buttonPressed = btnLEFT; 
-      else if (adcKeyIn < 850)  buttonPressed = btnSELECT; 
-
-      //this check prevents the button from being repeated if it is held down.
-      if (buttonSaved != buttonPressed) {
-        buttonSaved = buttonPressed;
-        return buttonPressed;
-      } 
-      return btnNONE;  // when all others fail, return this...
-    }
-
-
-/**
-set the string message to display.
-*/
-  void setMessage(String message) {
-    this->completeMessage = message;
-    this->cutMessage = message;
-  }
-
-/**
-clear the lcd, and update it with the string message.
-If the message is too long, continue the message after a certain count.
-*/
-  void updateLcd() {
-    int charCount = 0;
-    lcd.clear();
-    for (int row = 0; row < charPerCol; row++) {
-      lcd.setCursor(0, row);
-      for (int col = 0; col < charPerRow; col++) {
-        if (charCount < cutMessage.length()) {
-          lcd.write(cutMessage[charCount]);
-          charCount++;
-        }
-      }
-    }
-    if (timer >= timerMax) {
-      if (charCount < cutMessage.length()) {
-        cutMessage = cutMessage.substring(charCount);
-      } else {
-        cutMessage = completeMessage;
-      }
-      timer = 0;
-    }
-    timer ++;
-  }
-};
 
 /**
 This class is for opening the bitmap on the SD card, and decoding it.
@@ -873,7 +707,6 @@ void printBool(bool boolToPrint) {
 }
 
 //global class variables:
-LblInterface * lblInterface;
 BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
 LblLcdDisplay * lblLcdDisplay;
@@ -919,8 +752,6 @@ void setup() {
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
-  //loom by light interface object.
-  lblInterface = new LblInterface();
   lblLcdDisplay = new LblLcdDisplay(lcd);
   lblButtons = new LblButtons(lcd);
   lblLcdDisplay->storeMessage("hello world");
@@ -1010,85 +841,5 @@ void setup() {
 }
 
 void loop() {
-  //new design:
-  //set button input
-  //set state function
-    //this function checks each state option.
-  //set lcd display
-  //delay
-
-  //test loom by light interface.
-  //i've discovered the lcd dispaly is not showing messages that don't fit on the screen.
-    // while (1) {
-      bool loopCondition = true;
-      String hello = "hello wold, blah blah.";
-      lblInterface->setMessage(hello);
-      while(1){
-        lblInterface->update();
-        // delay(10000);
-      }
-      lblInterface->updateLcd();
-      // lblInterface->update();
-      while(loopCondition) {
-        // int buttonInupt = lblInterface->readLcdButtons();
-        lblInterface->setLcdButton();
-        if (lblInterface->isButtonDown()) {
-          loopCondition = false;
-        }
-        delay(100);
-      }
-      lblInterface->setMessage("good day me");
-      lblInterface->updateLcd();
-      delay (3000);
-    // }
-  //intro, dispaly widht and height.
-  bool keepLooping = 1;
-  String message = "Width ";
-  // message += bmh->imageWidth;
-  // message += " Height: ";
-  // message += bmh->imageHeight;
-  lblInterface->setMessage(message);
-  lblInterface->updateLcd();
-  while (keepLooping) {
-    lblInterface->setLcdButton();
-    if (lblInterface->isButtonUp()) {
-      bmh->currentRow = 0;
-      keepLooping = 0;
-    } else if (lblInterface->isButtonDown()) {
-      bmh->currentRow = bmh->imageHeight - 1;
-      keepLooping = 0;
-    }
-    delay(100);
-  }
-  //display the current row:
-  message = "current row ";
-  message += bmh->currentRow;
-  lblInterface->setMessage(message);
-  lblInterface->updateLcd();
-  delay(10000);
-  //intro, display width and height.
-  while(lblInterface->update() != 2) { 
-    String message = "Width: ";
-    message += bmh->imageWidth;
-    message += " Height: ";
-    message += bmh->imageHeight;
-    lblInterface->setMessage(message);
-    lblInterface->update();
-  }
-  showLightsForRow();
-  while(1) {
-    String message = "current row:";
-    message += bmh->currentRow;
-    lblInterface->setMessage(message);
-    int input = lblInterface->update();
-    if (input == 1) {
-      bmh->incrementRow();
-      showLightsForRow();
-    }
-    else if (input == 2) {
-      bmh->decrementRow();
-      showLightsForRow();
-    }
-  }
 
 }
