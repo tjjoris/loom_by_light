@@ -81,7 +81,8 @@ class LblLcdDisplay {
     String _messageBeingDisplayedSubString = ""; //the sub string of the displayed message, this is used for when
     //the entire message cannot fit on the lcd screen.
     int _updateCounter = 0; //the counter to determine if the substring should be continued.
-    int _updateCounterMax = 50; //the max the counter should go for the substring to be continued.
+    int _updateCounterMax = 25; //the max the counter should go for the substring to be continued.
+    int _charCount = 0; //the character count in the message string.
 
   public:
 
@@ -100,50 +101,75 @@ class LblLcdDisplay {
       _storedMessage = message;
       _messageBeingDisplayed = message;
       _messageBeingDisplayedSubString = message;
+      _updateCounter = 0;
+      _charCount = 0;
+    }
+
+    /**
+    test class to test the display with more text than fits on the screen.
+    */
+    void testDisplay() {
+      _lcd->setCursor(0,0);
+      _lcd->print("zero one two three four five six seven eight nine ten eleven twelve");
+      _lcd->display();
     }
 
     /**
     check if the displayed message is different from the stored message, and update it if it is.
     */
     void update() {
-      //the stored message and the message being displayed are the same, therefore this function should end.
-      // if (_storedMessage == _messageBeingDisplayed) {
-      //   return;
-      // }
+      
+      // Serial.println(_updateCounter);
       //the update counter is at 0, therefore update the lcd screen.
       if (_updateCounter <= 0) {
-      
-        //update the message bing displayed.
-        // _messageBeingDisplayed = _storedMessage;
-        //update the message being displayed substring.
-        // _messageBeingDisplayedSubString = _messageBeingDisplayed;
-        //update the lcd screen, and set the update counter to 0.
         _lcd->clear();
-        int charCount = 0; //the character count to use to get the substring.
+        // int charCount = 0; //the character count to use to get the substring.
         //loop for each row in the lcd screen.
         for (int row = 0; row < LCD_ROWS; row ++) {
-          if (!((row > 0) && (_messageBeingDisplayedSubString == _messageBeingDisplayed))) {
-            if (_messageBeingDisplayedSubString.length() > 0) {
-              //set the cursor to the correct row.
-              _lcd->setCursor(0, row);
-              _lcd->print(_messageBeingDisplayedSubString);
-            
-              if (_messageBeingDisplayedSubString.length() > LCD_COLS) {
-                _messageBeingDisplayedSubString = _messageBeingDisplayedSubString.substring(LCD_COLS);
+          // if (!((row > 0) && (_messageBeingDisplayedSubString.length() == _messageBeingDisplayed.length()))) {
+          
+          if (_messageBeingDisplayedSubString.length() > 0) {
+            //set the cursor to the correct row.
+            _lcd->setCursor(0, row);
+            for (int col = 0; col < LCD_COLS; col ++) {
+              // Serial.println(row);
+              // Serial.println(_messageBeingDisplayedSubString);
+              if (_messageBeingDisplayedSubString.length() > _charCount) {
+                _lcd->write(_messageBeingDisplayedSubString[_charCount]);
               }
-              else {
-                _messageBeingDisplayedSubString = _messageBeingDisplayed;
+              // if (_messageBeingDisplayedSubString.length() > 1) {
+              if (_charCount < _messageBeingDisplayed.length()) {
+                // _messageBeingDisplayedSubString = _messageBeingDisplayedSubString.substring(1);
+                _charCount ++;
               }
+              // else {
+              // // _messageBeingDisplayedSubString = _messageBeingDisplayed;
+              //   _charCount = 0;
+              // }
             }
           }
+          
+          // }
           // for (int col = 0; col < LCD_COLS; col ++) {
           // }
         }
+        if (_charCount >= _messageBeingDisplayed.length()) {
+          _charCount = 0;
+        }
+        // Serial.println(_messageBeingDisplayedSubString);
         _lcd->display();
       }
       //the update counter has reached the max, reset it to 0 and end the function.
       if (_updateCounter >= _updateCounterMax) {
+        //create a substring
+        // if (_messageBeingDisplayedSubString.length() > LCD_COLS) {
+        //   _messageBeingDisplayedSubString = _messageBeingDisplayedSubString.substring(LCD_COLS);
+        // }
+        // else {
+        //   _messageBeingDisplayedSubString = _messageBeingDisplayed;
+        // }
         _updateCounter = 0;
+        // _charCount = 0;
         return;
       }
       //the update counter is less than the update counter max, therefore it should increment.
@@ -802,17 +828,16 @@ void printRow() {
 void setup() {
   //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
   //library, or it interferes with the light strip.
-  // Serial.begin(9600);
+  Serial.begin(9600);
   //loom by light interface object.
   lblInterface = new LblInterface();
   lblLcdDisplay = new LblLcdDisplay(&lblInterface->lcd);
-
   lblLcdDisplay->storeMessage("hello world");
-  for (int i=0; i<100; i++) {
+  for (int i=0; i<60; i++) {
     lblLcdDisplay->update();
     delay(100);
   }
-  lblLcdDisplay->storeMessage("one two three four five six seven eight nine ten eleven twelve");
+  lblLcdDisplay->storeMessage("one two three four five six seven eight nine ten eleven twelve thirteen fourteen.");
   while(1) {
     lblLcdDisplay->update();
     delay(100);
