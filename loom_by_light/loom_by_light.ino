@@ -113,8 +113,23 @@ class LblLcdDisplay {
         _updateCounter ++;
         return;
       }
+      //update the message bing displayed.
+      _messageBeingDisplayed = _storedMessage;
+      //update the message being displayed substring.
+      _messageBeingDispalyedSubString = _messageBeingDisplayed;
       //update the lcd screen, and set the update counter to 0.
       _lcd->clear();
+      int charCount = 0; //the character count to use to get the substring.
+      //loop for each row in the lcd screen.
+      for (int row = 0; row < LCD_ROWS; row ++) {
+      //set the cursor to the correct row.
+      _lcd->cursor(0, row);
+        _lcd->print(_messageBeingDispalyedSubString);
+        _messageBeingDispalyedSubString = _messageBeingDispalyedSubString.substring(LCD_ROWS);
+        // for (int col = 0; col < LCD_COLS; col ++) {
+        // }
+      }
+      _lcd->display();
     }
 
 
