@@ -78,10 +78,10 @@ class LblLcdDisplay {
     String _storedMessage = "";    //the stored message to be compared to if the message needs to be updated.
     String _messageBeingDisplayed = "";  //the message being displayed, if this is different form the stored message, 
     //the lcd needs to be updated.
-    String _messageBeingDispalyedSubString = ""; //the sub string of the displayed message, this is used for when
+    String _messageBeingDisplayedSubString = ""; //the sub string of the displayed message, this is used for when
     //the entire message cannot fit on the lcd screen.
     int _updateCounter = 0; //the counter to determine if the substring should be continued.
-    int _updateCounterMax = 100; //the max the counter should go for the substring to be continued.
+    int _updateCounterMax = 50; //the max the counter should go for the substring to be continued.
 
   public:
 
@@ -98,6 +98,8 @@ class LblLcdDisplay {
     */
     void storeMessage(String message) {
       _storedMessage = message;
+      _messageBeingDisplayed = message;
+      _messageBeingDisplayedSubString = message;
     }
 
     /**
@@ -105,31 +107,50 @@ class LblLcdDisplay {
     */
     void update() {
       //the stored message and the message being displayed are the same, therefore this function should end.
-      if (_storedMessage == _messageBeingDisplayed) {
+      // if (_storedMessage == _messageBeingDisplayed) {
+      //   return;
+      // }
+      //the update counter is at 0, therefore update the lcd screen.
+      if (_updateCounter <= 0) {
+      
+        //update the message bing displayed.
+        // _messageBeingDisplayed = _storedMessage;
+        //update the message being displayed substring.
+        // _messageBeingDisplayedSubString = _messageBeingDisplayed;
+        //update the lcd screen, and set the update counter to 0.
+        _lcd->clear();
+        int charCount = 0; //the character count to use to get the substring.
+        //loop for each row in the lcd screen.
+        for (int row = 0; row < LCD_ROWS; row ++) {
+          if (!((row > 0) && (_messageBeingDisplayedSubString == _messageBeingDisplayed))) {
+            if (_messageBeingDisplayedSubString.length() > 0) {
+              //set the cursor to the correct row.
+              _lcd->setCursor(0, row);
+              _lcd->print(_messageBeingDisplayedSubString);
+            
+              if (_messageBeingDisplayedSubString.length() > LCD_COLS) {
+                _messageBeingDisplayedSubString = _messageBeingDisplayedSubString.substring(LCD_COLS);
+              }
+              else {
+                _messageBeingDisplayedSubString = _messageBeingDisplayed;
+              }
+            }
+          }
+          // for (int col = 0; col < LCD_COLS; col ++) {
+          // }
+        }
+        _lcd->display();
+      }
+      //the update counter has reached the max, reset it to 0 and end the function.
+      if (_updateCounter >= _updateCounterMax) {
+        _updateCounter = 0;
         return;
       }
-      //the update counter is less than the update counter max, therefore this function should end.
+      //the update counter is less than the update counter max, therefore it should increment.
       if (_updateCounter < _updateCounterMax) {
         _updateCounter ++;
         return;
       }
-      //update the message bing displayed.
-      _messageBeingDisplayed = _storedMessage;
-      //update the message being displayed substring.
-      _messageBeingDispalyedSubString = _messageBeingDisplayed;
-      //update the lcd screen, and set the update counter to 0.
-      _lcd->clear();
-      int charCount = 0; //the character count to use to get the substring.
-      //loop for each row in the lcd screen.
-      for (int row = 0; row < LCD_ROWS; row ++) {
-      //set the cursor to the correct row.
-      _lcd->setCursor(0, row);
-        _lcd->print(_messageBeingDispalyedSubString);
-        _messageBeingDispalyedSubString = _messageBeingDispalyedSubString.substring(LCD_ROWS);
-        // for (int col = 0; col < LCD_COLS; col ++) {
-        // }
-      }
-      _lcd->display();
     }
 
 
@@ -791,7 +812,7 @@ void setup() {
     lblLcdDisplay->update();
     delay(100);
   }
-  lblLcdDisplay->storeMessage("blah blah blah hibbidy jibbidy jeebidy ho hum doobidy");
+  lblLcdDisplay->storeMessage("one two three four five six seven eight nine ten eleven twelve");
   while(1) {
     lblLcdDisplay->update();
     delay(100);
