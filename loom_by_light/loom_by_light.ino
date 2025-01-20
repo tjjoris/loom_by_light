@@ -247,6 +247,61 @@ class LblButtons {
         _selectPressed = true;
       }
     }
+
+    /**
+    return true if up was pressed, and reset up.
+    */
+    bool isUpPressed() {
+      if (_upPressed) {
+        _upPressed = false;
+        return true;
+      }
+      return false;
+    }
+
+    /**
+    return true if down was pressed, and reset down.
+    */
+    bool isDownPressed() {
+      if (_downPressed) {
+        _downPressed = false;
+        return true;
+      }
+      return false;
+    }
+
+    /**
+    return true if left was pressed, and reset left.
+    */
+    bool isLeftPressed() {
+      if (_leftPressed) {
+        _leftPressed = false;
+        return true;
+      }
+      return false;
+    }
+
+    /**
+    return true if right was pressed, and reset left.
+    */
+    bool isRightPressed() {
+      if (_rightPressed) {
+        _rightPressed = false;
+        return true;
+      }
+      return false;
+    }
+
+    /**
+    return true if select was pressed and reset select.
+    */
+    bool isSelectPressed() {
+      if (_selectPressed) {
+        _selectPressed = false;
+        return true;
+      }
+      return false;
+    }
 };
 
 /**
@@ -821,6 +876,7 @@ LblInterface * lblInterface;
 BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
 LblLcdDisplay * lblLcdDisplay;
+LblButtons * lblButtons;
 
 void showLightsForRow() {
   bmh->setLightsArray(bmh->currentRow);
@@ -861,10 +917,15 @@ void setup() {
   //loom by light interface object.
   lblInterface = new LblInterface();
   lblLcdDisplay = new LblLcdDisplay(&lblInterface->lcd);
+  lblButtons = new LblButtons(&lblInterface->lcd);
   lblLcdDisplay->storeMessage("hello world");
   for (int i=0; i<60; i++) {
     lblLcdDisplay->update();
+    lblButtons->readButtons();
     delay(100);
+    if (lblButtons->isDownPressed()) {
+      lblLcdDisplay->storeMessage("down pressed");
+    }
   }
   lblLcdDisplay->storeMessage("one two three four five six seven eight nine ten eleven twelve thirteen fourteen.");
   while(1) {
