@@ -685,7 +685,7 @@ class BitmapHandler {
 class UiState {
   protected:
     StateEngine * _engine;
-    String message;
+    String _message;
 
   public:
     virtual ~UiState() {}
@@ -695,11 +695,36 @@ class UiState {
 };
 
 class UiStateIntro : public UiState {
+  explicit UiStateIntro() {
+    _message = "welcome";
+  }
+};
 
+class UiStateInRow : public UiState {
+  explicit UiStateInRow() {
+    _message = "row";
+  }
 };
 
 class StateEngine {
+  private:
+    UiState * _state;
 
+  public:
+    StateEngine(UiState * state) : _state(nullptr) {
+      transitionTo(state);
+    }
+
+    ~StateEngine() { 
+      delete _state;
+    }
+    void transitionTo(UiState * state) {
+      if (_state) {
+        delete _state;
+      }
+      _state = state;
+      _state->set_engine(this);
+    }
 };
 
 /**
