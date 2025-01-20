@@ -123,7 +123,7 @@ class LblLcdDisplay {
       //loop for each row in the lcd screen.
       for (int row = 0; row < LCD_ROWS; row ++) {
       //set the cursor to the correct row.
-      _lcd->cursor(0, row);
+      _lcd->setCursor(0, row);
         _lcd->print(_messageBeingDispalyedSubString);
         _messageBeingDispalyedSubString = _messageBeingDispalyedSubString.substring(LCD_ROWS);
         // for (int col = 0; col < LCD_COLS; col ++) {
@@ -744,6 +744,7 @@ void printBool(bool boolToPrint) {
 LblInterface * lblInterface;
 BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
+LblLcdDisplay * lblLcdDisplay;
 
 void showLightsForRow() {
   bmh->setLightsArray(bmh->currentRow);
@@ -783,6 +784,18 @@ void setup() {
   // Serial.begin(9600);
   //loom by light interface object.
   lblInterface = new LblInterface();
+  lblLcdDisplay = new LblLcdDisplay(&lblInterface->lcd);
+
+  lblLcdDisplay->storeMessage("hello world");
+  for (int i=0; i<100; i++) {
+    lblLcdDisplay->update();
+    delay(100);
+  }
+  lblLcdDisplay->storeMessage("blah blah blah hibbidy jibbidy jeebidy ho hum doobidy");
+  while(1) {
+    lblLcdDisplay->update();
+    delay(100);
+  }
   // //test loom by light interface.
   // while (1) {
   //   bool loopCondition = true;
