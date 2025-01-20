@@ -98,20 +98,9 @@ class LblLcdDisplay {
     set the stored lcd message, this is what update uses to know if it needs to update the screen.
     */
     void storeMessage(String message) {
-      _storedMessage = message;
-      _messageBeingDisplayed = message;
-      _messageBeingDisplayedSubString = message;
-      _updateCounter = 0;
-      _charCount = 0;
-    }
-
-    /**
-    test class to test the display with more text than fits on the screen.
-    */
-    void testDisplay() {
-      _lcd->setCursor(0,0);
-      _lcd->print("zero one two three four five six seven eight nine ten eleven twelve");
-      _lcd->display();
+      _storedMessage = message; //the stored message to show on the lcd screen.
+      _updateCounter = 0; //this it the counter to know when to update the lcd screen.
+      _charCount = 0; //this is the character count, used to write the message to the lcd screen char by char.
     }
 
     /**
@@ -122,17 +111,15 @@ class LblLcdDisplay {
     void lcdWrite() {
       //loop for each row in the lcd screen.
         for (int row = 0; row < LCD_ROWS; row ++) {
-          if (_messageBeingDisplayedSubString.length() > 0) {
-            //set the cursor to the correct row.
-            _lcd->setCursor(0, row);
-            for (int col = 0; col < LCD_COLS; col ++) {
-              if (_messageBeingDisplayedSubString.length() > _charCount) {
-                _lcd->write(_messageBeingDisplayedSubString[_charCount]);
-              }
-              if (_charCount < _messageBeingDisplayed.length()) {
-                _charCount ++;
-              }
+          //set the cursor to the correct row.
+          _lcd->setCursor(0, row);
+          for (int col = 0; col < LCD_COLS; col ++) {
+            if (_storedMessage.length() > _charCount) {
+              _lcd->write(_storedMessage[_charCount]);
             }
+            if (_charCount < _storedMessage.length()) {
+              _charCount ++;
+            }          
           }
         }
     }
@@ -142,7 +129,7 @@ class LblLcdDisplay {
     resets _charCount if _charCount is greater than the message length.
     */
     void resetCharCount() {
-        if (_charCount >= _messageBeingDisplayed.length()) {
+        if (_charCount >= _storedMessage.length()) {
           _charCount = 0;
         }
     }
@@ -177,7 +164,7 @@ class LblLcdDisplay {
         resetCharCount();
         _lcd->display();
       }
-      incrementUpdateCounter()
+      incrementUpdateCounter();
     }
 };
 
