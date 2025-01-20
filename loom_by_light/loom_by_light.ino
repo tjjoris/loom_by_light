@@ -29,6 +29,8 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define LED_PIN 1 //the pin the data line for the addressable LED strip is connected to.
 // NeoPixel brightness, 0 (min) to 255 (max)
 #define BRIGHTNESS 50 // Set BRIGHTNESS to about 1/5 (max = 255)
+#define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
+#define LCD_COLS 16 //the number of character columns on the lcd screen, this is how many characters fit on one line.
 
 /**
 forward declaration of classes:
@@ -73,11 +75,22 @@ lcd class for displaying messages to the lcd display.
 class LblLcdDisplay {
   private:
     LiquidCrystal * _lcd;
+    String _storedMessage;    //the stored message to be compared to if the message needs to be updated.
+    String _messageBeingDisplayed;  //the message being displayed, if this is different form the stored message, 
+    //the lcd needs to be updated.
+    String _messageBeingDispalyedSubString; //the sub string of the displayed message, this is used for when
+    //the entire message cannot fit on the lcd screen.
+
   public:
 
+    /**
+    class constructor, initializes lcd
+    */
     LblLcdDisplay (LiquidCrystal * lcd) {
       _lcd = lcd;
-  }
+    }
+
+
 };
 
 /**
