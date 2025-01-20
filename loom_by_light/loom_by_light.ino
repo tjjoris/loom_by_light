@@ -37,6 +37,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 forward declaration of classes:
 */
 class LblLcdDisplay;
+class StateEngine;
 
 /**
 test class header(declaration), this is seperated from implementation to hide implementation details
@@ -680,6 +681,27 @@ class BitmapHandler {
   }
 };
 
+
+class UiState {
+  protected:
+    StateEngine * _engine;
+    String message;
+
+  public:
+    virtual ~UiState() {}
+    void set_engine(StateEngine* engine) {
+      _engine = engine;
+    }
+};
+
+class UiStateIntro : public UiState {
+
+};
+
+class StateEngine {
+
+};
+
 /**
 *initialize the SD card.
 */
@@ -739,7 +761,6 @@ void printRow() {
   }
 }
 
-// Adafruit_NeoPixel myStrip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 /**
 *creates bitmap handler object, then opens bitmap file, reads the headers, then loops each row in the bitmap
@@ -768,22 +789,6 @@ void setup() {
     lblLcdDisplay->update();
     delay(100);
   }
-  // //test loom by light interface.
-  // while (1) {
-  //   bool loopCondition = true;
-  //   lblInterface->setMessage("hello world");
-  //   lblInterface->updateLcd();
-  //   // lblInterface->update();
-  //   while(loopCondition) {
-  //     int buttonInupt = lblInterface->readLcdButtons();
-  //     if (buttonInupt == 2) {
-  //       loopCondition = false;
-  //     }
-  //   }
-  //   lblInterface->setMessage("good day me");
-  //   lblInterface->updateLcd();
-  //   delay (10000);
-  // }
 
   //initialize the SD card
   initializeCard();
@@ -837,7 +842,6 @@ void setup() {
     //   // bmh->incrementRow();
     // }
   }
-  // bmh->closeFile(); //close the file
 }
 
 void loop() {
