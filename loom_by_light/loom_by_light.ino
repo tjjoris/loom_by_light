@@ -75,11 +75,7 @@ lcd class for displaying messages to the lcd display.
 class LblLcdDisplay {
   private:
     LiquidCrystal * _lcd;
-    String _storedMessage = "";    //the stored message to be compared to if the message needs to be updated.
-    String _messageBeingDisplayed = "";  //the message being displayed, if this is different form the stored message, 
-    //the lcd needs to be updated.
-    String _messageBeingDisplayedSubString = ""; //the sub string of the displayed message, this is used for when
-    //the entire message cannot fit on the lcd screen.
+    String _storedMessage = "";    //the stored message to be written to the lcd screen.
     int _updateCounter = 0; //the counter to determine if the substring should be continued.
     int _updateCounterMax = 25; //the max the counter should go for the substring to be continued.
     int _charCount = 0; //the character count in the message string.
@@ -206,6 +202,53 @@ class LblLedStripHandler {
       strip.show();
     }
 };
+
+/**
+this class is used to get button inputs from the lcd and button shield. It's constructor is passed the 
+LiquidCrystal object
+*/
+class LblButtons {
+  private:
+    LiquidCrystal * _lcd; //the lcd object.
+    int _adcKeyIn; //the key input 
+    bool _upPressed = false;
+    bool _downPressed = false;
+    bool _leftPressed = false;
+    bool _rightPressed = false;
+    bool _selectPressed = false;
+  
+  public:
+    LblButtons(LiquidCrystal * lcd) {
+        _lcd = lcd;
+    }
+
+    void readButtons() {
+      _adcKeyIn = analogRead(0);
+      if (_adcKeyIn > 1000) {
+        return;
+      }
+      if (_adcKeyIn < 50) {
+        _rightPressed = true;
+        return; 
+      }
+      if (_adcKeyIn < 250) {
+        _upPressed = true;
+        return;
+      } 
+      if (_adcKeyIn < 450) {
+        _downPressed = true;
+        return;
+      }
+      if (_adcKeyIn < 650) {
+        _leftPressed = true;
+        return;
+      }
+      if (_adcKeyIn < 850) {
+        _selectPressed = true;
+      }
+    }
+};
+
 /**
 lblInterace - loom by light interface, displays the lcd output on a 16 x 2 display
 and reads the input of the buttons. the pin layout can be configured to work with 
