@@ -692,6 +692,9 @@ class UiState {
     void set_engine(StateEngine* engine) {
       _engine = engine;
     }
+
+    virtual void upPressed() = 0;
+    virtual void downPressed() = 0;
 };
 
 class UiStateIntro : public UiState {
