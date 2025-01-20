@@ -117,7 +117,7 @@ class LblInterface {
         this->lastStoredMessage = completeMessage;
         updateLcd();
       }
-      delay(50);
+      delay(100);
       int input = readLcdButtons();
       return input;
     }
@@ -140,8 +140,8 @@ class LblInterface {
     /**
     test if the lcd button to test is equal to up.
     */
-    void isButtonUp() {
-      if (buttonToTest == 2) {
+    bool isButtonUp() {
+      if (buttonToTest == 1) {
         resetLcdButton();
         return true;
       }
@@ -151,8 +151,8 @@ class LblInterface {
     /**
     test if the lcd button to test is equal to down.
     */
-    void isButtonDown() {
-      if (buttonToTest == 1) {
+    bool isButtonDown() {
+      if (buttonToTest == 2) {
         resetLcdButton();
         return true;
       }
@@ -753,22 +753,62 @@ void setup() {
 }
 
 void loop() {
+  //new design:
+  //set button input
+  //set state function
+    //this function checks each state option.
+  //set lcd display
+  //delay
+
   //test loom by light interface.
-  while (1) {
-    bool loopCondition = true;
-    lblInterface->setMessage("hello me");
-    lblInterface->updateLcd();
-    // lblInterface->update();
-    while(loopCondition) {
-      int buttonInupt = lblInterface->readLcdButtons();
-      if (buttonInupt == 2) {
-        loopCondition = false;
+  //i've discovered the lcd dispaly is not showing messages that don't fit on the screen.
+    // while (1) {
+      bool loopCondition = true;
+      String hello = "hello wold, blah blah.";
+      lblInterface->setMessage(hello);
+      while(1){
+        lblInterface->update();
+        // delay(10000);
       }
+      lblInterface->updateLcd();
+      // lblInterface->update();
+      while(loopCondition) {
+        // int buttonInupt = lblInterface->readLcdButtons();
+        lblInterface->setLcdButton();
+        if (lblInterface->isButtonDown()) {
+          loopCondition = false;
+        }
+        delay(100);
+      }
+      lblInterface->setMessage("good day me");
+      lblInterface->updateLcd();
+      delay (3000);
+    // }
+  //intro, dispaly widht and height.
+  bool keepLooping = 1;
+  String message = "Width ";
+  // message += bmh->imageWidth;
+  // message += " Height: ";
+  // message += bmh->imageHeight;
+  lblInterface->setMessage(message);
+  lblInterface->updateLcd();
+  while (keepLooping) {
+    lblInterface->setLcdButton();
+    if (lblInterface->isButtonUp()) {
+      bmh->currentRow = 0;
+      keepLooping = 0;
+    } else if (lblInterface->isButtonDown()) {
+      bmh->currentRow = bmh->imageHeight - 1;
+      keepLooping = 0;
     }
-    lblInterface->setMessage("good day me");
-    lblInterface->updateLcd();
-    delay (10000);
+    delay(100);
   }
+  //display the current row:
+  message = "current row ";
+  message += bmh->currentRow;
+  lblInterface->setMessage(message);
+  lblInterface->updateLcd();
+  delay(10000);
   //intro, display width and height.
   while(lblInterface->update() != 2) { 
     String message = "Width: ";
