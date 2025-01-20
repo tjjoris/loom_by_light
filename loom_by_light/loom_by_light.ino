@@ -115,71 +115,70 @@ class LblLcdDisplay {
     }
 
     /**
-    check if the displayed message is different from the stored message, and update it if it is.
+    loop through each row and column, and write to the lcd screen
+    the character written is known by the _messageBeingDisplayed and
+    charCount determins where in that message to print the char.
     */
-    void update() {
-      
-      // Serial.println(_updateCounter);
-      //the update counter is at 0, therefore update the lcd screen.
-      if (_updateCounter <= 0) {
-        _lcd->clear();
-        // int charCount = 0; //the character count to use to get the substring.
-        //loop for each row in the lcd screen.
+    void lcdWrite() {
+      //loop for each row in the lcd screen.
         for (int row = 0; row < LCD_ROWS; row ++) {
-          // if (!((row > 0) && (_messageBeingDisplayedSubString.length() == _messageBeingDisplayed.length()))) {
-          
           if (_messageBeingDisplayedSubString.length() > 0) {
             //set the cursor to the correct row.
             _lcd->setCursor(0, row);
             for (int col = 0; col < LCD_COLS; col ++) {
-              // Serial.println(row);
-              // Serial.println(_messageBeingDisplayedSubString);
               if (_messageBeingDisplayedSubString.length() > _charCount) {
                 _lcd->write(_messageBeingDisplayedSubString[_charCount]);
               }
-              // if (_messageBeingDisplayedSubString.length() > 1) {
               if (_charCount < _messageBeingDisplayed.length()) {
-                // _messageBeingDisplayedSubString = _messageBeingDisplayedSubString.substring(1);
                 _charCount ++;
               }
-              // else {
-              // // _messageBeingDisplayedSubString = _messageBeingDisplayed;
-              //   _charCount = 0;
-              // }
             }
           }
-          
-          // }
-          // for (int col = 0; col < LCD_COLS; col ++) {
-          // }
         }
+    }
+
+    /**
+    This function is called when finished writing to lcd rows and columns,
+    resets _charCount if _charCount is greater than the message length.
+    */
+    void resetCharCount() {
         if (_charCount >= _messageBeingDisplayed.length()) {
           _charCount = 0;
         }
-        // Serial.println(_messageBeingDisplayedSubString);
-        _lcd->display();
-      }
-      //the update counter has reached the max, reset it to 0 and end the function.
-      if (_updateCounter >= _updateCounterMax) {
-        //create a substring
-        // if (_messageBeingDisplayedSubString.length() > LCD_COLS) {
-        //   _messageBeingDisplayedSubString = _messageBeingDisplayedSubString.substring(LCD_COLS);
-        // }
-        // else {
-        //   _messageBeingDisplayedSubString = _messageBeingDisplayed;
-        // }
-        _updateCounter = 0;
-        // _charCount = 0;
-        return;
-      }
-      //the update counter is less than the update counter max, therefore it should increment.
+    }
+
+    /**
+    increments the update counter if is lower than the max. 
+    Otherwise reset it to 0.
+    */
+    void incrementUpdateCounter() {
       if (_updateCounter < _updateCounterMax) {
         _updateCounter ++;
         return;
       }
+      //the update counter has reached the max, reset it to 0 and end the function.
+      if (_updateCounter >= _updateCounterMax) {
+        _updateCounter = 0;
+      }
+
     }
 
-
+    /**
+    this function iterates through _updateCounter, and when it is at 0, it calls lcdWrite(),
+    when it does this, it checks if _charCount is at the max message length, if it it is, resets
+    _charCount.
+    when _updateCounter is at max, it is reset. 
+    */
+    void update() {
+      //the update counter is at 0, therefore update the lcd screen.
+      if (_updateCounter <= 0) {
+        _lcd->clear();
+        lcdWrite();
+        resetCharCount();
+        _lcd->display();
+      }
+      incrementUpdateCounter()
+    }
 };
 
 /**
