@@ -17,7 +17,7 @@ Required libraries:
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-January-15
+*@date 2025-January-20
 */
 
 #include <SPI.h>
@@ -30,7 +30,41 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 // NeoPixel brightness, 0 (min) to 255 (max)
 #define BRIGHTNESS 50 // Set BRIGHTNESS to about 1/5 (max = 255)
 
-// Adafruit_NeoPixel myStrip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+/**
+forward declaration of classes:
+*/
+class LblLcdDisplay;
+
+/**
+test class header, to be deleted
+*/
+class TestClass {
+  private:
+    LblLcdDisplay * _lcdDisplay;
+  public:
+    TestClass(LblLcdDisplay * lcdDisplay) ;
+    // void doStuff();
+};
+
+/**
+test class implementation, to be deleted.
+*/
+TestClass::TestClass(LblLcdDisplay * lcdDisplay) {
+  _lcdDisplay = lcdDisplay;
+}
+
+/**
+lcd class for displaying messages to the lcd display.
+*/
+class LblLcdDisplay {
+  private:
+    LiquidCrystal * _lcd;
+  public:
+
+    LblLcdDisplay (LiquidCrystal * lcd) {
+      _lcd = lcd;
+  }
+};
 
 /**
 LblLedStripHandler - the class to create the NeoPixel strip object, 
