@@ -36,7 +36,9 @@ forward declaration of classes:
 class LblLcdDisplay;
 
 /**
-test class header, to be deleted
+test class header(declaration), this is seperated from implementation to hide implementation details
+and improve encapsulation, making it easier to modify the implementation without affecing to ther code which
+depends on the class interface, this class is to be deleted
 */
 class TestClass {
   private:
@@ -52,6 +54,18 @@ test class implementation, to be deleted.
 TestClass::TestClass(LblLcdDisplay * lcdDisplay) {
   _lcdDisplay = lcdDisplay;
 }
+
+/**
+testing class B. this implements Class B withiout a class header.
+*/
+class ClassB {
+  private:
+    LblLcdDisplay * _lblLcdDisplay;
+  public:
+    ClassB (LblLcdDisplay * lblLcdDisplay) {
+      _lblLcdDisplay = lblLcdDisplay;
+    }
+};
 
 /**
 lcd class for displaying messages to the lcd display.
