@@ -31,6 +31,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define BRIGHTNESS 50 // Set BRIGHTNESS to about 1/5 (max = 255)
 #define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
 #define LCD_COLS 16 //the number of character columns on the lcd screen, this is how many characters fit on one line.
+const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
 
 /**
 forward declaration of classes:
@@ -877,6 +878,7 @@ BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
 LblLcdDisplay * lblLcdDisplay;
 LblButtons * lblButtons;
+LiquidCrystal * lcd;
 
 void showLightsForRow() {
   bmh->setLightsArray(bmh->currentRow);
@@ -914,10 +916,13 @@ void setup() {
   //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
   //library, or it interferes with the light strip.
   Serial.begin(9600);
+  //create lcd
+  lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
+  lcd->begin(LCD_ROWS, LCD_COLS);
   //loom by light interface object.
   lblInterface = new LblInterface();
-  lblLcdDisplay = new LblLcdDisplay(&lblInterface->lcd);
-  lblButtons = new LblButtons(&lblInterface->lcd);
+  lblLcdDisplay = new LblLcdDisplay(lcd);
+  lblButtons = new LblButtons(lcd);
   lblLcdDisplay->storeMessage("hello world");
   for (int i=0; i<60; i++) {
     lblLcdDisplay->update();
