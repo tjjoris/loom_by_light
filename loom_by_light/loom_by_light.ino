@@ -33,6 +33,17 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define LCD_COLS 16 //the number of character columns on the lcd screen, this is how many characters fit on one line.
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
 
+//to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
+#define DO_DEBUG 0
+
+#if DO_DEBUG == 1
+#define DEBUG_MSG(x) Serial.print(x)
+#define DEBUG_LN(x) Serial.println(x)
+#else
+#define DEBUG_MSG(x)
+#define DEBUG_LN(X)
+#endif
+
 /**
 forward declaration of classes:
 */
@@ -829,8 +840,8 @@ void intro() {
   message += " height: ";
   message += String(bmh->imageHeight);
   if (lblLcdDisplay) {
-    Serial.print ("object extist ");
-    Serial.println((String)message);
+    DEBUG_MSG ("object extist ");
+    DEBUG_LN((String)message);
   } else {
     Serial.println("object does not exist");
   }
