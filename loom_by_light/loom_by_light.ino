@@ -550,6 +550,15 @@ class BitmapHandler {
     Serial.println(this->importantColors);
   }
 
+  bool fileExists() {
+    if (SD.exists(this->bmpFilename)) {
+      Serial.print(F("File exists "));
+      Serial.println((this->bmpFilename));
+      return true;
+    }
+    return false;
+  }
+
   /**
   *open the file, print an error message if it is not opened. return true if the file is opened, otherwise false.
   */
@@ -888,6 +897,11 @@ void setup() {
   initializeCard();
   //create bitmap handler object, and pass it the bitmap to read.
   bmh = new BitmapHandler("bitmap.bmp");
+  
+  // //open the file
+  bmh->openFile();
+  // //verify file, this includes reading the headers which is necessary to decode the bitmap.
+  bmh->verifyFile();
 
   //instantiate light strip handler
   lblLedStripHandler = new LblLedStripHandler();
@@ -915,10 +929,10 @@ void setup() {
   //   }
   // }
 
-  //open the file
-  bmh->openFile();
-  //verify file, this includes reading the headers which is necessary to decode the bitmap.
-  if (bmh->verifyFile()) {
+  // //open the file
+  // bmh->openFile();
+  // //verify file, this includes reading the headers which is necessary to decode the bitmap.
+  // if (bmh->verifyFile()) {
     //print the headers.
     // bmh->serialPrintHeaders();
 
@@ -935,7 +949,7 @@ void setup() {
     //   Serial.println(); //new line
     //   // bmh->incrementRow();
     // }
-  }
+  // }
 }
 void loop() {
   intro();
