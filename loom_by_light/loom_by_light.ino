@@ -361,6 +361,7 @@ class BitmapHandler {
     if (currentRow >= imageHeight) {
       currentRow = 0;
     }
+    setLightsArray(currentRow); //set the lights array according to the current row.
   }
 
   void decrementRow() {
@@ -368,6 +369,7 @@ class BitmapHandler {
     if (currentRow < 0) {
       currentRow = imageHeight - 1;
     }
+    setLightsArray(currentRow); //set the lights array according to the current row.
   }
 
   /**
@@ -847,7 +849,7 @@ void intro() {
   } else {
     DEBUG_LN("object does not exist");
   }
-  lblLcdDisplay->storeMessage("hello world");
+  lblLcdDisplay->storeMessage(message);
   lblLcdDisplay->update();
   delay(100);
   lblButtons->readButtons();
