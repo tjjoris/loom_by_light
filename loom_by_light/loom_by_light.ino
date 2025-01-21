@@ -34,12 +34,14 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
-#define DO_DEBUG 1
+#define DO_DEBUG 0
 
 #if DO_DEBUG == 1
+#define DEBUG_BEGIN Serial.begin(9600)
 #define DEBUG_MSG(x) Serial.print(x)
 #define DEBUG_LN(x) Serial.println(x)
 #else
+#define DEBUG_BEGIN
 #define DEBUG_MSG(x)
 #define DEBUG_LN(X)
 #endif
@@ -899,7 +901,8 @@ void showLedsForRow() {
 void setup() {
   //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
   //library, or it interferes with the light strip.
-  Serial.begin(9600);
+  // Serial.begin(9600);
+  DEBUG_BEGIN;
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
