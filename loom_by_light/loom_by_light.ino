@@ -38,6 +38,9 @@ forward declaration of classes:
 */
 class LblLcdDisplay;
 class StateEngine;
+class UiState;
+class UiStateInRow;
+class UiStateIntro;
 
 /**
 test class header(declaration), this is seperated from implementation to hide implementation details
@@ -681,7 +684,9 @@ class BitmapHandler {
   }
 };
 
-
+/**
+UiState header
+*/
 class UiState {
   protected:
     StateEngine * _engine;
@@ -689,25 +694,19 @@ class UiState {
 
   public:
     virtual ~UiState() {}
-    void set_engine(StateEngine* engine) {
+    void setEngine(StateEngine * engine) {
       _engine = engine;
     }
 
     virtual void upPressed() = 0;
     virtual void downPressed() = 0;
 };
-
-class UiStateIntro : public UiState {
-  explicit UiStateIntro() {
-    _message = "welcome";
-  }
-};
-
-class UiStateInRow : public UiState {
-  explicit UiStateInRow() {
-    _message = "row";
-  }
-};
+// /**
+// UiState implementation
+// */
+// UiState::setEngine(StateEngine * engine) {
+//   _engine = engine;
+// }
 
 class StateEngine {
   private:
@@ -726,9 +725,26 @@ class StateEngine {
         delete _state;
       }
       _state = state;
-      _state->set_engine(this);
+      _state->setEngine(this);
     }
 };
+
+class UiStateIntro : public UiState {
+  public:
+    explicit UiStateIntro() {
+      _message = "welcome";
+    }
+    void upPressed() override {
+      // _engine->transitionTo(new UiStateInRow);
+    }
+};
+
+class UiStateInRow : public UiState {
+  explicit UiStateInRow() {
+    _message = "row";
+  }
+};
+
 
 /**
 *initialize the SD card.
@@ -789,6 +805,70 @@ void printRow() {
   }
 }
 
+int stateInt = 0;
+
+/**
+the intro menu screen.
+*/
+void intro() {
+  if (stateInt != 0) {
+    return;
+  }
+  String message;
+  message = "bmp width: ";
+  message += String(bmh->imageWidth);
+  message += " height: ";
+  message += String(bmh->imageHeight);
+  if (lblLcdDisplay) {
+    Serial.print ("object extist ");
+    Serial.println(message);
+  } else {
+    Serial.println("object does not exist");
+  }
+  lblLcdDisplay->storeMessage("hello world");
+  lblLcdDisplay->update();
+  delay(1000);
+  if (lblButtons->isUpPressed()) {
+    bmh->currentRow = 0;
+    stateInt = 1;
+  } else
+  if (lblButtons->isDownPressed()) {
+    bmh->currentRow = bmh->imageHeight;
+    stateInt = 1;
+  }
+}
+
+/**
+the display row ui function
+*/
+void displayRow() {
+  if (stateInt != 1) {
+    return;
+  }
+  String message;
+  message = "current row: ";
+  message += (bmh->currentRow + 1);
+  lblLcdDisplay->storeMessage(message);
+  lblLcdDisplay->update();
+  showLedsForRow();
+  delay(100);
+  if (lblButtons->isUpPressed()) {
+    bmh->decrementRow();
+  } else
+  if (lblButtons->isDownPressed()) {
+    bmh->incrementRow();
+  }
+}
+
+/**
+shows the leds for a row.
+*/
+void showLedsForRow() {
+  for (int column = 0; column < bmh->imageWidth; column ++) {
+    lblLedStripHandler->setPixel(column, bmh->isTrueForBitInByteArray(column));
+  }
+  lblLedStripHandler->showStrip();
+}
 
 /**
 *creates bitmap handler object, then opens bitmap file, reads the headers, then loops each row in the bitmap
@@ -803,20 +883,6 @@ void setup() {
   lcd->begin(LCD_ROWS, LCD_COLS);
   lblLcdDisplay = new LblLcdDisplay(lcd);
   lblButtons = new LblButtons(lcd);
-  lblLcdDisplay->storeMessage("hello world");
-  for (int i=0; i<60; i++) {
-    lblLcdDisplay->update();
-    lblButtons->readButtons();
-    delay(100);
-    if (lblButtons->isDownPressed()) {
-      lblLcdDisplay->storeMessage("down pressed");
-    }
-  }
-  lblLcdDisplay->storeMessage("one two three four five six seven eight nine ten eleven twelve thirteen fourteen.");
-  while(1) {
-    lblLcdDisplay->update();
-    delay(100);
-  }
 
   //initialize the SD card
   initializeCard();
@@ -871,7 +937,7 @@ void setup() {
     // }
   }
 }
-
 void loop() {
-
+  intro();
+  displayRow();
 }
