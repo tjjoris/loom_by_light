@@ -879,11 +879,11 @@ void intro() {
   delay(100);
   lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
-    bmh->currentRow = 0;
+    bmh->currentRow = bmh->imageHeight;
     stateInt = 1;
   } else
   if (lblButtons->isDownPressed()) {
-    bmh->currentRow = bmh->imageHeight;
+    bmh->currentRow = 0;
     stateInt = 1;
   }
 }
