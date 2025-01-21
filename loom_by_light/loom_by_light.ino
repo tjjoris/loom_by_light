@@ -177,7 +177,7 @@ class LblLedStripHandler {
     Adafruit_NeoPixel strip;
 
     LblLedStripHandler() : strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800) {
-      Serial.println("LblLedStripHandler constructor called.");
+      DEBUG_LN("LblLedStripHandler constructor called.");
       strip.begin(); //initialize NeoPixel strip object (REQUIRED)
       strip.show(); //turn off all pixels.
       strip.setBrightness(BRIGHTNESS); //set the brightness.
@@ -426,31 +426,31 @@ class BitmapHandler {
   bool verifyFile() {
     if (!this->bmpFile) {
       Serial.print(F("BitmapHandler : Unable to open file "));
-      Serial.println(this->bmpFilename);
+      DEBUG_LN(this->bmpFilename);
       this->fileOK = false;
       return false;
     }
     if (!this->readFileHeaders()){
-      Serial.println(F("Unable to read file headers"));
+      DEBUG_LN(F("Unable to read file headers"));
       this->fileOK = false;
       return false;
     }
     if (!this->checkFileHeaders()){
-      Serial.println(F("Not compatible file"));
+      DEBUG_LN(F("Not compatible file"));
       this->fileOK = false;
       return false;
     }
     if (LED_COUNT < imageWidth) {
-      Serial.println("image width greater than number of lights.");
+      DEBUG_LN("image width greater than number of lights.");
       this->fileOK = false;
       return false;
     }
     if (lightsArraySize < LED_COUNT / 8) {
-      Serial.println("lights array size was too small");
+      DEBUG_LN("lights array size was too small");
       this->fileOK = false;
     }
     // all OK
-    Serial.println(F("BMP file all OK"));
+    DEBUG_LN(F("BMP file all OK"));
     this->fileOK = true;
     return true;
   }
@@ -500,22 +500,22 @@ class BitmapHandler {
 
     // BMP file id
     if (this->headerField != 0x4D42){
-      Serial.println("file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.");
+      DEBUG_LN("file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.");
       return false;
     }
     // must be single colour plane
     if (this->colourPlanes != 1){
-      Serial.println("file is not single colour plane");
+      DEBUG_LN("file is not single colour plane");
       return false;
     }
     // only working with 24 bit bitmaps
     if (this->bitsPerPixel != 24){
-      Serial.println("is not 24 bit bitmap.");
+      DEBUG_LN("is not 24 bit bitmap.");
       return false;
     }
     // no compression
     if (this->compression != 0){
-      Serial.println("bitmap is compressed.");
+      DEBUG_LN("bitmap is compressed.");
       return false;
     }
     // all ok
@@ -529,42 +529,42 @@ class BitmapHandler {
   */
   void serialPrintHeaders() {
     Serial.print(F("filename : "));
-    Serial.println(this->bmpFilename);
+    DEBUG_LN(this->bmpFilename);
     // BMP Header
-    Serial.print(F("headerField : "));
-    Serial.println(this->headerField, HEX);
+    // Serial.print(F("headerField : "));
+    // Serial.println(this->headerField, HEX);
     Serial.print(F("fileSize : "));
-    Serial.println(this->fileSize);
+    DEBUG_LN(this->fileSize);
     Serial.print(F("imageOffset : "));
-    Serial.println(this->imageOffset);
+    DEBUG_LN(this->imageOffset);
     Serial.print(F("headerSize : "));
-    Serial.println(this->headerSize);
+    DEBUG_LN(this->headerSize);
     Serial.print(F("imageWidth : "));
-    Serial.println(this->imageWidth);
+    DEBUG_LN(this->imageWidth);
     Serial.print(F("imageHeight : "));
-    Serial.println(this->imageHeight);
+    DEBUG_LN(this->imageHeight);
     Serial.print(F("colourPlanes : "));
-    Serial.println(this->colourPlanes);
+    DEBUG_LN(this->colourPlanes);
     Serial.print(F("bitsPerPixel : "));
-    Serial.println(this->bitsPerPixel);
+    DEBUG_LN(this->bitsPerPixel);
     Serial.print(F("compression : "));
-    Serial.println(this->compression);
+    DEBUG_LN(this->compression);
     Serial.print(F("imageSize : "));
-    Serial.println(this->imageSize);
+    DEBUG_LN(this->imageSize);
     Serial.print(F("xPixelsPerMeter : "));
-    Serial.println(this->xPixelsPerMeter);
+    DEBUG_LN(this->xPixelsPerMeter);
     Serial.print(F("yPixelsPerMeter : "));
-    Serial.println(this->yPixelsPerMeter);
+    DEBUG_LN(this->yPixelsPerMeter);
     Serial.print(F("totalColors : "));
-    Serial.println(this->totalColors);
+    DEBUG_LN(this->totalColors);
     Serial.print(F("importantColors : "));
-    Serial.println(this->importantColors);
+    DEBUG_LN(this->importantColors);
   }
 
   bool fileExists() {
     if (SD.exists(this->bmpFilename)) {
       Serial.print(F("File exists "));
-      Serial.println((this->bmpFilename));
+      DEBUG_LN((this->bmpFilename));
       return true;
     }
     return false;
@@ -577,7 +577,7 @@ class BitmapHandler {
   this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
   if (!this->bmpFile) {
       Serial.print(F("BitmapHandler : Unable to open file "));
-      Serial.println(this->bmpFilename);
+      DEBUG_LN(this->bmpFilename);
       this->fileOK = false;
       return false;
     }
@@ -773,11 +773,11 @@ void initializeCard() {
   Serial.print("beginning initialization of SD card");
 
   if (!SD.begin(CHIP_SELECT)) {
-    Serial.println("SD initialization failed");
+    DEBUG_LN("SD initialization failed");
     while (1); //infinate loop to force resetting arduino
   }
-  Serial.println("SD Initalized successfully"); //if you reach here setup successfully
-  Serial.println("----------------------------\n");
+  DEBUG_LN("SD Initalized successfully"); //if you reach here setup successfully
+  DEBUG_LN("----------------------------\n");
 }
 
 /**
@@ -803,7 +803,7 @@ void showLightsForRow() {
   bmh->setLightsArray(bmh->currentRow);
   //debug the row to the terminal.
   printRow();
-  Serial.println();
+  DEBUG_LN();
   for (int i=0; i<LED_COUNT; i++) {
     //set the pixel at i, if it is true in lights array at i.
     lblLedStripHandler->setPixel(i, bmh->isTrueForBitInByteArray(i));
@@ -843,7 +843,7 @@ void intro() {
     DEBUG_MSG ("object extist ");
     DEBUG_LN((String)message);
   } else {
-    Serial.println("object does not exist");
+    DEBUG_LN("object does not exist");
   }
   lblLcdDisplay->storeMessage("hello world");
   lblLcdDisplay->update();
@@ -928,7 +928,7 @@ void setup() {
   //   // lblLedStripHandler->setPixel(3, true);
   //   // lblLedStripHandler->showStrip();
   //   Serial.print("showing strip test, count");
-  //   Serial.println(count);
+  //   DEBUG_LN(count);
   //   // delay(10000);
   //   myStrip.setPixelColor(count, myStrip.Color(155, 155, 255));
   //   myStrip.show();
@@ -959,7 +959,7 @@ void setup() {
         
     //     printBinary(bmh->lightsArray[i]);
     //   }
-    //   Serial.println(); //new line
+    //   DEBUG_LN(); //new line
     //   // bmh->incrementRow();
     // }
   // }
