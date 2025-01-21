@@ -28,7 +28,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define LED_COUNT 60 //the number of lights on the light strip.
 #define LED_PIN 1 //the pin the data line for the addressable LED strip is connected to.
 // NeoPixel brightness, 0 (min) to 255 (max)
-#define BRIGHTNESS 50 // Set BRIGHTNESS to about 1/5 (max = 255)
+#define BRIGHTNESS 25 // Set BRIGHTNESS to about 1/5 (max = 255)
 #define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
 #define LCD_COLS 16 //the number of character columns on the lcd screen, this is how many characters fit on one line.
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
@@ -222,6 +222,8 @@ class LblButtons {
     bool _leftPressed = false;
     bool _rightPressed = false;
     bool _selectPressed = false;
+    bool _hasInputBeenRead = false; //this is set true when an input is read, and used to determine
+    //when pressed bools should be set from true to false in the _isPressesd functions.
   
   public:
     LblButtons(LiquidCrystal * lcd) {
@@ -231,26 +233,44 @@ class LblButtons {
     void readButtons() {
       _adcKeyIn = analogRead(0);
       if (_adcKeyIn > 1000) {
+        if (_hasInputBeenRead) { //if input has been read, set the pressed bools to false.
+          _upPressed = false;
+          _downPressed = false;
+          _leftPressed = false;
+          _rightPressed = false;
+          _selectPressed = false;
+          _hasInputBeenRead = false; //also set the bool to false so another button press can be read.
+        }
         return;
       }
       if (_adcKeyIn < 50) {
-        _rightPressed = true;
+        if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+          _rightPressed = true;
+        }
         return; 
       }
       if (_adcKeyIn < 250) {
-        _upPressed = true;
+        if (!_hasInputBeenRead) {//used to keep a button from repeating when held down.
+          _upPressed = true;
+        }
         return;
       } 
       if (_adcKeyIn < 450) {
-        _downPressed = true;
+        if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+          _downPressed = true;
+        }
         return;
       }
       if (_adcKeyIn < 650) {
-        _leftPressed = true;
+        if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+          _leftPressed = true;  
+        }
         return;
       }
       if (_adcKeyIn < 850) {
-        _selectPressed = true;
+        if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+          _selectPressed = true;
+        }
       }
     }
 
@@ -259,6 +279,7 @@ class LblButtons {
     */
     bool isUpPressed() {
       if (_upPressed) {
+        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _upPressed = false;
         return true;
       }
@@ -270,6 +291,7 @@ class LblButtons {
     */
     bool isDownPressed() {
       if (_downPressed) {
+        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _downPressed = false;
         return true;
       }
@@ -281,6 +303,7 @@ class LblButtons {
     */
     bool isLeftPressed() {
       if (_leftPressed) {
+        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _leftPressed = false;
         return true;
       }
@@ -292,6 +315,7 @@ class LblButtons {
     */
     bool isRightPressed() {
       if (_rightPressed) {
+        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _rightPressed = false;
         return true;
       }
@@ -303,6 +327,7 @@ class LblButtons {
     */
     bool isSelectPressed() {
       if (_selectPressed) {
+        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _selectPressed = false;
         return true;
       }
