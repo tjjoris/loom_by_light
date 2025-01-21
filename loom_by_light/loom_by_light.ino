@@ -830,13 +830,14 @@ void intro() {
   message += String(bmh->imageHeight);
   if (lblLcdDisplay) {
     Serial.print ("object extist ");
-    Serial.println(message);
+    Serial.println((String)message);
   } else {
     Serial.println("object does not exist");
   }
   lblLcdDisplay->storeMessage("hello world");
   lblLcdDisplay->update();
-  delay(1000);
+  delay(100);
+  lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
     bmh->currentRow = 0;
     stateInt = 1;
@@ -861,6 +862,7 @@ void displayRow() {
   lblLcdDisplay->update();
   showLedsForRow();
   delay(100);
+  lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
     bmh->decrementRow();
   } else
