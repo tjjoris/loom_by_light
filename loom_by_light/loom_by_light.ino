@@ -34,7 +34,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
-#define DO_DEBUG 0
+#define DO_DEBUG 1
 
 #if DO_DEBUG == 1
 #define DEBUG_MSG(x) Serial.print(x)
@@ -189,13 +189,13 @@ class LblLedStripHandler {
     void setPixel(int pixelIndex, bool isTrue) {
       if (isTrue) {
         strip.setPixelColor(pixelIndex, strip.Color(0,0,255));
-        Serial.print("set pixel to true at index ");
-        Serial.print(pixelIndex);
+        DEBUG_MSG("set pixel to true at index ");
+        DEBUG_MSG(pixelIndex);
       }
       else {
         strip.setPixelColor(pixelIndex, strip.Color(0,0,0));
-        Serial.print("set pixel to false at index ");
-        Serial.print(pixelIndex);
+        DEBUG_MSG("set pixel to false at index ");
+        DEBUG_MSG(pixelIndex);
       }
     }
 
@@ -425,7 +425,7 @@ class BitmapHandler {
   */
   bool verifyFile() {
     if (!this->bmpFile) {
-      Serial.print(F("BitmapHandler : Unable to open file "));
+      DEBUG_MSG(F("BitmapHandler : Unable to open file "));
       DEBUG_LN(this->bmpFilename);
       this->fileOK = false;
       return false;
@@ -528,42 +528,42 @@ class BitmapHandler {
   *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
   */
   void serialPrintHeaders() {
-    Serial.print(F("filename : "));
+    DEBUG_MSG(F("filename : "));
     DEBUG_LN(this->bmpFilename);
     // BMP Header
-    // Serial.print(F("headerField : "));
+    // DEBUG_MSG(F("headerField : "));
     // Serial.println(this->headerField, HEX);
-    Serial.print(F("fileSize : "));
+    DEBUG_MSG(F("fileSize : "));
     DEBUG_LN(this->fileSize);
-    Serial.print(F("imageOffset : "));
+    DEBUG_MSG(F("imageOffset : "));
     DEBUG_LN(this->imageOffset);
-    Serial.print(F("headerSize : "));
+    DEBUG_MSG(F("headerSize : "));
     DEBUG_LN(this->headerSize);
-    Serial.print(F("imageWidth : "));
+    DEBUG_MSG(F("imageWidth : "));
     DEBUG_LN(this->imageWidth);
-    Serial.print(F("imageHeight : "));
+    DEBUG_MSG(F("imageHeight : "));
     DEBUG_LN(this->imageHeight);
-    Serial.print(F("colourPlanes : "));
+    DEBUG_MSG(F("colourPlanes : "));
     DEBUG_LN(this->colourPlanes);
-    Serial.print(F("bitsPerPixel : "));
+    DEBUG_MSG(F("bitsPerPixel : "));
     DEBUG_LN(this->bitsPerPixel);
-    Serial.print(F("compression : "));
+    DEBUG_MSG(F("compression : "));
     DEBUG_LN(this->compression);
-    Serial.print(F("imageSize : "));
+    DEBUG_MSG(F("imageSize : "));
     DEBUG_LN(this->imageSize);
-    Serial.print(F("xPixelsPerMeter : "));
+    DEBUG_MSG(F("xPixelsPerMeter : "));
     DEBUG_LN(this->xPixelsPerMeter);
-    Serial.print(F("yPixelsPerMeter : "));
+    DEBUG_MSG(F("yPixelsPerMeter : "));
     DEBUG_LN(this->yPixelsPerMeter);
-    Serial.print(F("totalColors : "));
+    DEBUG_MSG(F("totalColors : "));
     DEBUG_LN(this->totalColors);
-    Serial.print(F("importantColors : "));
+    DEBUG_MSG(F("importantColors : "));
     DEBUG_LN(this->importantColors);
   }
 
   bool fileExists() {
     if (SD.exists(this->bmpFilename)) {
-      Serial.print(F("File exists "));
+      DEBUG_MSG(F("File exists "));
       DEBUG_LN((this->bmpFilename));
       return true;
     }
@@ -576,7 +576,7 @@ class BitmapHandler {
   bool openFile() {
   this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
   if (!this->bmpFile) {
-      Serial.print(F("BitmapHandler : Unable to open file "));
+      DEBUG_MSG(F("BitmapHandler : Unable to open file "));
       DEBUG_LN(this->bmpFilename);
       this->fileOK = false;
       return false;
@@ -770,7 +770,7 @@ class UiStateInRow : public UiState {
 *initialize the SD card.
 */
 void initializeCard() {
-  Serial.print("beginning initialization of SD card");
+  DEBUG_MSG("beginning initialization of SD card");
 
   if (!SD.begin(CHIP_SELECT)) {
     DEBUG_LN("SD initialization failed");
@@ -788,7 +788,7 @@ void printBool(bool boolToPrint) {
     Serial.write(1);
   }
   else {
-    Serial.print(" ");
+    DEBUG_MSG(" ");
   }
 }
 
@@ -927,7 +927,7 @@ void setup() {
   //   // lblLedStripHandler->setPixel(2, false);
   //   // lblLedStripHandler->setPixel(3, true);
   //   // lblLedStripHandler->showStrip();
-  //   Serial.print("showing strip test, count");
+  //   DEBUG_MSG("showing strip test, count");
   //   DEBUG_LN(count);
   //   // delay(10000);
   //   myStrip.setPixelColor(count, myStrip.Color(155, 155, 255));
