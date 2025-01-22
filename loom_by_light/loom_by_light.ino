@@ -186,6 +186,12 @@ LblLedStripHandler - the class to create the NeoPixel strip object,
 and display the specific lights
 */
 class LblLedStripHandler {
+  private: //colours array:
+    uint8_t redArray[8] =   { 0, 63, 127, 191, 255, 191, 127, 63};
+    uint8_t greenArray[8] = {63, 127, 191, 255, 191, 127, 63, 0};
+    uint8_t blueArray[8] =  {127, 191, 255, 191, 127, 63, 0, 63};
+    uint8_t colourArrayCounter = 0;
+    uint8_t colourArraySize = 8;
   public:
     Adafruit_NeoPixel strip;
 
@@ -197,6 +203,26 @@ class LblLedStripHandler {
       strip.begin(); //initialize NeoPixel strip object (REQUIRED)
       strip.setBrightness(brightness); //set the brightness.
       strip.show(); //turn off all pixels.
+    }
+
+    /**
+    next colour
+    */
+    void nextColour() {
+      colourArrayCounter ++;
+      if (colourArrayCounter >= colourArraySize) {
+        colourArrayCounter = 0;
+      }
+    }
+
+    /**
+    previous colour
+    */
+    void prevColour() {
+      colourArrayCounter --;
+      if (colourArrayCounter <= 0) {
+        colourArrayCounter = colourArraySize - 1;
+      }
     }
 
     /**
