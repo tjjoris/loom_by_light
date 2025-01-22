@@ -828,6 +828,17 @@ void increaseLedOffset() {
 }
 
 /**
+decrease the LED offset, if it's below 0, set it to the max.
+*/
+void decreaseLedOffseet() {
+  ledOffset --;
+  if (ledOffset < 0) {
+    ledOffset = (LED_COUNT - bmh->imageWidth);
+    EEPROM.put(EEPROM_OFFSET, ledOffset);
+  }
+}
+
+/**
 increase the brightness by a fixed amount, if it is over the max, set it to 0.
 */
 void increaseBrightnessVar() {
