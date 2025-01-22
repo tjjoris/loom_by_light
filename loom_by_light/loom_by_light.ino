@@ -34,6 +34,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define LCD_COLS 16 //the number of character columns on the lcd screen, this is how many characters fit on one line.
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
 #define EEPROM_ROW 0 //the memory location in the EEPROM for the current row.
+#define EEPROM_BRIGHTNESS 2 //the memory location in the EEPROM for the brigthness.
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
 #define DO_DEBUG 0
@@ -47,6 +48,9 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 #define DEBUG_MSG(x)
 #define DEBUG_LN(X)
 #endif
+
+//global variables:
+uint8_t brightness;
 
 /**
 forward declaration of classes:
@@ -796,6 +800,29 @@ void printRow() {
 }
 
 /**
+read the brigthness form the EEPROM. if it is outside the bounds, reset it to 25.
+*/
+uint8_t readEepromBrightness() {
+  int readBrightness = 0;
+  EEPROM.get(EEPROM_BRIGHTNESS, readBrightness);
+  if ((readBrightness <=0) || (readBrightness > 255)) {
+    readBrightness = 25;
+    EEPROM.put(EEPROM_BRIGHTNESS, readBrightness);
+  }
+  return readBrightness;
+}
+
+/**
+make sure brigthness is within bounds, then write the brightness to the EEPROM
+*/
+void writeEepromBrightness(uint8_t writeBrightness) {
+  if ((writeBrightness <=0) | (writeBrightness > 255)) {
+    writeBrightness = 255;
+  }
+  EEPROM.put(EEPROM_BRIGHTNESS, writeBrightness);
+}
+
+/**
 read the row number from the EEPROM. If it is outside the image bounds, reset it to 0.
 */
 int readEepromRow() {
@@ -803,7 +830,7 @@ int readEepromRow() {
   EEPROM.get(EEPROM_ROW, rowRead);
   if ((rowRead <=0) | (rowRead >= bmh->imageHeight)) {
     rowRead = 0;
-    EEPROM.put(rowRead, EEPROM_ROW);
+    EEPROM.put(EEPROM_ROW, rowRead);
   }
   return rowRead;
 }
@@ -823,7 +850,7 @@ int stateInt = 0;
 /**
 the intro menu screen.
 */
-void intro() {
+void uiIntro() {
   if (stateInt != 0) {
     return;
   }
@@ -846,12 +873,16 @@ void intro() {
     bmh->currentRow = readEepromRow(); //read the current row from the EEPROM.
     stateInt = 1;
   }
+  if (lblButtons->isSelectPressed()) {
+    brightness = readEepromBrightness();
+    stateInt = 100;
+  }
 }
 
 /**
 the display row ui function
 */
-void displayRow() {
+void uiDisplayRow() {
   if (stateInt != 1) {
     return;
   }
@@ -877,6 +908,17 @@ void displayRow() {
     uiLoadRowEeprom();
     return;
   }
+  if (lblButtons->isSelectPressed()) {
+    stateInt = 100;
+  }
+}
+
+/**
+the UI for the brigtness in the menu, up goes to the last menu setting, down to the next
+left decreases the brightness, right increases the brightness, select goes to row mode.
+*/
+void uiBrightness() {
+
 }
 
 /**
@@ -940,12 +982,12 @@ void setup() {
   lblLedStripHandler = new LblLedStripHandler();
 
   //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
-  int myInt = EEPROM.get(EEPROM_ROW, myInt);
+  uint8_t myInt = EEPROM.get(EEPROM_BRIGHTNESS, myInt);
   lblLcdDisplay->storeMessage(String(myInt + 1));
   lblLcdDisplay->update();
   delay(3000);
 }
 void loop() {
-  intro();
-  displayRow();
+  uiIntro();
+  uiDisplayRow();
 }
