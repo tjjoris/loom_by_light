@@ -45,14 +45,17 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 #define DEBUG_BEGIN Serial.begin(9600)
 #define DEBUG_MSG(x) Serial.print(x)
 #define DEBUG_LN(x) Serial.println(x)
+#define DEBUG_WR(x) Serial.write(x);
 #else
 #define DEBUG_BEGIN
 #define DEBUG_MSG(x)
 #define DEBUG_LN(X)
+#define DEBUG_WR(x)
 #endif
 
 //global variables:
 uint8_t brightness;
+int ledOffset;
 
 /**
 forward declaration of classes:
@@ -772,7 +775,7 @@ print a different character if the value is true or false.
 */
 void printBool(bool boolToPrint) {
   if (boolToPrint) {
-    Serial.write(1);
+    DEBUG_WR(1);
   }
   else {
     DEBUG_MSG(" ");
@@ -810,6 +813,18 @@ void printRow() {
     bool isBitTrue = bmh->isTrueForBitInByteArray(i);
     printBool(isBitTrue);
   }
+}
+
+/**
+increasse the led offset, if it's above max, set it to 0.
+*/
+void increaseLedOffset() {
+  ledOffset ++;
+  if (ledOffset > (LED_COUNT - bmh->imageWidth)) {
+    ledOffset = 0;
+  }
+  bmh->setLightsArray(bmh->currentRow);
+  showLightsForRow();
 }
 
 /**
@@ -949,7 +964,7 @@ void uiDisplayRow() {
   message += (bmh->currentRow + 1);
   lblLcdDisplay->storeMessage(message);
   lblLcdDisplay->update();
-  showLedsForRow();
+  showLightsForRow();
   delay(100);
   lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
@@ -1027,16 +1042,6 @@ void uiSaveRowEeprom(int row) {
 }
 
 /**
-shows the leds for a row.
-*/
-void showLedsForRow() {
-  for (int column = 0; column < bmh->imageWidth; column ++) {
-    lblLedStripHandler->setPixel(column, bmh->isTrueForBitInByteArray(column));
-  }
-  lblLedStripHandler->showStrip();
-}
-
-/**
 *creates bitmap handler object, then opens bitmap file, reads the headers, then loops each row in the bitmap
 *and decodes each row, printing the binary values based on saturation.
 */
@@ -1063,7 +1068,7 @@ void setup() {
   lblLedStripHandler = new LblLedStripHandler();
 
   //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
-  uint8_t myInt = EEPROM.get(EEPROM_BRIGHTNESS, myInt);
+  int myInt = EEPROM.get(EEPROM_OFFSET, myInt);
   lblLcdDisplay->storeMessage(String(myInt));
   lblLcdDisplay->update();
   delay(3000);
