@@ -35,6 +35,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
 #define EEPROM_ROW 0 //the memory location in the EEPROM for the current row.
 #define EEPROM_BRIGHTNESS 2 //the memory location in the EEPROM for the brigthness.
+#define BRIGHTNESS_INCREMENT 26
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
 #define DO_DEBUG 0
@@ -800,6 +801,26 @@ void printRow() {
 }
 
 /**
+increase the brightness by a fixed amount, if it is over the max, set it to 0.
+*/
+void increaseBrightnessVar() {
+  brightness += BRIGHTNESS_INCREMENT;
+  if (brightness > 255) {
+    brightness = 0;
+  }
+}
+
+/**
+decrease brightness by a fixed amount, if it is under the min, set it to 255.
+*/
+void decreaseBrightnessVar() {
+  brightness -= BRIGHTNESS_INCREMENT;
+  if (brightness <= 0) {
+    brightness = 255;
+  }
+}
+
+/**
 read the brigthness form the EEPROM. if it is outside the bounds, reset it to 25.
 */
 uint8_t readEepromBrightness() {
@@ -918,7 +939,28 @@ the UI for the brigtness in the menu, up goes to the last menu setting, down to 
 left decreases the brightness, right increases the brightness, select goes to row mode.
 */
 void uiBrightness() {
-
+  if (stateInt != 100) {
+    return;
+  }
+  String message;
+  message = "brightness: ";
+  message += String(brightness);
+  lblLcdDisplay->storeMessage(message);
+  lblLcdDisplay->update();
+  lblButtons->readButtons();
+  if (lblButtons->isRightPressed()) {
+    increaseBrightnessVar();
+    return;
+  }
+  if (lblButtons->isLeftPressed()) {
+    decreaseBrightnessVar();
+    return;
+  }
+  if (lblButtons->isSelectPressed()) {
+    writeEepromBrightness(brightness);
+    stateInt = 1;
+    return;
+  }
 }
 
 /**
