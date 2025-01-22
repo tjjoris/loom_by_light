@@ -673,19 +673,20 @@ class BitmapHandler {
     this->bmpFile.seek(pixelRowFileOffset);
     //loop for each light.
     for (numLightsCounter = 0; numLightsCounter < LED_COUNT; numLightsCounter++) {
+      bool pixelTrue = false;
       //only read if within image bounds.
-      if (numLightsCounter < imageWidth) {
+      if ((numLightsCounter >= ledOffset) && (numLightsCounter < (imageWidth + ledOffset))) {
         this->bmpFile.read(pixelBuffer, pixelBufferSize);
+        // get next pixel colours
+        b = pixelBuffer[0];
+        g = pixelBuffer[1];
+        r = pixelBuffer[2];
+        //check if pixel is true. 
+        pixelTrue = isPixelTrue(b, r, g);
+        //pixel is also only true if within image bounds.
+        pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1 + ledOffset));
+        //add bit to byte
       }
-      // get next pixel colours
-      b = pixelBuffer[0];
-      g = pixelBuffer[1];
-      r = pixelBuffer[2];
-      //check if pixel is true. 
-      bool pixelTrue = isPixelTrue(b, r, g);
-      //pixel is also only true if within image bounds.
-      pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1));
-      //add bit to byte
       byteForLightsArray = byteForLightsArray | (pixelTrue << ((7 - shiftInByte - initialBinaryShift)));
       //increment bit in byte shift.
       shiftInByte ++;
@@ -823,19 +824,19 @@ void increaseLedOffset() {
   if (ledOffset > (LED_COUNT - bmh->imageWidth)) {
     ledOffset = 0;
   }
-  bmh->setLightsArray(bmh->currentRow);
   showLightsForRow();
 }
 
 /**
 decrease the LED offset, if it's below 0, set it to the max.
 */
-void decreaseLedOffseet() {
+void decreaseLedOffset() {
   ledOffset --;
   if (ledOffset < 0) {
     ledOffset = (LED_COUNT - bmh->imageWidth);
     EEPROM.put(EEPROM_OFFSET, ledOffset);
   }
+  showLightsForRow();
 }
 
 /**
@@ -1014,17 +1015,53 @@ void uiBrightness() {
   delay(100);
   if (lblButtons->isRightPressed()) {
     increaseBrightnessVar();
-    return;
-  }
+  } else
   if (lblButtons->isLeftPressed()) {
     decreaseBrightnessVar();
-    return;
-  }
+  } else
+  if (lblButtons->isUpPressed()) {
+    stateInt = 101;
+  } else
+  if (lblButtons->isDownPressed()) {
+    stateInt = 101;
+  } else
   if (lblButtons->isSelectPressed()) {
     writeEepromBrightness(brightness);
     stateInt = 1;
+  }
+}
+
+/**
+the led offset setting, display current offset, up goes to previous config, down to next, 
+left decreases offset, right increases offset, select goes back to row mode.
+*/
+void uiOffset() {
+  if (stateInt != 101) {
     return;
   }
+  String message;
+  message = "offset: ";
+  message += ledOffset;
+  lblLcdDisplay->storeMessage(message);
+  lblLcdDisplay->update();
+  lblButtons->readButtons();
+  if (lblButtons->isUpPressed()) {
+    stateInt = 100;
+  } else
+  if (lblButtons->isDownPressed()) {
+    stateInt = 100;
+  } else
+  if (lblButtons->isLeftPressed()) {
+    decreaseLedOffset();
+  } else
+  if (lblButtons->isRightPressed()) {
+    increaseLedOffset();
+  } else
+  if (lblButtons->isSelectPressed()) {
+    writeEepromLedOffset(ledOffset);
+    stateInt = 1;
+  }
+  showLightsForRow();
 }
 
 /**
@@ -1061,7 +1098,8 @@ void setup() {
   //library, or it interferes with the light strip.
   DEBUG_BEGIN;
   
-  brightness = readEepromBrightness();
+  ledOffset = readEepromLedOffset(); //set the led offset from the eeprom
+  brightness = readEepromBrightness(); //set the brightness form the eeprom.
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
@@ -1078,14 +1116,15 @@ void setup() {
   //instantiate light strip handler
   lblLedStripHandler = new LblLedStripHandler();
 
-  //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
-  int myInt = EEPROM.get(EEPROM_OFFSET, myInt);
-  lblLcdDisplay->storeMessage(String(myInt));
-  lblLcdDisplay->update();
-  delay(3000);
+  // //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
+  // int myInt = EEPROM.get(EEPROM_OFFSET, myInt);
+  // lblLcdDisplay->storeMessage(String(myInt));
+  // lblLcdDisplay->update();
+  // delay(3000);
 }
 void loop() {
   uiIntro();
   uiDisplayRow();
   uiBrightness();
+  uiOffset();
 }
