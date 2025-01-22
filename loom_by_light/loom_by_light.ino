@@ -733,67 +733,6 @@ class BitmapHandler {
   }
 };
 
-/**
-UiState header
-*/
-class UiState {
-  protected:
-    StateEngine * _engine;
-    String _message;
-
-  public:
-    virtual ~UiState() {}
-    void setEngine(StateEngine * engine) {
-      _engine = engine;
-    }
-
-    virtual void upPressed() = 0;
-    virtual void downPressed() = 0;
-};
-// /**
-// UiState implementation
-// */
-// UiState::setEngine(StateEngine * engine) {
-//   _engine = engine;
-// }
-
-class StateEngine {
-  private:
-    UiState * _state;
-
-  public:
-    StateEngine(UiState * state) : _state(nullptr) {
-      transitionTo(state);
-    }
-
-    ~StateEngine() { 
-      delete _state;
-    }
-    void transitionTo(UiState * state) {
-      if (_state) {
-        delete _state;
-      }
-      _state = state;
-      _state->setEngine(this);
-    }
-};
-
-class UiStateIntro : public UiState {
-  public:
-    explicit UiStateIntro() {
-      _message = "welcome";
-    }
-    void upPressed() override {
-      // _engine->transitionTo(new UiStateInRow);
-    }
-};
-
-class UiStateInRow : public UiState {
-  explicit UiStateInRow() {
-    _message = "row";
-  }
-};
-
 
 /**
 *initialize the SD card.
@@ -879,7 +818,7 @@ void intro() {
   delay(100);
   lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
-    bmh->currentRow = bmh->imageHeight;
+    bmh->currentRow = bmh->imageHeight - 1;
     stateInt = 1;
   } else
   if (lblButtons->isDownPressed()) {
@@ -935,64 +874,16 @@ void setup() {
   lcd->begin(LCD_ROWS, LCD_COLS);
   lblLcdDisplay = new LblLcdDisplay(lcd);
   lblButtons = new LblButtons(lcd);
-
   //initialize the SD card
   initializeCard();
   //create bitmap handler object, and pass it the bitmap to read.
   bmh = new BitmapHandler("bitmap.bmp");
-  
   // //open the file
   bmh->openFile();
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
   bmh->verifyFile();
-
   //instantiate light strip handler
   lblLedStripHandler = new LblLedStripHandler();
-  // myStrip.begin();
-  // myStrip.show();
-  // myStrip.setBrightness(BRIGHTNESS);
-  //tes to test light strip is working.
-  // int count = 0;
-  // while(1) {
-  //   // lblLedStripHandler->setPixel(2, false);
-  //   // lblLedStripHandler->setPixel(3, true);
-  //   // lblLedStripHandler->showStrip();
-  //   DEBUG_MSG("showing strip test, count");
-  //   DEBUG_LN(count);
-  //   // delay(10000);
-  //   myStrip.setPixelColor(count, myStrip.Color(155, 155, 255));
-  //   myStrip.show();
-  //   delay (500);
-
-  //   myStrip.setPixelColor(count, myStrip.Color(0, 0, 0));
-  //   myStrip.show();
-  //   count +=2;
-  //   if (count >= LED_COUNT) {
-  //     count = 0;
-  //   }
-  // }
-
-  // //open the file
-  // bmh->openFile();
-  // //verify file, this includes reading the headers which is necessary to decode the bitmap.
-  // if (bmh->verifyFile()) {
-    //print the headers.
-    // bmh->serialPrintHeaders();
-
-    // // loop for each row.
-    // for (int j=0; j< bmh->imageHeight; j++) {
-    //   //set the lights array.
-    //   bmh->setLightsArray(j);
-    //   //loop for each column.
-    //   for (int i = 0; i<bmh->lightsArraySize; i++) {
-    //     //print the current byte element in the lights array.
-        
-    //     printBinary(bmh->lightsArray[i]);
-    //   }
-    //   DEBUG_LN(); //new line
-    //   // bmh->incrementRow();
-    // }
-  // }
 }
 void loop() {
   intro();
