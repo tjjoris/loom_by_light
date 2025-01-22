@@ -35,6 +35,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
 #define EEPROM_ROW 0 //the memory location in the EEPROM for the current row.
 #define EEPROM_BRIGHTNESS 2 //the memory location in the EEPROM for the brigthness.
+#define EEPROM_OFFSET 3 //the memory location in the EEPROM for the led offset.
 #define BRIGHTNESS_INCREMENT 26
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
@@ -831,6 +832,29 @@ void decreaseBrightnessVar() {
     brightness = 255;
   }
   lblLedStripHandler->setLedBrightness();
+}
+
+/**
+read the image offset from the EEPROM, if it is outside the bounds, reset it to 0.
+*/
+int readEepromLedOffset() {
+  int offset = 0;
+  EEPROM.get(EEPROM_OFFSET, offset);
+  if ((offset <0) || (offset > (LED_COUNT - bmh->imageWidth))) {
+    offset = 0;
+    EEPROM.put(EEPROM_OFFSET, offset);
+  }
+  return offset;
+}
+
+/**
+write the offset to the eeprom, first check that it's within bounds.
+*/
+void writeEepromLedOffset(int offset) {
+  if ((offset <= 0) || (offset > (LED_COUNT - bmh->imageWidth))) {
+    offset = 0;
+  }
+  EEPROM.put(EEPROM_OFFSET, offset);
 }
 
 /**
