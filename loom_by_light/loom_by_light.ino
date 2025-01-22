@@ -17,11 +17,12 @@ Required libraries:
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-January-20
+*@date 2025-January-22
 */
 
 #include <SPI.h>
 #include <SD.h>
+#include <EEPROM.h>
 
 
 #define CHIP_SELECT 10 //the chip select used for the SD card.
@@ -32,6 +33,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
 #define LCD_COLS 16 //the number of character columns on the lcd screen, this is how many characters fit on one line.
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
+#define EEPROM_ROW 0 //the memory location in the EEPROM for the current row.
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
 #define DO_DEBUG 0
@@ -793,6 +795,29 @@ void printRow() {
   }
 }
 
+/**
+read the row number from the EEPROM. If it is outside the image bounds, reset it to 0.
+*/
+int readEepromRow() {
+  int rowRead = 0;
+  EEPROM.get(EEPROM_ROW, rowRead);
+  if ((rowRead <=0) | (rowRead >= bmh->imageHeight)) {
+    rowRead = 0;
+    EEPROM.put(rowRead, EEPROM_ROW);
+  }
+  return rowRead;
+}
+
+/**
+write the row number to the EEPROM, first check if it's within the image bounds.
+*/
+void writeEepromRow(int row) {
+  if ((row <=0) | (row >= bmh->imageHeight)) {
+    row = 0;
+  }
+  EEPROM.put(EEPROM_ROW, row);
+}
+
 int stateInt = 0;
 
 /**
@@ -817,12 +842,8 @@ void intro() {
   lblLcdDisplay->update();
   delay(100);
   lblButtons->readButtons();
-  if (lblButtons->isUpPressed()) {
-    bmh->currentRow = bmh->imageHeight - 1;
-    stateInt = 1;
-  } else
-  if (lblButtons->isDownPressed()) {
-    bmh->currentRow = 0;
+  if ((lblButtons->isUpPressed()) || (lblButtons->isDownPressed())) {
+    bmh->currentRow = readEepromRow(); //read the current row from the EEPROM.
     stateInt = 1;
   }
 }
@@ -848,6 +869,39 @@ void displayRow() {
   if (lblButtons->isDownPressed()) {
     bmh->incrementRow();
   }
+  if (lblButtons->isRightPressed()) {
+    uiSaveRowEeprom(bmh->currentRow);
+    return;
+  }
+  if (lblButtons->isLeftPressed()) {
+    uiLoadRowEeprom();
+    return;
+  }
+}
+
+/**
+display message, and load eeprom row to bitmap handler current row
+*/
+void uiLoadRowEeprom() {
+  bmh->currentRow = readEepromRow();
+  lblLcdDisplay->storeMessage("loading row");
+  lblLcdDisplay->update();
+  delay(3000);
+  stateInt = 1;
+}
+
+/**
+display message, and save current row to eeprom
+*/
+void uiSaveRowEeprom(int row) {
+  String message;
+  message += "saving row: ";
+  message += String(row + 1);
+  lblLcdDisplay->storeMessage(message);
+  lblLcdDisplay->update();
+  writeEepromRow(row);
+  delay(3000);
+  stateInt = 1;
 }
 
 /**
@@ -884,6 +938,12 @@ void setup() {
   bmh->verifyFile();
   //instantiate light strip handler
   lblLedStripHandler = new LblLedStripHandler();
+
+  //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
+  int myInt = EEPROM.get(EEPROM_ROW, myInt);
+  lblLcdDisplay->storeMessage(String(myInt + 1));
+  lblLcdDisplay->update();
+  delay(3000);
 }
 void loop() {
   intro();
