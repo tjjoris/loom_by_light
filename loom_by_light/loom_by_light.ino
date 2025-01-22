@@ -185,11 +185,22 @@ class LblLedStripHandler {
   public:
     Adafruit_NeoPixel strip;
 
+    /**
+    the constructor, constructs the strip object
+    */
     LblLedStripHandler() : strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800) {
       DEBUG_LN("LblLedStripHandler constructor called.");
       strip.begin(); //initialize NeoPixel strip object (REQUIRED)
+      strip.setBrightness(brightness); //set the brightness.
       strip.show(); //turn off all pixels.
-      strip.setBrightness(BRIGHTNESS); //set the brightness.
+    }
+
+    /**
+    set the brightness
+    */
+    void setLedBrightness() {
+      strip.setBrightness(brightness);
+      showStrip();
     }
 
     /**
@@ -808,6 +819,7 @@ void increaseBrightnessVar() {
   if (brightness > 255) {
     brightness = 0;
   }
+  lblLedStripHandler->setLedBrightness();
 }
 
 /**
@@ -818,6 +830,7 @@ void decreaseBrightnessVar() {
   if (brightness <= 0) {
     brightness = 255;
   }
+  lblLedStripHandler->setLedBrightness();
 }
 
 /**
@@ -948,6 +961,7 @@ void uiBrightness() {
   lblLcdDisplay->storeMessage(message);
   lblLcdDisplay->update();
   lblButtons->readButtons();
+  delay(100);
   if (lblButtons->isRightPressed()) {
     increaseBrightnessVar();
     return;
@@ -1005,8 +1019,9 @@ void showLedsForRow() {
 void setup() {
   //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
   //library, or it interferes with the light strip.
-  // Serial.begin(9600);
   DEBUG_BEGIN;
+  
+  brightness = readEepromBrightness();
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
@@ -1025,11 +1040,12 @@ void setup() {
 
   //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
   uint8_t myInt = EEPROM.get(EEPROM_BRIGHTNESS, myInt);
-  lblLcdDisplay->storeMessage(String(myInt + 1));
+  lblLcdDisplay->storeMessage(String(myInt));
   lblLcdDisplay->update();
   delay(3000);
 }
 void loop() {
   uiIntro();
   uiDisplayRow();
+  uiBrightness();
 }
