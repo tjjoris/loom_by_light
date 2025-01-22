@@ -691,7 +691,7 @@ class BitmapHandler {
       //increment bit in byte shift.
       shiftInByte ++;
       //a byte is complete, add it to the array.
-      if (shiftInByte > 7){
+      if ((shiftInByte > 7) || (numLightsCounter >= LED_COUNT - 1)){
         //set byte to lights array
         lightsArray[lightsArrayCounter] = byteForLightsArray;
         //increment lightsArrayCounter, not to be confused with numLightsCounter
@@ -740,7 +740,10 @@ class BitmapHandler {
     int byteIndex = pixelIndex / 8;
     int bitInByteIndex = (pixelIndex % (byteIndex * 8));
     byte myByte = lightsArray[byteIndex];
-    bool isBitTrue = isBitTrueInByte(myByte, bitInByteIndex);
+    bool isBitTrue = 0;
+    if (pixelIndex < imageWidth + ledOffset) {
+      isBitTrue = isBitTrueInByte(myByte, bitInByteIndex);
+    }
     return isBitTrue;
   }
 
@@ -952,7 +955,6 @@ void uiIntro() {
   }
   lblLcdDisplay->storeMessage(message);
   lblLcdDisplay->update();
-  delay(100);
   lblButtons->readButtons();
   if ((lblButtons->isUpPressed()) || (lblButtons->isDownPressed())) {
     bmh->currentRow = readEepromRow(); //read the current row from the EEPROM.
@@ -977,7 +979,6 @@ void uiDisplayRow() {
   lblLcdDisplay->storeMessage(message);
   lblLcdDisplay->update();
   showLightsForRow();
-  delay(100);
   lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
     bmh->decrementRow();
@@ -1012,7 +1013,6 @@ void uiBrightness() {
   lblLcdDisplay->storeMessage(message);
   lblLcdDisplay->update();
   lblButtons->readButtons();
-  delay(100);
   if (lblButtons->isRightPressed()) {
     increaseBrightnessVar();
   } else
@@ -1127,4 +1127,5 @@ void loop() {
   uiDisplayRow();
   uiBrightness();
   uiOffset();
+  delay(50);
 }
