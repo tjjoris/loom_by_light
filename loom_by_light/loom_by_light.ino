@@ -68,11 +68,13 @@ class StateEngine;
 class UiState;
 class UiStateInRow;
 class UiStateIntro;
+class LblButtons;
 
 /**
 global variables for classes.
 */
 LblLcdDisplay * lblLcdDisplay;
+LblButtons * lblButtons;
 
 /**
 test class header(declaration), this is seperated from implementation to hide implementation details
@@ -488,6 +490,21 @@ class BitmapHandler {
   }
 
   /**
+  print an error message
+  */
+  void errorMessage(String message) {
+      lblLcdDisplay->storeMessage(message);
+      for (int i = 0; i< 300; i++) {
+        lblLcdDisplay->update();
+        lblButtons->readButtons();
+        delay(100);
+        if ((lblButtons->isSelectPressed()) || (lblButtons->isLeftPressed()) || (lblButtons->isRightPressed()) || (lblButtons->isUpPressed()) || (lblButtons->isDownPressed())) {
+          break;
+        }
+      }
+  }
+
+  /**
   *verify the opened file.
   * code modified after being sourced from: 
   *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
@@ -497,25 +514,33 @@ class BitmapHandler {
       String message;
       message = "unable to open file: ";
       message += this->bmpFilename;
-      DEBUG_MSG(message);
-      lblLcdDisplay->storeMessage(message);
-      lblLcdDisplay->update();
-      delay(3000);
+      DEBUG_LN(F(message));
+      errorMessage(message);
       this->fileOk = false;
       return false;
     }
     if (!this->readFileHeaders()){
-      DEBUG_LN(F("Unable to read file headers"));
+      String message;
+      message = "Unable to read file headers";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       this->fileOk = false;
       return false;
     }
     if (!this->checkFileHeaders()){
-      DEBUG_LN(F("Not compatible file"));
+      String message;
+      message = "Not compatable file";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       this->fileOk = false;
       return false;
     }
     if (ledCount < imageWidth) {
-      DEBUG_LN("image width greater than number of lights.");
+      String message;
+      message = "Image width greater then LED count ";
+      message += ledCount;
+      DEBUG_LN(F(message));
+      errorMessage(message);
       this->fileOk = false;
       return false;
     }
@@ -753,7 +778,7 @@ void printBool(bool boolToPrint) {
 BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
 // LblLcdDisplay * lblLcdDisplay;
-LblButtons * lblButtons;
+// LblButtons * lblButtons;
 LiquidCrystal * lcd;
 
 /**
