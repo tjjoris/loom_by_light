@@ -56,6 +56,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 //global variables:
 uint8_t brightness;
 int ledOffset;
+uint8_t ledCount = (uint8_t)LED_COUNT;
 
 /**
 forward declaration of classes:
@@ -192,11 +193,18 @@ class LblLedStripHandler {
     /**
     the constructor, constructs the strip object
     */
-    LblLedStripHandler() : strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800) {
+    LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
       DEBUG_LN("LblLedStripHandler constructor called.");
       strip.begin(); //initialize NeoPixel strip object (REQUIRED)
       strip.setBrightness(brightness); //set the brightness.
       strip.show(); //turn off all pixels.
+    }
+
+    /**
+    recreate the led strip, probably because the led count has changed.
+    */
+    void recreateStrip() {
+
     }
 
     /**
@@ -491,12 +499,12 @@ class BitmapHandler {
       this->fileOK = false;
       return false;
     }
-    if (LED_COUNT < imageWidth) {
+    if (ledCount < imageWidth) {
       DEBUG_LN("image width greater than number of lights.");
       this->fileOK = false;
       return false;
     }
-    if (lightsArraySize < LED_COUNT / 8) {
+    if (lightsArraySize < ledCount / 8) {
       DEBUG_LN("lights array size was too small");
       this->fileOK = false;
     }
@@ -643,6 +651,17 @@ class BitmapHandler {
   }
 
   /**
+  return true if light is on at column, first it gets the pixel row offset, based on the base pixel row offset
+  and adding the empty filler bytes (because the bytes containing pixel info must be multiples of 4) and also
+  the column times 3 for for each pixel in that row. it then sets the read position for the SD reader, then reads
+  a buffer of 3 bytes. It then passes the read bytes to isPixelTrue() and gets back if the pixel is 
+  true or not, returning that.
+  */
+  void isLightOnAtColumn(int column) {
+
+  }
+
+  /**
   *is passed a row number, sets array of bytes, representing if each pixel is true or
   *false in that row.
   */
@@ -672,7 +691,7 @@ class BitmapHandler {
     //set reader to seek location based on image offset.
     this->bmpFile.seek(pixelRowFileOffset);
     //loop for each light.
-    for (numLightsCounter = 0; numLightsCounter < LED_COUNT; numLightsCounter++) {
+    for (numLightsCounter = 0; numLightsCounter < ledCount; numLightsCounter++) {
       bool pixelTrue = false;
       //only read if within image bounds.
       if ((numLightsCounter >= ledOffset) && (numLightsCounter < (imageWidth + ledOffset))) {
@@ -691,7 +710,7 @@ class BitmapHandler {
       //increment bit in byte shift.
       shiftInByte ++;
       //a byte is complete, add it to the array.
-      if ((shiftInByte > 7) || (numLightsCounter >= LED_COUNT - 1)){
+      if ((shiftInByte > 7) || (numLightsCounter >= ledCount - 1)){
         //set byte to lights array
         lightsArray[lightsArrayCounter] = byteForLightsArray;
         //increment lightsArrayCounter, not to be confused with numLightsCounter
@@ -793,12 +812,20 @@ LblLcdDisplay * lblLcdDisplay;
 LblButtons * lblButtons;
 LiquidCrystal * lcd;
 
+/**
+delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
+*/
+void recreateLedStripHandler() {
+  delete lblLedStripHandler;
+  lblLedStripHandler = new LblLedStripHandler();
+}
+
 void showLightsForRow() {
   bmh->setLightsArray(bmh->currentRow);
   //debug the row to the terminal.
   printRow();
   DEBUG_LN();
-  for (int i=0; i<LED_COUNT; i++) {
+  for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
     lblLedStripHandler->setPixel(i, bmh->isTrueForBitInByteArray(i));
     lblLedStripHandler->showStrip();
@@ -811,7 +838,7 @@ gets the row from BitmapHandler and uses print binary to print it.
 it does this in order and does not need to know the position of each column on the row.
 */
 void printRow() {
-  for (int i = 0; i< LED_COUNT; i++) {
+  for (int i = 0; i< ledCount; i++) {
     //print the current byte element in the lights array.
     // printBinary(bmh->lightsArray[i]);
     bool isBitTrue = bmh->isTrueForBitInByteArray(i);
@@ -824,7 +851,7 @@ increasse the led offset, if it's above max, set it to 0.
 */
 void increaseLedOffset() {
   ledOffset ++;
-  if (ledOffset > (LED_COUNT - bmh->imageWidth)) {
+  if (ledOffset > (ledCount - bmh->imageWidth)) {
     ledOffset = 0;
   }
   showLightsForRow();
@@ -836,7 +863,7 @@ decrease the LED offset, if it's below 0, set it to the max.
 void decreaseLedOffset() {
   ledOffset --;
   if (ledOffset < 0) {
-    ledOffset = (LED_COUNT - bmh->imageWidth);
+    ledOffset = (ledCount - bmh->imageWidth);
     EEPROM.put(EEPROM_OFFSET, ledOffset);
   }
   showLightsForRow();
@@ -870,7 +897,7 @@ read the image offset from the EEPROM, if it is outside the bounds, reset it to 
 int readEepromLedOffset() {
   int offset = 0;
   EEPROM.get(EEPROM_OFFSET, offset);
-  if ((offset <0) || (offset > (LED_COUNT - bmh->imageWidth))) {
+  if ((offset <0) || (offset > (ledCount - bmh->imageWidth))) {
     offset = 0;
     EEPROM.put(EEPROM_OFFSET, offset);
   }
@@ -881,7 +908,7 @@ int readEepromLedOffset() {
 write the offset to the eeprom, first check that it's within bounds.
 */
 void writeEepromLedOffset(int offset) {
-  if ((offset <= 0) || (offset > (LED_COUNT - bmh->imageWidth))) {
+  if ((offset <= 0) || (offset > (ledCount - bmh->imageWidth))) {
     offset = 0;
   }
   EEPROM.put(EEPROM_OFFSET, offset);
