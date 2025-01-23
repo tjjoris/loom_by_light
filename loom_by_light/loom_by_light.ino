@@ -606,22 +606,30 @@ class BitmapHandler {
 
     // BMP file id
     if (this->headerField != 0x4D42){
-      DEBUG_LN("file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.");
+      String message = "file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       return false;
     }
     // must be single colour plane
     if (this->colourPlanes != 1){
-      DEBUG_LN("file is not single colour plane");
+      String message = "file is not single colour plane";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       return false;
     }
     // only working with 24 bit bitmaps
     if (this->bitsPerPixel != 24){
-      DEBUG_LN("is not 24 bit bitmap.");
+      String message = "is not 24 bit bitmap.";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       return false;
     }
     // no compression
     if (this->compression != 0){
-      DEBUG_LN("bitmap is compressed.");
+      String message = "bitmap is compressed.";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       return false;
     }
     // all ok
