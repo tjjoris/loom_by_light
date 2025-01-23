@@ -781,7 +781,7 @@ void decreaseLedCount() {
     
     //set the pixel of the led strip that has been removed to false.
     lblLedStripHandler->setPixel(ledCount, false); 
-    lblLedStripHandler->showStrip();
+    lblLedStripHandler->showStrip(); //show the strip again to update the removed pixel.
   }
   checkLedOffset();
 }
@@ -907,26 +907,34 @@ void writeEepromLedOffset(int offset) {
 }
 
 /**
+check the unsigned int is within bounds.
+*/
+uint8_t checkWithinUint8Bounds(uint8_t value) {
+  if (value <0) {
+      value = 0;
+  } else if (value > 255){
+    value = 255;
+  }
+  return value;
+}
+
+/**
 read the brigthness form the EEPROM. if it is outside the bounds, reset it to 25.
 */
 uint8_t readEepromBrightness() {
-  int readBrightness = 0;
-  EEPROM.get(EEPROM_BRIGHTNESS, readBrightness);
-  if ((readBrightness <=0) || (readBrightness > 255)) {
-    readBrightness = 25;
-    EEPROM.put(EEPROM_BRIGHTNESS, readBrightness);
-  }
-  return readBrightness;
+  EEPROM.get(EEPROM_BRIGHTNESS, brightness);
+  brightness = checkWithinUint8Bounds(brightness);
+  EEPROM.put(EEPROM_BRIGHTNESS, brightness);
+  return brightness;
 }
 
 /**
 make sure brigthness is within bounds, then write the brightness to the EEPROM
 */
 void writeEepromBrightness(uint8_t writeBrightness) {
-  if ((writeBrightness <=0) | (writeBrightness > 255)) {
-    writeBrightness = 255;
-  }
-  EEPROM.put(EEPROM_BRIGHTNESS, writeBrightness);
+  brightness = writeBrightness;
+  brightness = checkWithinUint8Bounds(brightness);
+  EEPROM.put(EEPROM_BRIGHTNESS, brightness);
 }
 
 /**
