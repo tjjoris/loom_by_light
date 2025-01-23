@@ -377,6 +377,9 @@ class BitmapHandler {
   bool fileOK = false; //if file is ok to use
   File bmpFile; //the file itself
   String bmpFilename; //the file name
+  int _bytesPerRow;
+  int _numEmptyBytesPerRow;
+  const int _numBytesPerPixel = 3; //the size of the pixel buffer array
 
   public:
 
@@ -543,6 +546,10 @@ class BitmapHandler {
       this->yPixelsPerMeter = this->read32Bit();
       this->totalColors = this->read32Bit();
       this->importantColors = this->read32Bit();
+      //the empty bytes in a row, becase a row must be a multiple of 4 bytes.;
+      this->_numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4); 
+      //the number of bytes in a row.
+      this->_bytesPerRow = (3 * this->imageWidth) + _numEmptyBytesPerRow;
       return true;
     }
     else {
@@ -657,8 +664,12 @@ class BitmapHandler {
   a buffer of 3 bytes. It then passes the read bytes to isPixelTrue() and gets back if the pixel is 
   true or not, returning that.
   */
-  void isLightOnAtColumn(int column) {
-
+  bool isLightOnAtColumn(int column) {
+    uint8_t pixelBuffer[_numBytesPerPixel];
+    int pixelRowFileOffset = this->imageOffset + (column * _numBytesPerPixel) + ((this->imageHeight - this->currentRow - 1) * _bytesPerRow);
+    this->bmpFile.seek(pixelRowFileOffset);
+    this->bmpFile.read(pixelBuffer, _numBytesPerPixel);
+    return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);
   }
 
   /**
