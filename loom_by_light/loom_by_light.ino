@@ -68,6 +68,13 @@ class StateEngine;
 class UiState;
 class UiStateInRow;
 class UiStateIntro;
+class LblButtons;
+
+/**
+global variables for classes.
+*/
+LblLcdDisplay * lblLcdDisplay;
+LblButtons * lblButtons;
 
 /**
 test class header(declaration), this is seperated from implementation to hide implementation details
@@ -365,6 +372,13 @@ class LblButtons {
       }
       return false;
     }
+
+    /**
+    return true if any button is pressed, else return false.
+    */
+    bool isAnyButtonPressed() {
+      return ((lblButtons->isSelectPressed()) || (lblButtons->isLeftPressed()) || (lblButtons->isRightPressed()) || (lblButtons->isUpPressed()) || (lblButtons->isDownPressed()));
+    }
 };
 
 
@@ -375,7 +389,7 @@ and verify a file before reading pixels as true or false.
 class BitmapHandler {
   //instance variables:
   private:
-  bool fileOK = false; //if file is ok to use
+  bool fileOk = false; //if file is ok to use
   File bmpFile; //the file itself
   String bmpFilename; //the file name
   int _bytesPerRow;
@@ -407,9 +421,13 @@ class BitmapHandler {
   *constructor, sets instance variables for filename.
   */
   BitmapHandler(String filename){
-    this->fileOK = false;
+    this->fileOk = false;
     this->bmpFilename = filename;
     currentRow = 0;
+  }
+
+  bool isFileOk() {
+    return this->fileOk;
   }
 
   void incrementRow() {
@@ -479,35 +497,63 @@ class BitmapHandler {
   }
 
   /**
+  print an error message
+  */
+  void errorMessage(String message) {
+      lblLcdDisplay->storeMessage(message);
+      for (int i = 0; i< 60; i++) {
+        lblLcdDisplay->update();
+        lblButtons->readButtons();
+        delay(100);
+        if (lblButtons->isAnyButtonPressed()) {
+          break;
+        }
+      }
+  }
+
+  /**
   *verify the opened file.
   * code modified after being sourced from: 
   *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
   */
   bool verifyFile() {
     if (!this->bmpFile) {
-      DEBUG_MSG(F("BitmapHandler : Unable to open file "));
-      DEBUG_LN(this->bmpFilename);
-      this->fileOK = false;
+      String message;
+      message = "unable to open file: ";
+      message += this->bmpFilename;
+      DEBUG_LN(F(message));
+      errorMessage(message);
+      this->fileOk = false;
       return false;
     }
     if (!this->readFileHeaders()){
-      DEBUG_LN(F("Unable to read file headers"));
-      this->fileOK = false;
+      String message;
+      message = "Unable to read file headers";
+      DEBUG_LN(F(message));
+      errorMessage(message);
+      this->fileOk = false;
       return false;
     }
     if (!this->checkFileHeaders()){
-      DEBUG_LN(F("Not compatible file"));
-      this->fileOK = false;
+      String message;
+      message = "Not compatable file";
+      DEBUG_LN(F(message));
+      errorMessage(message);
+      this->fileOk = false;
       return false;
     }
     if (ledCount < imageWidth) {
-      DEBUG_LN("image width greater than number of lights.");
-      this->fileOK = false;
+      String message;
+      message = "Image width greater then LED count ";
+      message += ledCount;
+      DEBUG_LN(F(message));
+      errorMessage(message);
+      this->fileOk = false;
       return false;
     }
     // all OK
     DEBUG_LN(F("BMP file all OK"));
-    this->fileOK = true;
+    this->fileOk = true;
     return true;
   }
 
@@ -560,22 +606,30 @@ class BitmapHandler {
 
     // BMP file id
     if (this->headerField != 0x4D42){
-      DEBUG_LN("file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.");
+      String message = "file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       return false;
     }
     // must be single colour plane
     if (this->colourPlanes != 1){
-      DEBUG_LN("file is not single colour plane");
+      String message = "file is not single colour plane";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       return false;
     }
     // only working with 24 bit bitmaps
     if (this->bitsPerPixel != 24){
-      DEBUG_LN("is not 24 bit bitmap.");
+      String message = "is not 24 bit bitmap.";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       return false;
     }
     // no compression
     if (this->compression != 0){
-      DEBUG_LN("bitmap is compressed.");
+      String message = "bitmap is compressed.";
+      DEBUG_LN(F(message));
+      errorMessage(message);
       return false;
     }
     // all ok
@@ -638,7 +692,7 @@ class BitmapHandler {
   if (!this->bmpFile) {
       DEBUG_MSG(F("BitmapHandler : Unable to open file "));
       DEBUG_LN(this->bmpFilename);
-      this->fileOK = false;
+      this->fileOk = false;
       return false;
     }
     return true;
@@ -738,8 +792,8 @@ void printBool(bool boolToPrint) {
 //global class variables:
 BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
-LblLcdDisplay * lblLcdDisplay;
-LblButtons * lblButtons;
+// LblLcdDisplay * lblLcdDisplay;
+// LblButtons * lblButtons;
 LiquidCrystal * lcd;
 
 /**
@@ -1184,6 +1238,9 @@ void setup() {
   // delay(3000);
 }
 void loop() {
+  if (!bmh->isFileOk()) {
+    return;
+  }
   uiIntro();
   uiDisplayRow();
   uiBrightness();
