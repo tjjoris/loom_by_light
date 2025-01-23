@@ -372,6 +372,13 @@ class LblButtons {
       }
       return false;
     }
+
+    /**
+    return true if any button is pressed, else return false.
+    */
+    bool isAnyButtonPressed() {
+      return ((lblButtons->isSelectPressed()) || (lblButtons->isLeftPressed()) || (lblButtons->isRightPressed()) || (lblButtons->isUpPressed()) || (lblButtons->isDownPressed()));
+    }
 };
 
 
@@ -498,7 +505,7 @@ class BitmapHandler {
         lblLcdDisplay->update();
         lblButtons->readButtons();
         delay(100);
-        if ((lblButtons->isSelectPressed()) || (lblButtons->isLeftPressed()) || (lblButtons->isRightPressed()) || (lblButtons->isUpPressed()) || (lblButtons->isDownPressed())) {
+        if (lblButtons->isAnyButtonPressed()) {
           break;
         }
       }
