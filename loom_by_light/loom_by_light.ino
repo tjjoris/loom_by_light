@@ -767,6 +767,7 @@ void increaseLedCount() {
   if (ledCount > LED_COUNT) {
     ledCount = 1;
   }
+  checkLedOffset();
 }
 
 /**
@@ -776,7 +777,13 @@ void decreaseLedCount() {
   ledCount --;
   if (ledCount < 1) {
     ledCount = LED_COUNT;
+  } else {
+    
+    //set the pixel of the led strip that has been removed to false.
+    lblLedStripHandler->setPixel(ledCount, false); 
+    lblLedStripHandler->showStrip();
   }
+  checkLedOffset();
 }
 
 /**
@@ -825,6 +832,25 @@ void decreaseBrightnessVar() {
 }
 
 /**
+reads all the eeprom configure data, setting global variables.
+*/
+void readAllEepromData() {
+  readEepromLedCount();
+  readEepromBrightness();
+  readEepromLedOffset();
+}
+
+/**
+writes all the eeprom configure data, writing from global variables.
+passing the functions the global variables.
+*/
+void writeAllEepromData() {
+  writeEepromLedCount(ledCount);
+  writeEepromBrightness(brightness);
+  writeEepromLedOffset(ledOffset);
+}
+
+/**
 read the led count from the EEPROM. if out of bounds, set to max bounds.
 */
 int readEepromLedCount() {
@@ -846,27 +872,38 @@ void writeEepromLedCount(int ledCount) {
   EEPROM.put(EEPROM_LED_COUNT, ledCount);
 }
 
+
+
 /**
-read the image offset from the EEPROM, if it is outside the bounds, reset it to 0.
+check that the led offset is within bounds
 */
-int readEepromLedOffset() {
-  int offset = 0;
-  EEPROM.get(EEPROM_OFFSET, offset);
-  if ((offset <0) || (offset > (ledCount - bmh->imageWidth))) {
-    offset = 0;
-    EEPROM.put(EEPROM_OFFSET, offset);
+void checkLedOffset() {
+  if (ledOffset > (ledCount - bmh->imageWidth)) {
+    ledOffset = ledCount - bmh->imageWidth;
+  } else 
+  if (ledOffset < 0) {
+    ledOffset = 0;
   }
-  return offset;
 }
 
 /**
-write the offset to the eeprom, first check that it's within bounds.
+read the image offset from the EEPROM setting the global variable ledOffset
+in the process and returing that value, make sure its within bounds.
+*/
+int readEepromLedOffset() {
+  EEPROM.get(EEPROM_OFFSET, ledOffset);
+  checkLedOffset();
+  return ledOffset;
+}
+
+/**
+set the ledOffset global var to offset, make sure its within bounds, then 
+write it to  the EEPROM.
 */
 void writeEepromLedOffset(int offset) {
-  if ((offset <= 0) || (offset > (ledCount - bmh->imageWidth))) {
-    offset = 0;
-  }
-  EEPROM.put(EEPROM_OFFSET, offset);
+  ledOffset = offset;
+  checkLedOffset();
+  EEPROM.put(EEPROM_OFFSET, ledOffset);
 }
 
 /**
@@ -943,7 +980,6 @@ void uiIntro() {
     stateInt = 1;
   }
   if (lblButtons->isSelectPressed()) {
-    brightness = readEepromBrightness();
     stateInt = 100;
   }
 }
@@ -1008,7 +1044,7 @@ void uiBrightness() {
     stateInt = 101;
   } else
   if (lblButtons->isSelectPressed()) {
-    writeEepromBrightness(brightness);
+    writeAllEepromData(); 
     stateInt = 1;
   }
 }
@@ -1040,7 +1076,7 @@ void uiOffset() {
     increaseLedOffset();
   } else
   if (lblButtons->isSelectPressed()) {
-    writeEepromLedOffset(ledOffset);
+    writeAllEepromData();
     stateInt = 1;
   }
   showLightsForRow();
@@ -1076,7 +1112,7 @@ void uiLedCount() {
     showLightsForRow();
   } else
   if (lblButtons->isSelectPressed()) {
-    writeEepromLedCount(ledCount);
+    writeAllEepromData();
     stateInt = 1;
   }
 }
@@ -1114,10 +1150,8 @@ void setup() {
   //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
   //library, or it interferes with the light strip.
   DEBUG_BEGIN;
-  
-  ledOffset = readEepromLedOffset(); //set the led offset from the eeprom
-  brightness = readEepromBrightness(); //set the brightness form the eeprom.
-  ledCount = readEepromLedCount(); //set the led offset from the eeprom.
+  //read all eerpom data
+  readAllEepromData();
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
@@ -1133,6 +1167,8 @@ void setup() {
   bmh->verifyFile();
   //instantiate light strip handler
   lblLedStripHandler = new LblLedStripHandler();
+  
+  readAllEepromData();
 
   // //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
   // int myInt = EEPROM.get(EEPROM_OFFSET, myInt);
