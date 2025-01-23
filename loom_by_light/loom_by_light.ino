@@ -70,6 +70,11 @@ class UiStateInRow;
 class UiStateIntro;
 
 /**
+global variables for classes.
+*/
+LblLcdDisplay * lblLcdDisplay;
+
+/**
 test class header(declaration), this is seperated from implementation to hide implementation details
 and improve encapsulation, making it easier to modify the implementation without affecing to ther code which
 depends on the class interface, this class is to be deleted
@@ -375,7 +380,7 @@ and verify a file before reading pixels as true or false.
 class BitmapHandler {
   //instance variables:
   private:
-  bool fileOK = false; //if file is ok to use
+  bool fileOk = false; //if file is ok to use
   File bmpFile; //the file itself
   String bmpFilename; //the file name
   int _bytesPerRow;
@@ -407,9 +412,13 @@ class BitmapHandler {
   *constructor, sets instance variables for filename.
   */
   BitmapHandler(String filename){
-    this->fileOK = false;
+    this->fileOk = false;
     this->bmpFilename = filename;
     currentRow = 0;
+  }
+
+  bool isFileOk() {
+    return this->fileOk;
   }
 
   void incrementRow() {
@@ -485,29 +494,34 @@ class BitmapHandler {
   */
   bool verifyFile() {
     if (!this->bmpFile) {
-      DEBUG_MSG(F("BitmapHandler : Unable to open file "));
-      DEBUG_LN(this->bmpFilename);
-      this->fileOK = false;
+      String message;
+      message = "unable to open file: ";
+      message += this->bmpFilename;
+      DEBUG_MSG(message);
+      lblLcdDisplay->storeMessage(message);
+      lblLcdDisplay->update();
+      delay(3000);
+      this->fileOk = false;
       return false;
     }
     if (!this->readFileHeaders()){
       DEBUG_LN(F("Unable to read file headers"));
-      this->fileOK = false;
+      this->fileOk = false;
       return false;
     }
     if (!this->checkFileHeaders()){
       DEBUG_LN(F("Not compatible file"));
-      this->fileOK = false;
+      this->fileOk = false;
       return false;
     }
     if (ledCount < imageWidth) {
       DEBUG_LN("image width greater than number of lights.");
-      this->fileOK = false;
+      this->fileOk = false;
       return false;
     }
     // all OK
     DEBUG_LN(F("BMP file all OK"));
-    this->fileOK = true;
+    this->fileOk = true;
     return true;
   }
 
@@ -638,7 +652,7 @@ class BitmapHandler {
   if (!this->bmpFile) {
       DEBUG_MSG(F("BitmapHandler : Unable to open file "));
       DEBUG_LN(this->bmpFilename);
-      this->fileOK = false;
+      this->fileOk = false;
       return false;
     }
     return true;
@@ -738,7 +752,7 @@ void printBool(bool boolToPrint) {
 //global class variables:
 BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
-LblLcdDisplay * lblLcdDisplay;
+// LblLcdDisplay * lblLcdDisplay;
 LblButtons * lblButtons;
 LiquidCrystal * lcd;
 
@@ -1184,6 +1198,9 @@ void setup() {
   // delay(3000);
 }
 void loop() {
+  if (!bmh->isFileOk()) {
+    return;
+  }
   uiIntro();
   uiDisplayRow();
   uiBrightness();
