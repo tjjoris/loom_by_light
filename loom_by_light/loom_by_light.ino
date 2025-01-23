@@ -419,7 +419,7 @@ class BitmapHandler {
     if (currentRow >= imageHeight) {
       currentRow = 0;
     }
-    setLightsArray(currentRow); //set the lights array according to the current row.
+    isLightOnAtColumn(currentRow); //set the lights array according to the current row.
   }
 
   void decrementRow() {
@@ -427,7 +427,7 @@ class BitmapHandler {
     if (currentRow < 0) {
       currentRow = imageHeight - 1;
     }
-    setLightsArray(currentRow); //set the lights array according to the current row.
+    isLightOnAtColumn(currentRow); //set the lights array according to the current row.
   }
 
   /**
@@ -675,67 +675,67 @@ class BitmapHandler {
     return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);
   }
 
-  /**
-  *is passed a row number, sets array of bytes, representing if each pixel is true or
-  *false in that row.
-  */
-  void setLightsArray(int pixelRow) {
-    int pixelBufferSize = 3; //the size of the pixel buffer array
-    uint8_t pixelBuffer[pixelBufferSize]; //the pixel buffer array which is used to read from the sd card
-    int numLightsCounter =0; //counter for each light
-    int lightsArrayCounter = 0; //counter for each byte int he lights array
-    int shiftInByte = 0; //the needed binary shift to store binary values in the bit.
-    int initialBinaryShift = 0; //this is used for the shifting of the initial byte in the lights array.
-    int numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4); //the empty bytes in a row, becase a row must be a multiple of 4 bytes.
-    int bytesPerRow; //number of bytes in a row.
-    byte byteForLightsArray = 0; //the byte used to store bits for the lights array.
-    // int displayedWidth, displayedHeight;
-    uint32_t pixelRowFileOffset;
-    uint8_t r,g,b;
-    if (!this->fileOK) {
-      return false;
-    }
-    // bytes per row rounded up to next 4 byte boundary
-    bytesPerRow = (3 * this->imageWidth) + numEmptyBytesPerRow;
-    //find the initial binary shift
-    initialBinaryShift = calculateInitialBinaryShift(imageWidth);
+  // /**
+  // *is passed a row number, sets array of bytes, representing if each pixel is true or
+  // *false in that row.
+  // */
+  // void setLightsArray(int pixelRow) {
+  //   int pixelBufferSize = 3; //the size of the pixel buffer array
+  //   uint8_t pixelBuffer[pixelBufferSize]; //the pixel buffer array which is used to read from the sd card
+  //   int numLightsCounter =0; //counter for each light
+  //   int lightsArrayCounter = 0; //counter for each byte int he lights array
+  //   int shiftInByte = 0; //the needed binary shift to store binary values in the bit.
+  //   int initialBinaryShift = 0; //this is used for the shifting of the initial byte in the lights array.
+  //   int numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4); //the empty bytes in a row, becase a row must be a multiple of 4 bytes.
+  //   int bytesPerRow; //number of bytes in a row.
+  //   byte byteForLightsArray = 0; //the byte used to store bits for the lights array.
+  //   // int displayedWidth, displayedHeight;
+  //   uint32_t pixelRowFileOffset;
+  //   uint8_t r,g,b;
+  //   if (!this->fileOK) {
+  //     return false;
+  //   }
+  //   // bytes per row rounded up to next 4 byte boundary
+  //   bytesPerRow = (3 * this->imageWidth) + numEmptyBytesPerRow;
+  //   //find the initial binary shift
+  //   initialBinaryShift = calculateInitialBinaryShift(imageWidth);
 
-    // image stored bottom to top, screen top to bottom
-    pixelRowFileOffset = this->imageOffset + ((this->imageHeight - pixelRow - 1) * bytesPerRow);
-    //set reader to seek location based on image offset.
-    this->bmpFile.seek(pixelRowFileOffset);
-    //loop for each light.
-    for (numLightsCounter = 0; numLightsCounter < ledCount; numLightsCounter++) {
-      bool pixelTrue = false;
-      //only read if within image bounds.
-      if ((numLightsCounter >= ledOffset) && (numLightsCounter < (imageWidth + ledOffset))) {
-        this->bmpFile.read(pixelBuffer, pixelBufferSize);
-        // get next pixel colours
-        b = pixelBuffer[0];
-        g = pixelBuffer[1];
-        r = pixelBuffer[2];
-        //check if pixel is true. 
-        pixelTrue = isPixelTrue(b, r, g);
-        //pixel is also only true if within image bounds.
-        pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1 + ledOffset));
-        //add bit to byte
-      }
-      byteForLightsArray = byteForLightsArray | (pixelTrue << ((7 - shiftInByte - initialBinaryShift)));
-      //increment bit in byte shift.
-      shiftInByte ++;
-      //a byte is complete, add it to the array.
-      if ((shiftInByte > 7) || (numLightsCounter >= ledCount - 1)){
-        //set byte to lights array
-        lightsArray[lightsArrayCounter] = byteForLightsArray;
-        //increment lightsArrayCounter, not to be confused with numLightsCounter
-        lightsArrayCounter ++;
-        //reset byte
-        byteForLightsArray = 0;
-        initialBinaryShift = 0;
-        shiftInByte = 0;
-      }
-    }
-  }
+  //   // image stored bottom to top, screen top to bottom
+  //   pixelRowFileOffset = this->imageOffset + ((this->imageHeight - pixelRow - 1) * bytesPerRow);
+  //   //set reader to seek location based on image offset.
+  //   this->bmpFile.seek(pixelRowFileOffset);
+  //   //loop for each light.
+  //   for (numLightsCounter = 0; numLightsCounter < ledCount; numLightsCounter++) {
+  //     bool pixelTrue = false;
+  //     //only read if within image bounds.
+  //     if ((numLightsCounter >= ledOffset) && (numLightsCounter < (imageWidth + ledOffset))) {
+  //       this->bmpFile.read(pixelBuffer, pixelBufferSize);
+  //       // get next pixel colours
+  //       b = pixelBuffer[0];
+  //       g = pixelBuffer[1];
+  //       r = pixelBuffer[2];
+  //       //check if pixel is true. 
+  //       pixelTrue = isPixelTrue(b, r, g);
+  //       //pixel is also only true if within image bounds.
+  //       pixelTrue = (pixelTrue & (numLightsCounter <= imageWidth - 1 + ledOffset));
+  //       //add bit to byte
+  //     }
+  //     byteForLightsArray = byteForLightsArray | (pixelTrue << ((7 - shiftInByte - initialBinaryShift)));
+  //     //increment bit in byte shift.
+  //     shiftInByte ++;
+  //     //a byte is complete, add it to the array.
+  //     if ((shiftInByte > 7) || (numLightsCounter >= ledCount - 1)){
+  //       //set byte to lights array
+  //       lightsArray[lightsArrayCounter] = byteForLightsArray;
+  //       //increment lightsArrayCounter, not to be confused with numLightsCounter
+  //       lightsArrayCounter ++;
+  //       //reset byte
+  //       byteForLightsArray = 0;
+  //       initialBinaryShift = 0;
+  //       shiftInByte = 0;
+  //     }
+  //   }
+  // }
 
   /**
   *this find the initial binary shift which additionally shifts the 
@@ -835,7 +835,6 @@ void recreateLedStripHandler() {
 }
 
 void showLightsForRow() {
-  // bmh->setLightsArray(bmh->currentRow);
   //debug the row to the terminal.
   printRow();
   DEBUG_LN();
