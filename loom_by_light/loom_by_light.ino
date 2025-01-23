@@ -501,7 +501,7 @@ class BitmapHandler {
   */
   void errorMessage(String message) {
       lblLcdDisplay->storeMessage(message);
-      for (int i = 0; i< 300; i++) {
+      for (int i = 0; i< 60; i++) {
         lblLcdDisplay->update();
         lblButtons->readButtons();
         delay(100);
