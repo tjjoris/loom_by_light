@@ -33,10 +33,13 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
 #define LCD_COLS 16 //the number of character columns on the lcd screen, this is how many characters fit on one line.
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
+#define BRIGHTNESS_INCREMENT 26
+
+//EEPROM memory address locations:
 #define EEPROM_ROW 0 //the memory location in the EEPROM for the current row.
 #define EEPROM_BRIGHTNESS 2 //the memory location in the EEPROM for the brigthness.
 #define EEPROM_OFFSET 3 //the memory location in the EEPROM for the led offset.
-#define BRIGHTNESS_INCREMENT 26
+#define EEPROM_LED_COUNT 5
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
 #define DO_DEBUG 0
@@ -56,7 +59,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 //global variables:
 uint8_t brightness;
 int ledOffset;
-uint8_t ledCount = (uint8_t)LED_COUNT;
+int ledCount = (int)LED_COUNT;
 
 /**
 forward declaration of classes:
@@ -860,6 +863,26 @@ void printRow() {
 }
 
 /**
+increase the led count, if its above max, set to 0.
+*/
+void increaseLedCount() {
+  ledCount ++;
+  if (ledCount > LED_COUNT) {
+    ledCount = 1;
+  }
+}
+
+/**
+decrease led count, if its below min, set to max.
+*/
+void decreaseLedCount() {
+  ledCount --;
+  if (ledCount < 1) {
+    ledCount = LED_COUNT;
+  }
+}
+
+/**
 increasse the led offset, if it's above max, set it to 0.
 */
 void increaseLedOffset() {
@@ -902,6 +925,28 @@ void decreaseBrightnessVar() {
     brightness = 255;
   }
   lblLedStripHandler->setLedBrightness();
+}
+
+/**
+read the led count from the EEPROM. if out of bounds, set to max bounds.
+*/
+int readEepromLedCount() {
+  EEPROM.get(EEPROM_LED_COUNT, ledCount);
+  if ((ledCount < 1) || (ledCount > LED_COUNT)) {
+    ledCount = LED_COUNT;
+    EEPROM.put(EEPROM_LED_COUNT, ledCount);
+  }
+  return ledCount;
+}
+
+/**
+write the led count to the EEPROM. if out of bounds, set it to max.
+*/
+void writeEepromLedCount(int ledCount) {
+  if ((ledCount < 1) || (ledCount > LED_COUNT)) {
+    ledCount = LED_COUNT;
+  }
+  EEPROM.put(EEPROM_LED_COUNT, ledCount);
 }
 
 /**
@@ -1060,7 +1105,7 @@ void uiBrightness() {
     decreaseBrightnessVar();
   } else
   if (lblButtons->isUpPressed()) {
-    stateInt = 101;
+    stateInt = 102;
   } else
   if (lblButtons->isDownPressed()) {
     stateInt = 101;
@@ -1089,7 +1134,7 @@ void uiOffset() {
     stateInt = 100;
   } else
   if (lblButtons->isDownPressed()) {
-    stateInt = 100;
+    stateInt = 102;
   } else
   if (lblButtons->isLeftPressed()) {
     decreaseLedOffset();
@@ -1102,6 +1147,41 @@ void uiOffset() {
     stateInt = 1;
   }
   showLightsForRow();
+}
+
+/**
+the ui configure for the led count.
+*/
+void uiLedCount() {
+  if (stateInt != 102) {
+    return;
+  }
+  String message;
+  message += "LED count: ";
+  message += (String)ledCount;
+  lblLcdDisplay->storeMessage(message);
+  lblLcdDisplay->update();
+  lblButtons->readButtons();
+  if (lblButtons->isUpPressed()) {
+    stateInt = 101;
+  } else
+  if (lblButtons->isDownPressed()) {
+    stateInt = 100;
+  } else
+  if (lblButtons->isLeftPressed()) {
+    decreaseLedCount();
+    recreateLedStripHandler();
+    showLightsForRow();
+  } else
+  if (lblButtons->isRightPressed()) {
+    increaseLedCount();
+    recreateLedStripHandler();
+    showLightsForRow();
+  } else
+  if (lblButtons->isSelectPressed()) {
+    writeEepromLedCount(ledCount);
+    stateInt = 1;
+  }
 }
 
 /**
@@ -1140,6 +1220,7 @@ void setup() {
   
   ledOffset = readEepromLedOffset(); //set the led offset from the eeprom
   brightness = readEepromBrightness(); //set the brightness form the eeprom.
+  ledCount = readEepromLedCount(); //set the led offset from the eeprom.
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
@@ -1167,5 +1248,6 @@ void loop() {
   uiDisplayRow();
   uiBrightness();
   uiOffset();
+  uiLedCount();
   delay(50);
 }
