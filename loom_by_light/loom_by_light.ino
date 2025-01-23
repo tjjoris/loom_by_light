@@ -665,8 +665,11 @@ class BitmapHandler {
   true or not, returning that.
   */
   bool isLightOnAtColumn(int column) {
+    if ((column < ledOffset) || (column >= (ledOffset + this->imageWidth))) {
+      return false;
+    }
     uint8_t pixelBuffer[_numBytesPerPixel];
-    int pixelRowFileOffset = this->imageOffset + (column * _numBytesPerPixel) + ((this->imageHeight - this->currentRow - 1) * _bytesPerRow);
+    int pixelRowFileOffset = this->imageOffset + ((column - ledOffset) * _numBytesPerPixel) + ((this->imageHeight - this->currentRow - 1) * _bytesPerRow);
     this->bmpFile.seek(pixelRowFileOffset);
     this->bmpFile.read(pixelBuffer, _numBytesPerPixel);
     return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);
@@ -832,13 +835,13 @@ void recreateLedStripHandler() {
 }
 
 void showLightsForRow() {
-  bmh->setLightsArray(bmh->currentRow);
+  // bmh->setLightsArray(bmh->currentRow);
   //debug the row to the terminal.
   printRow();
   DEBUG_LN();
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
-    lblLedStripHandler->setPixel(i, bmh->isTrueForBitInByteArray(i));
+    lblLedStripHandler->setPixel(i, bmh->isLightOnAtColumn(i));
     lblLedStripHandler->showStrip();
   }
 }
