@@ -41,7 +41,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 #define EEPROM_LED_COUNT 5
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
-#define DO_DEBUG 0
+#define DO_DEBUG 1
 
 #if DO_DEBUG == 1
 #define DEBUG_BEGIN Serial.begin(9600)
@@ -195,18 +195,34 @@ class LblLcdDisplay {
 this class is used to store the names of files in a given directory.
 it uses the instance pointer array fileNames to point to strings of file names.
 */
-class lblFileNavigator {
+class LblFileNavigator {
   private:
     String * fileNames[128];
     File root;
   public:
 
-    /**
-    set pointer array of strings to names of file names in passed directory.
-    */
-    void setFileNamesAtAddress(String address) {
-      
-    }
+    // /**
+    // set pointer array of strings to names of file names in passed directory.
+    // */
+    // void setFileNamesAtAddress(String address) {
+    //   root = SD.open(address);
+    //   bool loopCondition = true;
+    //   int count = 0;
+    //   while (loopCondition) {
+    //     File entry = root.openNextFile();
+    //     if (!entry) {
+    //       break;
+    //     }
+    //     // fileNames[count] = entry.name();
+    //     DEBUG_LN(entry.name());
+    //     count ++;
+    //     entry.close();
+    //   }
+
+    //   // for (int i=0; i< count; i++) {
+    //   //   DEBUG_LN(fileNames[i]);
+    //   // }
+    // }
     
 
 
@@ -542,7 +558,7 @@ class BitmapHandler {
       String message;
       message = "unable to open file: ";
       message += this->bmpFilename;
-      DEBUG_LN(F(message));
+      DEBUG_LN(message);
       errorMessage(message);
       this->fileOk = false;
       return false;
@@ -550,7 +566,7 @@ class BitmapHandler {
     if (!this->readFileHeaders()){
       String message;
       message = "Unable to read file headers";
-      DEBUG_LN(F(message));
+      DEBUG_LN(message);
       errorMessage(message);
       this->fileOk = false;
       return false;
@@ -558,7 +574,7 @@ class BitmapHandler {
     if (!this->checkFileHeaders()){
       String message;
       message = "Not compatable file";
-      DEBUG_LN(F(message));
+      DEBUG_LN(message);
       errorMessage(message);
       this->fileOk = false;
       return false;
@@ -567,13 +583,13 @@ class BitmapHandler {
       String message;
       message = "Image width greater then LED count ";
       message += ledCount;
-      DEBUG_LN(F(message));
+      DEBUG_LN(message);
       errorMessage(message);
       this->fileOk = false;
       return false;
     }
     // all OK
-    DEBUG_LN(F("BMP file all OK"));
+    DEBUG_LN("BMP file all OK");
     this->fileOk = true;
     return true;
   }
@@ -628,28 +644,28 @@ class BitmapHandler {
     // BMP file id
     if (this->headerField != 0x4D42){
       String message = "file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.";
-      DEBUG_LN(F(message));
+      DEBUG_LN(message);
       errorMessage(message);
       return false;
     }
     // must be single colour plane
     if (this->colourPlanes != 1){
       String message = "file is not single colour plane";
-      DEBUG_LN(F(message));
+      DEBUG_LN(message);
       errorMessage(message);
       return false;
     }
     // only working with 24 bit bitmaps
     if (this->bitsPerPixel != 24){
       String message = "is not 24 bit bitmap.";
-      DEBUG_LN(F(message));
+      DEBUG_LN(message);
       errorMessage(message);
       return false;
     }
     // no compression
     if (this->compression != 0){
       String message = "bitmap is compressed.";
-      DEBUG_LN(F(message));
+      DEBUG_LN(message);
       errorMessage(message);
       return false;
     }
@@ -663,36 +679,36 @@ class BitmapHandler {
   *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
   */
   void serialPrintHeaders() {
-    DEBUG_MSG(F("filename : "));
+    DEBUG_MSG("filename : ");
     DEBUG_LN(this->bmpFilename);
     // BMP Header
     // DEBUG_MSG(F("headerField : "));
     // Serial.println(this->headerField, HEX);
-    DEBUG_MSG(F("fileSize : "));
+    DEBUG_MSG("fileSize : ");
     DEBUG_LN(this->fileSize);
-    DEBUG_MSG(F("imageOffset : "));
+    DEBUG_MSG("imageOffset : ");
     DEBUG_LN(this->imageOffset);
-    DEBUG_MSG(F("headerSize : "));
+    DEBUG_MSG("headerSize : ");
     DEBUG_LN(this->headerSize);
-    DEBUG_MSG(F("imageWidth : "));
+    DEBUG_MSG("imageWidth : ");
     DEBUG_LN(this->imageWidth);
-    DEBUG_MSG(F("imageHeight : "));
+    DEBUG_MSG("imageHeight : ");
     DEBUG_LN(this->imageHeight);
-    DEBUG_MSG(F("colourPlanes : "));
+    DEBUG_MSG("colourPlanes : ");
     DEBUG_LN(this->colourPlanes);
-    DEBUG_MSG(F("bitsPerPixel : "));
+    DEBUG_MSG("bitsPerPixel : ");
     DEBUG_LN(this->bitsPerPixel);
-    DEBUG_MSG(F("compression : "));
+    DEBUG_MSG("compression : ");
     DEBUG_LN(this->compression);
-    DEBUG_MSG(F("imageSize : "));
+    DEBUG_MSG("imageSize : ");
     DEBUG_LN(this->imageSize);
-    DEBUG_MSG(F("xPixelsPerMeter : "));
+    DEBUG_MSG("xPixelsPerMeter : ");
     DEBUG_LN(this->xPixelsPerMeter);
-    DEBUG_MSG(F("yPixelsPerMeter : "));
+    DEBUG_MSG("yPixelsPerMeter : ");
     DEBUG_LN(this->yPixelsPerMeter);
-    DEBUG_MSG(F("totalColors : "));
+    DEBUG_MSG("totalColors : ");
     DEBUG_LN(this->totalColors);
-    DEBUG_MSG(F("importantColors : "));
+    DEBUG_MSG("importantColors : ");
     DEBUG_LN(this->importantColors);
   }
 
@@ -816,6 +832,7 @@ LblLedStripHandler * lblLedStripHandler;
 // LblLcdDisplay * lblLcdDisplay;
 // LblButtons * lblButtons;
 LiquidCrystal * lcd;
+LblFileNavigator * lblFileNavigator;
 
 /**
 delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
@@ -1232,6 +1249,9 @@ void setup() {
   //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
   //library, or it interferes with the light strip.
   DEBUG_BEGIN;
+  lblFileNavigator = new LblFileNavigator();
+  // lblFileNavigator->setFileNamesAtAddress("/");
+  while(1);
   //read all eerpom data
   readAllEepromData();
   //create lcd
