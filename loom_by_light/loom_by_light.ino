@@ -41,7 +41,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 #define EEPROM_LED_COUNT 5
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
-#define DO_DEBUG 1
+#define DO_DEBUG 0
 
 #if DO_DEBUG == 1
 #define DEBUG_BEGIN Serial.begin(9600)
@@ -197,33 +197,55 @@ it uses the instance pointer array fileNames to point to strings of file names.
 */
 class LblFileNavigator {
   private:
-    String * fileNames[128];
-    File root;
+    String * _fileNames[128];
+    File _root;
+    String _address;
+    int _numFilesInDir = 0;
   public:
 
-    // /**
-    // set pointer array of strings to names of file names in passed directory.
-    // */
-    // void setFileNamesAtAddress(String address) {
-    //   root = SD.open(address);
-    //   bool loopCondition = true;
-    //   int count = 0;
-    //   while (loopCondition) {
-    //     File entry = root.openNextFile();
-    //     if (!entry) {
-    //       break;
-    //     }
-    //     // fileNames[count] = entry.name();
-    //     DEBUG_LN(entry.name());
-    //     count ++;
-    //     entry.close();
-    //   }
+    /**
+    set the address
+    */
+    void setAddress(String address) {
+      this->_address = address;
+    }
 
-    //   // for (int i=0; i< count; i++) {
-    //   //   DEBUG_LN(fileNames[i]);
-    //   // }
-    // }
-    
+    /**
+    set pointer array of strings to names of file names in passed directory.
+    */
+    void setFileNames() {
+      _root = SD.open(_address);
+      bool loopCondition = true;
+      int _numFilesInDir = 0;
+      while (loopCondition) {
+        File entry = _root.openNextFile();
+        if (!entry) {
+          break;
+        }
+        // fileNames[count] = entry.name();
+        DEBUG_LN(entry.name());
+        lblLcdDisplay->storeMessage(entry.name());
+        lblLcdDisplay->update();
+        _numFilesInDir ++;
+        entry.close();
+      }
+
+      // String message;
+      // for (int i=0; i< count; i++) {
+      //   message += fileNames[i];
+      //   message += " ";
+      //   DEBUG_LN(fileNames[i]);
+      // }
+    }
+    String getFileNames() {
+      String message;
+      for (int i=0; i< _numFilesInDir; i++) {
+        message += *_fileNames[i];
+        message += " ";
+        DEBUG_LN(*_fileNames[i]);
+      }
+      return message;
+    }
 
 
 };
@@ -807,7 +829,9 @@ void initializeCard() {
   DEBUG_MSG("beginning initialization of SD card");
 
   if (!SD.begin(CHIP_SELECT)) {
-    DEBUG_LN("SD initialization failed");
+    String message = "SD initialization failed";
+    DEBUG_LN(message);
+    lblLcdDisplay->storeMessage(message);
     while (1); //infinate loop to force resetting arduino
   }
   DEBUG_LN("SD Initalized successfully"); //if you reach here setup successfully
@@ -1249,9 +1273,6 @@ void setup() {
   //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
   //library, or it interferes with the light strip.
   DEBUG_BEGIN;
-  lblFileNavigator = new LblFileNavigator();
-  // lblFileNavigator->setFileNamesAtAddress("/");
-  while(1);
   //read all eerpom data
   readAllEepromData();
   //create lcd
@@ -1261,6 +1282,19 @@ void setup() {
   lblButtons = new LblButtons(lcd);
   //initialize the SD card
   initializeCard();
+
+  
+  lblFileNavigator = new LblFileNavigator();
+  lblFileNavigator->setAddress("/");
+  lblFileNavigator->setFileNames();
+  delay(3000);
+  lblLcdDisplay->storeMessage(lblFileNavigator->getFileNames());
+  while(1)
+  {
+    lblLcdDisplay->update();
+  }
+
+
   //create bitmap handler object, and pass it the bitmap to read.
   bmh = new BitmapHandler("bitmap.bmp");
   // //open the file
