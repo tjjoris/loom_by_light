@@ -201,28 +201,28 @@ class LblFileNavigator {
     File root;
   public:
 
-    // /**
-    // set pointer array of strings to names of file names in passed directory.
-    // */
-    // void setFileNamesAtAddress(String address) {
-    //   root = SD.open(address);
-    //   bool loopCondition = true;
-    //   int count = 0;
-    //   while (loopCondition) {
-    //     File entry = root.openNextFile();
-    //     if (!entry) {
-    //       break;
-    //     }
-    //     // fileNames[count] = entry.name();
-    //     DEBUG_LN(entry.name());
-    //     count ++;
-    //     entry.close();
-    //   }
+    /**
+    set pointer array of strings to names of file names in passed directory.
+    */
+    void setFileNamesAtAddress(String address) {
+      root = SD.open(address);
+      bool loopCondition = true;
+      int count = 0;
+      while (loopCondition) {
+        File entry = root.openNextFile();
+        if (!entry) {
+          break;
+        }
+        *fileNames[count] = entry.name();
+        DEBUG_LN(entry.name());
+        count ++;
+        entry.close();
+      }
 
-    //   // for (int i=0; i< count; i++) {
-    //   //   DEBUG_LN(fileNames[i]);
-    //   // }
-    // }
+      for (int i=0; i< count; i++) {
+        DEBUG_LN(*fileNames[i]);
+      }
+    }
     
 
 
@@ -1249,9 +1249,6 @@ void setup() {
   //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
   //library, or it interferes with the light strip.
   DEBUG_BEGIN;
-  lblFileNavigator = new LblFileNavigator();
-  // lblFileNavigator->setFileNamesAtAddress("/");
-  while(1);
   //read all eerpom data
   readAllEepromData();
   //create lcd
@@ -1261,6 +1258,11 @@ void setup() {
   lblButtons = new LblButtons(lcd);
   //initialize the SD card
   initializeCard();
+
+  // lblFileNavigator = new LblFileNavigator();
+  // lblFileNavigator->setFileNamesAtAddress("/");
+  while(1);
+
   //create bitmap handler object, and pass it the bitmap to read.
   bmh = new BitmapHandler("bitmap.bmp");
   // //open the file
