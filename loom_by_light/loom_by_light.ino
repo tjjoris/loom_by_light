@@ -216,7 +216,7 @@ class LblFileNavigator {
     void setFileNames() {
       _root = SD.open(_address);
       bool loopCondition = true;
-      int _numFilesInDir = 0;
+      _numFilesInDir = 0;
       while (loopCondition) {
         File entry = _root.openNextFile();
         if (!entry) {
@@ -225,9 +225,14 @@ class LblFileNavigator {
         String fileName = entry.name();
         _fileNames[_numFilesInDir] = &fileName;
         DEBUG_LN(entry.name());
-        lblLcdDisplay->storeMessage(entry.name());
-        lblLcdDisplay->update();
         _numFilesInDir ++;
+        String message;
+        message += entry.name();
+        message += String(_numFilesInDir);
+        lblLcdDisplay->storeMessage(message);
+        delay(1500);
+        lblLcdDisplay->update();
+
         entry.close();
       }
 
@@ -242,10 +247,13 @@ class LblFileNavigator {
       String message ;
       message += "_";
       for (int i=0; i< _numFilesInDir; i++) {
-        message += *_fileNames[i];
+        // message += *_fileNames[i];
         message += " ";
         DEBUG_LN(*_fileNames[i]);
+        message += (String)i;
       }
+      message += (String)_numFilesInDir;
+      
       return message;
     }
 
