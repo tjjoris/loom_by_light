@@ -192,6 +192,27 @@ class LblLcdDisplay {
 };
 
 /**
+this class is used to store the names of files in a given directory.
+it uses the instance pointer array fileNames to point to strings of file names.
+*/
+class lblFileNavigator {
+  private:
+    String * fileNames[128];
+    File root;
+  public:
+
+    /**
+    set pointer array of strings to names of file names in passed directory.
+    */
+    void setFileNamesAtAddress(String address) {
+      
+    }
+    
+
+
+};
+
+/**
 LblLedStripHandler - the class to create the NeoPixel strip object, 
 and display the specific lights
 */
