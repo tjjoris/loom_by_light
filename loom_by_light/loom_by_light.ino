@@ -222,7 +222,8 @@ class LblFileNavigator {
         if (!entry) {
           break;
         }
-        // fileNames[count] = entry.name();
+        String fileName = entry.name();
+        _fileNames[_numFilesInDir] = &fileName;
         DEBUG_LN(entry.name());
         lblLcdDisplay->storeMessage(entry.name());
         lblLcdDisplay->update();
@@ -238,7 +239,8 @@ class LblFileNavigator {
       // }
     }
     String getFileNames() {
-      String message;
+      String message ;
+      message += "_";
       for (int i=0; i< _numFilesInDir; i++) {
         message += *_fileNames[i];
         message += " ";
@@ -1292,6 +1294,7 @@ void setup() {
   while(1)
   {
     lblLcdDisplay->update();
+    delay(100);
   }
 
 
