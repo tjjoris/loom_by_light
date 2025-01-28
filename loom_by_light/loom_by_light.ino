@@ -428,10 +428,8 @@ class LblFileNavigator {
           this->nextFile();
           fileCount ++;
           if (fileCount > _currentNavigatedFileCount) {
-            
             if (this->isFile()) {
               lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);
-              this->closeFile();
               row ++;
             } else {
               row = LCD_ROWS;
@@ -444,7 +442,6 @@ class LblFileNavigator {
         lblLcdDisplay->displayLcd();
         checkButtonPressesInDisplayFiles();
         closeDirectory();
-        // delay(2500);
       }
     }
 
