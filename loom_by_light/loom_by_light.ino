@@ -78,25 +78,25 @@ LblLcdDisplay * lblLcdDisplay;
 LblButtons * lblButtons;
 LblFileNavigator * lblFileNavigator;
 
-/**
-test class header(declaration), this is seperated from implementation to hide implementation details
-and improve encapsulation, making it easier to modify the implementation without affecing to ther code which
-depends on the class interface, this class is to be deleted
-*/
-class TestClass {
-  private:
-    LblLcdDisplay * _lcdDisplay;
-  public:
-    TestClass(LblLcdDisplay * lcdDisplay) ;
-    // void doStuff();
-};
+// /**
+// test class header(declaration), this is seperated from implementation to hide implementation details
+// and improve encapsulation, making it easier to modify the implementation without affecing to ther code which
+// depends on the class interface, this class is to be deleted
+// */
+// class TestClass {
+//   private:
+//     LblLcdDisplay * _lcdDisplay;
+//   public:
+//     TestClass(LblLcdDisplay * lcdDisplay) ;
+//     // void doStuff();
+// };
 
-/**
-test class implementation, to be deleted.
-*/
-TestClass::TestClass(LblLcdDisplay * lcdDisplay) {
-  _lcdDisplay = lcdDisplay;
-}
+// /**
+// test class implementation, to be deleted.
+// */
+// TestClass::TestClass(LblLcdDisplay * lcdDisplay) {
+//   _lcdDisplay = lcdDisplay;
+// }
 
 /**
 lcd class for displaying messages to the lcd display.
@@ -206,7 +206,7 @@ it uses the instance pointer array fileNames to point to strings of file names.
 */
 class LblFileNavigator {
   private:
-    String _fileNames[64];
+    // String _fileNames[64];
     File _root;
     File _entry;
     String _address;
@@ -271,34 +271,34 @@ class LblFileNavigator {
     }
 
 
-    /**
-    set pointer array of strings to names of file names in passed directory.
-    can i iterate through a file on the sd card without opening it?
-    */
-    void setFileNames() {
-      _root = SD.open(_address);
-      int fileCount = 0;
-      bool loopCondition = true;
-      _numFilesInDir = 0;
-      while (loopCondition) {
-        File entry = _root.openNextFile();
-        if ((!entry) || (fileCount > 64)) {
-          _numFilesInDir = fileCount;
-          break;
-        }
-        _fileNames[fileCount] = (String)entry.name();
-        DEBUG_LN(entry.name());
-        fileCount ++;
-        String message;
-        // message += "+";
-        message += (String)entry.name();
-        // message += String(fileCount);
-        lblLcdDisplay->storeMessage(message);
-        lblLcdDisplay->update();
-        delay(1500);
+    // /**
+    // set pointer array of strings to names of file names in passed directory.
+    // can i iterate through a file on the sd card without opening it?
+    // */
+    // void setFileNames() {
+    //   _root = SD.open(_address);
+    //   int fileCount = 0;
+    //   bool loopCondition = true;
+    //   _numFilesInDir = 0;
+    //   while (loopCondition) {
+    //     File entry = _root.openNextFile();
+    //     if ((!entry) || (fileCount > 64)) {
+    //       _numFilesInDir = fileCount;
+    //       break;
+    //     }
+    //     _fileNames[fileCount] = (String)entry.name();
+    //     DEBUG_LN(entry.name());
+    //     fileCount ++;
+    //     String message;
+    //     // message += "+";
+    //     message += (String)entry.name();
+    //     // message += String(fileCount);
+    //     lblLcdDisplay->storeMessage(message);
+    //     lblLcdDisplay->update();
+    //     delay(1500);
 
-        entry.close();
-      }
+    //     entry.close();
+    //   }
 
       // String message;
       // for (int i=0; i< count; i++) {
@@ -306,20 +306,20 @@ class LblFileNavigator {
       //   message += " ";
       //   DEBUG_LN(fileNames[i]);
       // }
-    }
-    String getFileNames() {
-      String message ;
-      // message += "_";
-      for (int i=0; i< _numFilesInDir; i++) {
-        message += (_fileNames[i]);
-        message += " ";
-        DEBUG_LN(_fileNames[i]);
-        message += i;
-      }
-      message += (String)_numFilesInDir;
+    // }
+    // String getFileNames() {
+    //   String message ;
+    //   // message += "_";
+    //   for (int i=0; i< _numFilesInDir; i++) {
+    //     message += (_fileNames[i]);
+    //     message += " ";
+    //     DEBUG_LN(_fileNames[i]);
+    //     message += i;
+    //   }
+    //   message += (String)_numFilesInDir;
       
-      return message;
-    }
+    //   return message;
+    // }
 };
 
 
@@ -327,8 +327,8 @@ class LblFileNavigator {
     file navigatorHandler
     */
     void navigateFilesAtRoot() {
-      lblLcdDisplay->displaySimpleMsg("navigating files");
-        delay(3000);
+      lblLcdDisplay->displaySimpleMsg("navigating..");
+      delay(3000);
       lblFileNavigator->setAddress("/");
       lblFileNavigator->openDirectory();
       for (int i = 0; i< LCD_ROWS; i++) {
@@ -1385,12 +1385,14 @@ void setup() {
 
   
   lblFileNavigator = new LblFileNavigator();
+  lblLcdDisplay->displaySimpleMsg("about to nav");
+  delay (1000);
   navigateFilesAtRoot();
   while(1);
   lblFileNavigator->setAddress("/");
-  lblFileNavigator->setFileNames();
+  // lblFileNavigator->setFileNames();
   delay(3000);
-  lblLcdDisplay->storeMessage(lblFileNavigator->getFileNames());
+  // lblLcdDisplay->storeMessage(lblFileNavigator->getFileNames());
   while(1)
   {
     lblLcdDisplay->update();
