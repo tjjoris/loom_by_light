@@ -69,12 +69,14 @@ class UiState;
 class UiStateInRow;
 class UiStateIntro;
 class LblButtons;
+class LblFileNavigator;
 
 /**
 global variables for classes.
 */
 LblLcdDisplay * lblLcdDisplay;
 LblButtons * lblButtons;
+LblFileNavigator * lblFileNavigator;
 
 /**
 test class header(declaration), this is seperated from implementation to hide implementation details
@@ -117,6 +119,12 @@ class LblLcdDisplay {
       _lcd->begin(LCD_COLS, LCD_ROWS);
     }
 
+    void displaySimpleMsg(String message) {
+      _lcd->clear();
+      _lcd->setCursor(0,0);
+      _lcd->print(message);
+      _lcd->display();
+    }
     /**
     set the stored lcd message, this is what update uses to know if it needs to update the screen.
     */
@@ -191,6 +199,7 @@ class LblLcdDisplay {
     }
 };
 
+
 /**
 this class is used to store the names of files in a given directory.
 it uses the instance pointer array fileNames to point to strings of file names.
@@ -206,27 +215,6 @@ class LblFileNavigator {
     String _fileToOpen;
   public:
 
-    /**
-    file navigatorHandler
-    */
-    void navigateFilesAtRoot() {
-      this->setAddress("/");
-      this->openDirectory();
-      for (int i = 0; i< LCD_ROWS; i++) {
-        if (this->isNextFile()) {
-          // lblLcdDisplay->storeMessage(this->getFileName());
-          lblLcdDisplay->storeMessage("my file");
-          lblLcdDisplay->update();
-          delay(2500);
-        }
-        else {
-          lblLcdDisplay->storeMessage("no files");
-          lblLcdDisplay->update();
-          delay(1500);
-          break;
-        }
-      }
-    }
 
     /**
     set the address
@@ -245,16 +233,14 @@ class LblFileNavigator {
       if (_root) {
         message = "directory opened"
         DEBUG_LN(message);
-        lblLcdDisplay->storeMessage(message);
-        lblLcdDisplay->update();
-        delay(2000);
+        lblLcdDisplay->displaySimpleMsg("dir open");
+        delay(3000);
       }
       else {
         message = "failed directory open";
         DEBUG_LN(message);
-        lblLcdDisplay->storeMessage(message);
-        lblLcdDisplay->update();
-        delay(2000);
+        lblLcdDisplay->displaySimpleMsg("!dir open");
+        delay(3000);
       }
     }
 
@@ -334,9 +320,31 @@ class LblFileNavigator {
       
       return message;
     }
-
-
 };
+
+
+    /**
+    file navigatorHandler
+    */
+    void navigateFilesAtRoot() {
+      lblLcdDisplay->displaySimpleMsg("navigating files");
+        delay(3000);
+      lblFileNavigator->setAddress("/");
+      lblFileNavigator->openDirectory();
+      for (int i = 0; i< LCD_ROWS; i++) {
+        if (lblFileNavigator->isNextFile()) {
+          // lblLcdDisplay->storeMessage(this->getFileName());
+          lblLcdDisplay->displaySimpleMsg("my file");
+          delay(2500);
+        }
+        else {
+          lblLcdDisplay->displaySimpleMsg("no file");
+          delay(1500);
+          break;
+        }
+      }
+    }
+
 
 /**
 LblLedStripHandler - the class to create the NeoPixel strip object, 
@@ -947,7 +955,6 @@ LblLedStripHandler * lblLedStripHandler;
 // LblLcdDisplay * lblLcdDisplay;
 // LblButtons * lblButtons;
 LiquidCrystal * lcd;
-LblFileNavigator * lblFileNavigator;
 
 /**
 delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
@@ -1371,12 +1378,14 @@ void setup() {
   lcd->begin(LCD_ROWS, LCD_COLS);
   lblLcdDisplay = new LblLcdDisplay(lcd);
   lblButtons = new LblButtons(lcd);
+  lblLcdDisplay->displaySimpleMsg("test");
+  delay(1000);
   //initialize the SD card
   initializeCard();
 
   
   lblFileNavigator = new LblFileNavigator();
-  lblFileNavigator->navigateFilesAtRoot();
+  navigateFilesAtRoot();
   while(1);
   lblFileNavigator->setAddress("/");
   lblFileNavigator->setFileNames();
