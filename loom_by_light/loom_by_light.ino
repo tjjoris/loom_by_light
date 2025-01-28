@@ -279,6 +279,31 @@ class LblFileNavigator {
     }
 
     /**
+    display files
+    */
+    void displayFiles() {
+      lblLcdDisplay->clearLcd(); //clear the lcd
+      for (int row = 0; row< LCD_ROWS; row++) {
+        if (this->isNextFile()) {
+          lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);
+          // lblLcdDisplay->displaySimpleMsg("my file");
+          this->closeFile();
+        }
+        else {
+          // lblLcdDisplay->displaySimpleMsg("no file");
+          // delay(1500);
+          // break;
+        }
+      }
+      lblLcdDisplay->displayLcd();
+      bool loopCondition = true;
+      while (loopCondition) {
+        lblButtons->readButtons();
+      }
+      delay(2500);
+    }
+
+    /**
     return true if there is a file opened, else return false.
     */
     bool isNextFile() {
