@@ -255,11 +255,18 @@ class LblFileNavigator {
     return true if there is a file opened, else return false.
     */
     bool isNextFile() {
-        File _entry = _root.openNextFile();
+        _entry = _root.openNextFile();
         if (!_entry) {
           return false;
         }
         return true;
+    }
+
+    /**
+    close the file
+    */
+    void closeFile() {
+      _entry.close();
     }
 
     /**
@@ -331,10 +338,11 @@ class LblFileNavigator {
       delay(3000);
       lblFileNavigator->setAddress("/");
       lblFileNavigator->openDirectory();
-      for (int i = 0; i< LCD_ROWS; i++) {
+      for (int i = 0; i< 3; i++) {
         if (lblFileNavigator->isNextFile()) {
-          // lblLcdDisplay->storeMessage(this->getFileName());
-          lblLcdDisplay->displaySimpleMsg("my file");
+          lblLcdDisplay->displaySimpleMsg(lblFileNavigator->getFileName());
+          // lblLcdDisplay->displaySimpleMsg("my file");
+          lblFileNavigator->closeFile();
           delay(2500);
         }
         else {
