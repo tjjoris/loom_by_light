@@ -392,13 +392,13 @@ class LblFileNavigator {
       if (_root) {
         message = "directory opened"
         DEBUG_LN(message);
-        lblLcdDisplay->displaySimpleMsg("opening dir");
-        delay(1000);
+        // lblLcdDisplay->displaySimpleMsg("opening dir");
+        // delay(1000);
       }
       else {
         message = "failed directory open";
         DEBUG_LN(message);
-        lblLcdDisplay->displaySimpleMsg("!dir open");
+        lblLcdDisplay->displaySimpleMsg("err opening dir");
         delay(3000);
       }
     }
@@ -410,8 +410,8 @@ class LblFileNavigator {
       _root.close();
       String message = "closing dir";
         DEBUG_LN(message);
-        lblLcdDisplay->displaySimpleMsg(message);
-        delay(1000);
+        // lblLcdDisplay->displaySimpleMsg(message);
+        // delay(1000);
     }
 
     /**
@@ -423,8 +423,6 @@ class LblFileNavigator {
         openDirectory();
         int fileCount = 0;
         int row = 0;
-        lblLcdDisplay->displaySimpleMsg((String)_currentNavigatedFileCount);
-        delay(1000);
         lblLcdDisplay->clearLcd(); //clear the lcd
         while (row < LCD_ROWS) {
           this->nextFile();
@@ -444,7 +442,18 @@ class LblFileNavigator {
           }
         }
         lblLcdDisplay->displayLcd();
-        bool loopButtonCheckingCondition = true;
+        checkButtonPressesInDisplayFiles();
+        closeDirectory();
+        // delay(2500);
+      }
+    }
+
+    /**
+    loop until a button has been pressed, this also controls the loop
+    it exists inside, in case a file is loaded, or select is pressed.
+    */
+    void checkButtonPressesInDisplayFiles() {
+      bool loopButtonCheckingCondition = true;
         while (loopButtonCheckingCondition) {
           lblButtons->readButtons();
           if (lblButtons->isDownPressed()) {
@@ -461,9 +470,6 @@ class LblFileNavigator {
             loopButtonCheckingCondition = false;
           }
         }
-        closeDirectory();
-        // delay(2500);
-      }
     }
 
     /**
