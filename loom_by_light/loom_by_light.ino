@@ -197,11 +197,36 @@ it uses the instance pointer array fileNames to point to strings of file names.
 */
 class LblFileNavigator {
   private:
-    String * _fileNames[128];
+    String _fileNames[64];
     File _root;
+    File _entry;
     String _address;
     int _numFilesInDir = 0;
+    int _currentNavigatedFileCount = 0;
+    String _fileToOpen;
   public:
+
+    /**
+    file navigatorHandler
+    */
+    void navigateFilesAtRoot() {
+      this->setAddress("/");
+      this->openDirectory();
+      for (int i = 0; i< LCD_ROWS; i++) {
+        if (this->isNextFile()) {
+          // lblLcdDisplay->storeMessage(this->getFileName());
+          lblLcdDisplay->storeMessage("my file");
+          lblLcdDisplay->update();
+          delay(2500);
+        }
+        else {
+          lblLcdDisplay->storeMessage("no files");
+          lblLcdDisplay->update();
+          delay(1500);
+          break;
+        }
+      }
+    }
 
     /**
     set the address
@@ -211,27 +236,80 @@ class LblFileNavigator {
     }
 
     /**
+    open the directory
+    */
+    void openDirectory() {
+      _root = SD.open(_address);
+      _currentNavigatedFileCount = 0;
+      String message;
+      if (_root) {
+        message = "directory opened"
+        DEBUG_LN(message);
+        lblLcdDisplay->storeMessage(message);
+        lblLcdDisplay->update();
+        delay(2000);
+      }
+      else {
+        message = "failed directory open";
+        DEBUG_LN(message);
+        lblLcdDisplay->storeMessage(message);
+        lblLcdDisplay->update();
+        delay(2000);
+      }
+    }
+
+    /**
+    close the directory
+    */
+    void closeDirectory() {
+      _root.close();
+    }
+
+    /**
+    return true if there is a file opened, else return false.
+    */
+    bool isNextFile() {
+        File _entry = _root.openNextFile();
+        if (!_entry) {
+          return false;
+        }
+        return true;
+    }
+
+    /**
+    return the string of the name of the opened file
+    */
+    String getFileName() {
+      String fileName = _entry.name();
+      return fileName;
+    }
+
+
+    /**
     set pointer array of strings to names of file names in passed directory.
+    can i iterate through a file on the sd card without opening it?
     */
     void setFileNames() {
       _root = SD.open(_address);
+      int fileCount = 0;
       bool loopCondition = true;
       _numFilesInDir = 0;
       while (loopCondition) {
         File entry = _root.openNextFile();
-        if (!entry) {
+        if ((!entry) || (fileCount > 64)) {
+          _numFilesInDir = fileCount;
           break;
         }
-        String fileName = entry.name();
-        _fileNames[_numFilesInDir] = &fileName;
+        _fileNames[fileCount] = (String)entry.name();
         DEBUG_LN(entry.name());
-        _numFilesInDir ++;
+        fileCount ++;
         String message;
-        message += entry.name();
-        message += String(_numFilesInDir);
+        // message += "+";
+        message += (String)entry.name();
+        // message += String(fileCount);
         lblLcdDisplay->storeMessage(message);
-        delay(1500);
         lblLcdDisplay->update();
+        delay(1500);
 
         entry.close();
       }
@@ -245,12 +323,12 @@ class LblFileNavigator {
     }
     String getFileNames() {
       String message ;
-      message += "_";
+      // message += "_";
       for (int i=0; i< _numFilesInDir; i++) {
-        // message += *_fileNames[i];
+        message += (_fileNames[i]);
         message += " ";
-        DEBUG_LN(*_fileNames[i]);
-        message += (String)i;
+        DEBUG_LN(_fileNames[i]);
+        message += i;
       }
       message += (String)_numFilesInDir;
       
@@ -846,6 +924,9 @@ void initializeCard() {
   }
   DEBUG_LN("SD Initalized successfully"); //if you reach here setup successfully
   DEBUG_LN("----------------------------\n");
+  lblLcdDisplay->storeMessage("SD initialized successfully");
+  lblLcdDisplay->update();
+  delay(900);
 }
 
 /**
@@ -1295,6 +1376,8 @@ void setup() {
 
   
   lblFileNavigator = new LblFileNavigator();
+  lblFileNavigator->navigateFilesAtRoot();
+  while(1);
   lblFileNavigator->setAddress("/");
   lblFileNavigator->setFileNames();
   delay(3000);
