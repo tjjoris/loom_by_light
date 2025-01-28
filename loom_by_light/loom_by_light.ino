@@ -228,242 +228,6 @@ class LblLcdDisplay {
 
 
 /**
-this class is used to store the names of files in a given directory.
-it uses the instance pointer array fileNames to point to strings of file names.
-*/
-class LblFileNavigator {
-  private:
-    // String _fileNames[64];
-    File _root;
-    File _entry;
-    String _address;
-    int _numFilesInDir = 0;
-    int _currentNavigatedFileCount = 0;
-    String _fileToOpen;
-  public:
-
-
-    /**
-    set the address
-    */
-    void setAddress(String address) {
-      this->_address = address;
-    }
-
-    /**
-    open the directory
-    */
-    void openDirectory() {
-      _root = SD.open(_address);
-      _currentNavigatedFileCount = 0;
-      String message;
-      if (_root) {
-        message = "directory opened"
-        DEBUG_LN(message);
-        lblLcdDisplay->displaySimpleMsg("opening dir");
-        delay(100);
-      }
-      else {
-        message = "failed directory open";
-        DEBUG_LN(message);
-        lblLcdDisplay->displaySimpleMsg("!dir open");
-        delay(3000);
-      }
-    }
-
-    /**
-    close the directory
-    */
-    void closeDirectory() {
-      _root.close();
-    }
-
-    /**
-    display files
-    */
-    void displayFiles() {
-      lblLcdDisplay->clearLcd(); //clear the lcd
-      for (int row = 0; row< LCD_ROWS; row++) {
-        if (this->isNextFile()) {
-          lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);
-          // lblLcdDisplay->displaySimpleMsg("my file");
-          this->closeFile();
-        }
-        else {
-          // lblLcdDisplay->displaySimpleMsg("no file");
-          // delay(1500);
-          // break;
-        }
-      }
-      lblLcdDisplay->displayLcd();
-      bool loopCondition = true;
-      while (loopCondition) {
-        lblButtons->readButtons();
-      }
-      delay(2500);
-    }
-
-    /**
-    return true if there is a file opened, else return false.
-    */
-    bool isNextFile() {
-        _entry = _root.openNextFile();
-        if (!_entry) {
-          return false;
-        }
-        return true;
-    }
-
-    /**
-    close the file
-    */
-    void closeFile() {
-      _entry.close();
-    }
-
-    /**
-    return the string of the name of the opened file
-    */
-    String getFileName() {
-      String fileName = _entry.name();
-      return fileName;
-    }
-
-
-    // /**
-    // set pointer array of strings to names of file names in passed directory.
-    // can i iterate through a file on the sd card without opening it?
-    // */
-    // void setFileNames() {
-    //   _root = SD.open(_address);
-    //   int fileCount = 0;
-    //   bool loopCondition = true;
-    //   _numFilesInDir = 0;
-    //   while (loopCondition) {
-    //     File entry = _root.openNextFile();
-    //     if ((!entry) || (fileCount > 64)) {
-    //       _numFilesInDir = fileCount;
-    //       break;
-    //     }
-    //     _fileNames[fileCount] = (String)entry.name();
-    //     DEBUG_LN(entry.name());
-    //     fileCount ++;
-    //     String message;
-    //     // message += "+";
-    //     message += (String)entry.name();
-    //     // message += String(fileCount);
-    //     lblLcdDisplay->storeMessage(message);
-    //     lblLcdDisplay->update();
-    //     delay(1500);
-
-    //     entry.close();
-    //   }
-
-      // String message;
-      // for (int i=0; i< count; i++) {
-      //   message += fileNames[i];
-      //   message += " ";
-      //   DEBUG_LN(fileNames[i]);
-      // }
-    // }
-    // String getFileNames() {
-    //   String message ;
-    //   // message += "_";
-    //   for (int i=0; i< _numFilesInDir; i++) {
-    //     message += (_fileNames[i]);
-    //     message += " ";
-    //     DEBUG_LN(_fileNames[i]);
-    //     message += i;
-    //   }
-    //   message += (String)_numFilesInDir;
-      
-    //   return message;
-    // }
-};
-
-
-    /**
-    file navigatorHandler
-    */
-    void navigateFilesAtRoot() {
-      lblFileNavigator->setAddress("/");
-      lblFileNavigator->openDirectory();
-      lblLcdDisplay->clearLcd(); //clear the lcd
-      for (int row = 0; row< LCD_ROWS; row++) {
-        if (lblFileNavigator->isNextFile()) {
-          lblLcdDisplay->displayMsgAtRow(lblFileNavigator->getFileName(), row);
-          // lblLcdDisplay->displaySimpleMsg("my file");
-          lblFileNavigator->closeFile();
-        }
-        else {
-          // lblLcdDisplay->displaySimpleMsg("no file");
-          // delay(1500);
-          // break;
-        }
-      }
-      lblLcdDisplay->displayLcd();
-      delay(2500);
-    }
-
-
-/**
-LblLedStripHandler - the class to create the NeoPixel strip object, 
-and display the specific lights
-*/
-class LblLedStripHandler {
-  public:
-    Adafruit_NeoPixel strip;
-
-    /**
-    the constructor, constructs the strip object
-    */
-    LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
-      DEBUG_LN("LblLedStripHandler constructor called.");
-      strip.begin(); //initialize NeoPixel strip object (REQUIRED)
-      strip.setBrightness(brightness); //set the brightness.
-      strip.show(); //turn off all pixels.
-    }
-
-    /**
-    recreate the led strip, probably because the led count has changed.
-    */
-    void recreateStrip() {
-
-    }
-
-    /**
-    set the brightness
-    */
-    void setLedBrightness() {
-      strip.setBrightness(brightness);
-      showStrip();
-    }
-
-    /**
-    set a pixel to true or false at a specific location
-    */
-    void setPixel(int pixelIndex, bool isTrue) {
-      if (isTrue) {
-        strip.setPixelColor(pixelIndex, strip.Color(0,0,255));
-        DEBUG_MSG("set pixel to true at index ");
-        DEBUG_MSG(pixelIndex);
-      }
-      else {
-        strip.setPixelColor(pixelIndex, strip.Color(0,0,0));
-        DEBUG_MSG("set pixel to false at index ");
-        DEBUG_MSG(pixelIndex);
-      }
-    }
-
-    /**
-    display the set lights on the light strip.
-    */
-    void showStrip() {
-      strip.show();
-    }
-};
-
-/**
 this class is used to get button inputs from the lcd and button shield. It's constructor is passed the 
 LiquidCrystal object
 */
@@ -595,6 +359,271 @@ class LblButtons {
       return ((lblButtons->isSelectPressed()) || (lblButtons->isLeftPressed()) || (lblButtons->isRightPressed()) || (lblButtons->isUpPressed()) || (lblButtons->isDownPressed()));
     }
 };
+
+/**
+this class is used to store the names of files in a given directory.
+it uses the instance pointer array fileNames to point to strings of file names.
+*/
+class LblFileNavigator {
+  private:
+    // String _fileNames[64];
+    File _root;
+    File _entry;
+    String _address;
+    int _numFilesInDir = 0;
+    int _currentNavigatedFileCount = 0;
+    String _fileToOpen;
+  public:
+
+
+    /**
+    set the address
+    */
+    void setAddress(String address) {
+      this->_address = address;
+    }
+
+    /**
+    open the directory
+    */
+    void openDirectory() {
+      _root = SD.open(_address);
+      String message;
+      if (_root) {
+        message = "directory opened"
+        DEBUG_LN(message);
+        lblLcdDisplay->displaySimpleMsg("opening dir");
+        delay(100);
+      }
+      else {
+        message = "failed directory open";
+        DEBUG_LN(message);
+        lblLcdDisplay->displaySimpleMsg("!dir open");
+        delay(3000);
+      }
+    }
+
+    /**
+    close the directory
+    */
+    void closeDirectory() {
+      _root.close();
+    }
+
+    /**
+    display files
+    */
+    void displayFiles() {
+      bool loopDisplayFilesCondition = true;
+      while (loopDisplayFilesCondition) {
+        openDirectory();
+        int fileCount = 0;
+        int row = 0;
+        lblLcdDisplay->displaySimpleMsg((String)_currentNavigatedFileCount);
+        delay(1000);
+        lblLcdDisplay->clearLcd(); //clear the lcd
+        while (row < LCD_ROWS) {
+          this->nextFile();
+          fileCount ++;
+          if (fileCount < _currentNavigatedFileCount) {
+            continue;
+          }
+          if (this->isFile()) {
+            lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);
+            row ++;
+            this->closeFile();
+          }
+        }
+        lblLcdDisplay->displayLcd();
+        bool loopButtonCheckingCondition = true;
+        while (loopButtonCheckingCondition) {
+          lblButtons->readButtons();
+          if (lblButtons->isDownPressed()) {
+            _currentNavigatedFileCount ++;
+            // break;
+            loopButtonCheckingCondition = false;
+          }
+          else if (lblButtons->isUpPressed()) {
+            _currentNavigatedFileCount --;
+            if (_currentNavigatedFileCount < 0) {
+              _currentNavigatedFileCount = 0;
+            }
+            // break;
+            loopButtonCheckingCondition = false;
+          }
+        }
+        closeDirectory();
+        // delay(2500);
+      }
+    }
+
+    /**
+    next file
+    */
+    void nextFile() {
+      _entry = _root.openNextFile();
+    }
+
+    /**
+    return true if there is a file opened, else return false.
+    */
+    bool isFile() {
+        if (!_entry) {
+          return false;
+        }
+        return true;
+    }
+
+    /**
+    close the file
+    */
+    void closeFile() {
+      _entry.close();
+    }
+
+    /**
+    return the string of the name of the opened file
+    */
+    String getFileName() {
+      String fileName = _entry.name();
+      return fileName;
+    }
+
+
+    // /**
+    // set pointer array of strings to names of file names in passed directory.
+    // can i iterate through a file on the sd card without opening it?
+    // */
+    // void setFileNames() {
+    //   _root = SD.open(_address);
+    //   int fileCount = 0;
+    //   bool loopCondition = true;
+    //   _numFilesInDir = 0;
+    //   while (loopCondition) {
+    //     File entry = _root.openNextFile();
+    //     if ((!entry) || (fileCount > 64)) {
+    //       _numFilesInDir = fileCount;
+    //       break;
+    //     }
+    //     _fileNames[fileCount] = (String)entry.name();
+    //     DEBUG_LN(entry.name());
+    //     fileCount ++;
+    //     String message;
+    //     // message += "+";
+    //     message += (String)entry.name();
+    //     // message += String(fileCount);
+    //     lblLcdDisplay->storeMessage(message);
+    //     lblLcdDisplay->update();
+    //     delay(1500);
+
+    //     entry.close();
+    //   }
+
+      // String message;
+      // for (int i=0; i< count; i++) {
+      //   message += fileNames[i];
+      //   message += " ";
+      //   DEBUG_LN(fileNames[i]);
+      // }
+    // }
+    // String getFileNames() {
+    //   String message ;
+    //   // message += "_";
+    //   for (int i=0; i< _numFilesInDir; i++) {
+    //     message += (_fileNames[i]);
+    //     message += " ";
+    //     DEBUG_LN(_fileNames[i]);
+    //     message += i;
+    //   }
+    //   message += (String)_numFilesInDir;
+      
+    //   return message;
+    // }
+};
+
+
+    /**
+    file navigatorHandler
+    */
+    void navigateFilesAtRoot() {
+      lblFileNavigator->setAddress("/");
+      lblFileNavigator->openDirectory();
+      lblFileNavigator->displayFiles();
+      // lblLcdDisplay->clearLcd(); //clear the lcd
+      // for (int row = 0; row< LCD_ROWS; row++) {
+      //   if (lblFileNavigator->isFile()) {
+      //     lblLcdDisplay->displayMsgAtRow(lblFileNavigator->getFileName(), row);
+      //     // lblLcdDisplay->displaySimpleMsg("my file");
+      //     lblFileNavigator->closeFile();
+      //   }
+      //   else {
+      //     // lblLcdDisplay->displaySimpleMsg("no file");
+      //     // delay(1500);
+      //     // break;
+      //   }
+      // }
+      // lblLcdDisplay->displayLcd();
+      // delay(2500);
+    }
+
+
+/**
+LblLedStripHandler - the class to create the NeoPixel strip object, 
+and display the specific lights
+*/
+class LblLedStripHandler {
+  public:
+    Adafruit_NeoPixel strip;
+
+    /**
+    the constructor, constructs the strip object
+    */
+    LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
+      DEBUG_LN("LblLedStripHandler constructor called.");
+      strip.begin(); //initialize NeoPixel strip object (REQUIRED)
+      strip.setBrightness(brightness); //set the brightness.
+      strip.show(); //turn off all pixels.
+    }
+
+    /**
+    recreate the led strip, probably because the led count has changed.
+    */
+    void recreateStrip() {
+
+    }
+
+    /**
+    set the brightness
+    */
+    void setLedBrightness() {
+      strip.setBrightness(brightness);
+      showStrip();
+    }
+
+    /**
+    set a pixel to true or false at a specific location
+    */
+    void setPixel(int pixelIndex, bool isTrue) {
+      if (isTrue) {
+        strip.setPixelColor(pixelIndex, strip.Color(0,0,255));
+        DEBUG_MSG("set pixel to true at index ");
+        DEBUG_MSG(pixelIndex);
+      }
+      else {
+        strip.setPixelColor(pixelIndex, strip.Color(0,0,0));
+        DEBUG_MSG("set pixel to false at index ");
+        DEBUG_MSG(pixelIndex);
+      }
+    }
+
+    /**
+    display the set lights on the light strip.
+    */
+    void showStrip() {
+      strip.show();
+    }
+};
+
 
 
 /**
