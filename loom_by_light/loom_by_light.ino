@@ -260,8 +260,8 @@ class LblFileNavigator {
       if (_root) {
         message = "directory opened"
         DEBUG_LN(message);
-        lblLcdDisplay->displaySimpleMsg("dir open");
-        delay(3000);
+        lblLcdDisplay->displaySimpleMsg("opening dir");
+        delay(100);
       }
       else {
         message = "failed directory open";
@@ -361,8 +361,6 @@ class LblFileNavigator {
     file navigatorHandler
     */
     void navigateFilesAtRoot() {
-      lblLcdDisplay->displaySimpleMsg("navigating..");
-      delay(500);
       lblFileNavigator->setAddress("/");
       lblFileNavigator->openDirectory();
       lblLcdDisplay->clearLcd(); //clear the lcd
@@ -971,7 +969,7 @@ void initializeCard() {
   DEBUG_LN("----------------------------\n");
   lblLcdDisplay->storeMessage("SD initialized successfully");
   lblLcdDisplay->update();
-  delay(900);
+  delay(400);
 }
 
 /**
@@ -1420,8 +1418,6 @@ void setup() {
 
   
   lblFileNavigator = new LblFileNavigator();
-  lblLcdDisplay->displaySimpleMsg("about to nav");
-  delay (1000);
   navigateFilesAtRoot();
   while(1);
   lblFileNavigator->setAddress("/");
