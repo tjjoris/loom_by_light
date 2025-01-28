@@ -415,33 +415,35 @@ class LblFileNavigator {
     }
 
     /**
-    display files
+    display files within the directory.
     */
     void displayFiles() {
-      bool loopDisplayFilesCondition = true;
+      bool loopDisplayFilesCondition = true; //if to continue displaying files.
       while (loopDisplayFilesCondition) {
-        openDirectory();
-        int fileCount = 0;
-        int row = 0;
+        openDirectory();//open the directory.
+        int fileCount = 0;//file count is the count of displayed files.
+        int row = 0;//row is the row displayed on the lcd screen.
         lblLcdDisplay->clearLcd(); //clear the lcd
-        while (row < LCD_ROWS) {
-          this->nextFile();
-          fileCount ++;
+        while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
+          this->nextFile();//opens the next file.
+          fileCount ++;//iterates the count of displayed files.
+          //checks if the current file is high enough in the navigated file count to 
+          //display on the lcd screen.
           if (fileCount > _currentNavigatedFileCount) {
-            if (this->isFile()) {
-              lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);
-              row ++;
-            } else {
-              row = LCD_ROWS;
+            if (this->isFile()) {//if file is open.
+              lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);//display file on lcd
+              row ++;//iterate row.
+            } else {//file could not be opened so end loop.
+              row = LCD_ROWS;//match loop condition to end loop.
             }
           }
-          if (this->isFile()) {
+          if (this->isFile()) {//file exists so close file.
             this->closeFile();
           }
         }
-        lblLcdDisplay->displayLcd();
-        checkButtonPressesInDisplayFiles();
-        closeDirectory();
+        lblLcdDisplay->displayLcd();//display lcd screen.
+        checkButtonPressesInDisplayFiles();//loop to check button presses.
+        closeDirectory();//close directory so it can be opened and files freshly iterated again.
       }
     }
 
