@@ -425,13 +425,13 @@ class LblFileNavigator {
         while (row < LCD_ROWS) {
           this->nextFile();
           fileCount ++;
-          if (fileCount < _currentNavigatedFileCount) {
-            continue;
-          }
-          if (this->isFile()) {
-            lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);
+          if (fileCount > _currentNavigatedFileCount) {
+            
+            if (this->isFile()) {
+              lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);
+              this->closeFile();
+            }
             row ++;
-            this->closeFile();
           }
         }
         lblLcdDisplay->displayLcd();
