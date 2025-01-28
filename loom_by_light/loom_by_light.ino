@@ -393,7 +393,7 @@ class LblFileNavigator {
         message = "directory opened"
         DEBUG_LN(message);
         lblLcdDisplay->displaySimpleMsg("opening dir");
-        delay(100);
+        delay(1000);
       }
       else {
         message = "failed directory open";
@@ -408,6 +408,10 @@ class LblFileNavigator {
     */
     void closeDirectory() {
       _root.close();
+      String message = "closing dir";
+        DEBUG_LN(message);
+        lblLcdDisplay->displaySimpleMsg(message);
+        delay(1000);
     }
 
     /**
@@ -430,8 +434,13 @@ class LblFileNavigator {
             if (this->isFile()) {
               lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);
               this->closeFile();
+              row ++;
+            } else {
+              row = LCD_ROWS;
             }
-            row ++;
+          }
+          if (this->isFile()) {
+            this->closeFile();
           }
         }
         lblLcdDisplay->displayLcd();
