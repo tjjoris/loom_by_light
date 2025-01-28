@@ -119,12 +119,39 @@ class LblLcdDisplay {
       _lcd->begin(LCD_COLS, LCD_ROWS);
     }
 
+    /**
+    a simple function for displaying a message
+    */
     void displaySimpleMsg(String message) {
       _lcd->clear();
       _lcd->setCursor(0,0);
       _lcd->print(message);
       _lcd->display();
     }
+
+    /**
+    clear lcd
+    */
+    void clearLcd() {
+      _lcd->clear();
+    }
+
+    /**
+    display lcd
+    */
+    void displayLcd() {
+      _lcd->display();
+    }
+
+    /**
+    display a message at row.
+    */
+    void displayMsgAtRow(String message, int row) {
+      _lcd->setCursor(0,row);
+      _lcd->print(message);
+    }
+
+
     /**
     set the stored lcd message, this is what update uses to know if it needs to update the screen.
     */
@@ -335,22 +362,24 @@ class LblFileNavigator {
     */
     void navigateFilesAtRoot() {
       lblLcdDisplay->displaySimpleMsg("navigating..");
-      delay(3000);
+      delay(500);
       lblFileNavigator->setAddress("/");
       lblFileNavigator->openDirectory();
-      for (int i = 0; i< 3; i++) {
+      lblLcdDisplay->clearLcd(); //clear the lcd
+      for (int row = 0; row< LCD_ROWS; row++) {
         if (lblFileNavigator->isNextFile()) {
-          lblLcdDisplay->displaySimpleMsg(lblFileNavigator->getFileName());
+          lblLcdDisplay->displayMsgAtRow(lblFileNavigator->getFileName(), row);
           // lblLcdDisplay->displaySimpleMsg("my file");
           lblFileNavigator->closeFile();
-          delay(2500);
         }
         else {
-          lblLcdDisplay->displaySimpleMsg("no file");
-          delay(1500);
-          break;
+          // lblLcdDisplay->displaySimpleMsg("no file");
+          // delay(1500);
+          // break;
         }
       }
+      lblLcdDisplay->displayLcd();
+      delay(2500);
     }
 
 
@@ -1386,8 +1415,6 @@ void setup() {
   lcd->begin(LCD_ROWS, LCD_COLS);
   lblLcdDisplay = new LblLcdDisplay(lcd);
   lblButtons = new LblButtons(lcd);
-  lblLcdDisplay->displaySimpleMsg("test");
-  delay(1000);
   //initialize the SD card
   initializeCard();
 
