@@ -1180,7 +1180,20 @@ uint8_t stateInt = 0;
 gets the byte at index number in the byte.
 */
 bool getBitFromByte(byte myByte, uint8_t index) {
-  return (myByte >> (index - 1)) & 0x01;
+  return (myByte >> (index)) & 0x01;
+}
+
+/**
+set bit at location in byte
+*/
+byte setBitInByte(byte myByte, uint8_t index, bool myBit) {
+  if (myBit) {
+    myByte |= (0x01 << (index));
+  }
+  else {
+    myByte &= ~(0x01 << (index));
+  }
+  return myByte;
 }
 
 /**
@@ -1195,6 +1208,13 @@ uint8_t getBitsFromByte(byte myByte, uint8_t bitCount) {
   return apersandCompare & myByte;
 }
 
+#define NUM_BITS_STATE 5
+/**
+get the state from the stateInt
+*/
+uint8_t getState() {
+  return getBitsFromByte(stateInt, NUM_BITS_STATE);
+}
 
 /**
 the intro menu screen.
@@ -1395,9 +1415,23 @@ void setup() {
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
 
-  uint8_t myInt = getBitFromByte(0b00001000, 4);
-  displaySimpleMsg((String)myInt);
+  // stateInt = 16;
+  // stateInt = setBitInByte(stateInt, 7, 0x01);
+  // displaySimpleMsg((String)getState());
+  // delay(2000);
+  // displaySimpleMsg((String)stateInt);
+  // delay(2000);
+  // displaySimpleMsg((String)getBitFromByte(stateInt, 7));
+  // delay(2000);
+  // uint8_t myInt = setBitInByte(0, 0, 1);
+  // displaySimpleMsg((String)myInt);
+  // delay(2000);
+  // bool myBool = getBitFromByte(myInt, 1);
+  // displaySimpleMsg((String)myBool);
+  // delay(2000);
+
   while(1);
+
   //initialize the SD card
   initializeCard();
 
