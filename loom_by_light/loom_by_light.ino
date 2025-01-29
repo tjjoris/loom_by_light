@@ -17,7 +17,7 @@ Required libraries:
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-January-22
+*@date 2025-January-29
 */
 
 #include <SPI.h>
