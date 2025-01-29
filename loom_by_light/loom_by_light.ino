@@ -1333,9 +1333,9 @@ void uiIntro() {
     return;
   }
   String message;
-  message = "bmp width: ";
+  // message = "bmp width: ";
   message += String(bmh->imageWidth);
-  message += " height: ";
+  message += "x";
   message += String(bmh->imageHeight);
   if (lblLcdDisplay) {
     DEBUG_MSG ("object extist ");
@@ -1463,8 +1463,11 @@ void uiLedCount() {
   String message;
   message += "LED count: ";
   message += (String)ledCount;
-  lblLcdDisplay->storeMessage(message);
-  lblLcdDisplay->update();
+  // lblLcdDisplay->storeMessage(message);
+  // lblLcdDisplay->update();
+  lcd->clear();
+  lcd->print(message);
+  lcd->display();
   lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
     stateInt = 101;
@@ -1558,7 +1561,7 @@ void setup() {
   // myFile.close();
   // root.close();
   
-
+  String lowerCaseName = lblFileNavigator->toLowerCase(lblFileNavigator->getFileToOpen());
   bmh = new BitmapHandler("bitmap.bmp");
   // lblLcdDisplay->displaySimpleMsg(fileNameLowerCase);
   // delay(1500);
