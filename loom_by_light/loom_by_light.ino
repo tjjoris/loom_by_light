@@ -72,6 +72,7 @@ uint8_t brightness;
 int ledOffset;
 int ledCount = (int)LED_COUNT;
 LiquidCrystal * lcd;
+uint8_t stateInt = 0;
 
 
 
@@ -420,11 +421,15 @@ bool checkButtonPressesInDisplayFiles() {
       if (isFileNamevalid()) {
         setFile();
         loopButtonCheckingCondition = false;
+        stateInt = 1; //set the state to navigate a row.
         displaySimpleMsg("name valid");
         delay(1500);
         return false;
       }
-
+    }
+    else if (isSelectPressed()) {
+      stateInt = 10;//set state int to config.
+      loopButtonCheckingCondition = false;
     }
   }
   return true;
@@ -710,16 +715,16 @@ bool verifyFile() {
     fileOk = false;
     return false;
   }
-  //image width check, uncomment this later.
-  // if (ledCount < imageWidth) {
-  //   String message;
-  //   message = "Image width greater then LED count ";
-  //   message += ledCount;
-  //   DEBUG_LN(message);
-  //   errorMessage(message);
-  //   fileOk = false;
-  //   return false;
-  // }
+  // //image width check, uncomment this later.
+  if (ledCount < imageWidth) {
+    String message;
+    message = "Image width greater then LED count ";
+    message += ledCount;
+    DEBUG_LN(message);
+    errorMessage(message);
+    // fileOk = false;
+    return false;
+  }
   // all OK
   String message;
   message = "file OK";
@@ -779,19 +784,19 @@ bool readFileHeaders(){
 bool checkFileHeaders(){
 
   // BMP file id
-  if (headerField != 0x4D42){
-    String message = "file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.";
-    DEBUG_LN(message);
-    errorMessage(message);
-    return false;
-  }
+  // if (headerField != 0x4D42){
+  //   String message = "file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.";
+  //   DEBUG_LN(message);
+  //   errorMessage(message);
+  //   return false;
+  // }
   // must be single colour plane
-  if (colourPlanes != 1){
-    String message = "file is not single colour plane";
-    DEBUG_LN(message);
-    errorMessage(message);
-    return false;
-  }
+  // if (colourPlanes != 1){
+  //   String message = "file is not single colour plane";
+  //   DEBUG_LN(message);
+  //   errorMessage(message);
+  //   return false;
+  // }
   // only working with 24 bit bitmaps
   if (bitsPerPixel != 24){
     String message = "is not 24 bit bitmap.";
@@ -1174,7 +1179,6 @@ void writeEepromRow(int row) {
   EEPROM.put(EEPROM_ROW, row);
 }
 
-uint8_t stateInt = 0;
 
 /**
 gets the byte at index number in the byte.
@@ -1214,6 +1218,20 @@ get the state from the stateInt
 */
 uint8_t getState() {
   return getBitsFromByte(stateInt, NUM_BITS_STATE);
+}
+
+/**
+set weither in row mode or config mode
+*/
+void setUIInRow(bool inRow) {
+  stateInt = setBitInByte(stateInt, 7, inRow);
+}
+
+/**
+get if in row or config mode
+*/
+bool isUIInRow() {
+  return (getBitFromByte(stateInt, 7));
 }
 
 /**
@@ -1273,6 +1291,69 @@ void uiDisplayRow() {
   }
 }
 
+// /**
+// the ui for showing the screen to navigate files
+// */
+// void uiLoadOption() {
+//   if (stateInt != 13) {
+//     return;
+//   }
+//   String message;
+//   message = "Load";
+//   storeMessage(message);
+//   update();
+//   readButtons();
+//   if (isUpPressed()) {
+//     stateInt = 12;
+//   }
+//   else if (isDownPressed()) {
+//     stateInt = 10;
+//   }
+//   else if (isRightPressed()) {
+//     stateInt = 20;
+//   }
+// }
+
+/**
+ui to navigate files
+*/
+void uiNavigateFiles() {
+  if (stateInt != 20) {
+    return;
+  }
+  navigateFilesAtRoot();
+}
+
+/**
+ui to reset brightness, offset, and LED count
+*/
+void uiReset() {
+  if (stateInt != 13) {
+    return;
+  }
+  String message;
+  message = "Reset";
+  storeMessage(message);
+  update();
+  readButtons();
+  if (isUpPressed()) {
+    stateInt = 12;
+  }
+  if (isDownPressed()) {
+    stateInt = 10;
+  }
+  if (isRightPressed()) {
+    brightness = 1;
+    ledCount = 60;
+    ledOffset = 0;
+    message = "Resetting...";
+    storeMessage(message);
+    update();
+    delay(2500);
+    setLedBrightness();
+  }
+}
+
 /**
 the UI for the brigtness in the menu, up goes to the last menu setting, down to the next
 left decreases the brightness, right increases the brightness, select goes to row mode.
@@ -1294,7 +1375,7 @@ void uiBrightness() {
     decreaseBrightnessVar();
   } else
   if (isUpPressed()) {
-    stateInt = 12;
+    stateInt = 13;
   } else
   if (isDownPressed()) {
     stateInt = 11; //enter offset config mode.
@@ -1358,7 +1439,7 @@ void uiLedCount() {
     stateInt = 11;
   } else
   if (isDownPressed()) {
-    stateInt = 10;
+    stateInt = 13;
   } else
   if (isLeftPressed()) {
     decreaseLedCount();
@@ -1430,7 +1511,7 @@ void setup() {
   // displaySimpleMsg((String)myBool);
   // delay(2000);
 
-  while(1);
+  // while(1);
 
   //initialize the SD card
   initializeCard();
@@ -1480,5 +1561,9 @@ void loop() {
   uiBrightness();
   uiOffset();
   uiLedCount();
+  showLightsForRow();
+  uiReset();
+  // uiLoadOption();
+  // uiNavigateFiles();
   delay(50);
 }
