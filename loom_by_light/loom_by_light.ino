@@ -64,484 +64,484 @@ LiquidCrystal * lcd;
 
 
 
-  //lcd display variables
-    String _storedMessage = "";    //the stored message to be written to the lcd screen.
-    uint8_t _updateCounter = 0; //the counter to determine if the substring should be continued.
-    uint8_t _updateCounterMax = 25; //the max the counter should go for the substring to be continued.
-    uint8_t _charCount = 0; //the character count in the message string.
+//lcd display variables
+String _storedMessage = "";    //the stored message to be written to the lcd screen.
+uint8_t _updateCounter = 0; //the counter to determine if the substring should be continued.
+uint8_t _updateCounterMax = 25; //the max the counter should go for the substring to be continued.
+uint8_t _charCount = 0; //the character count in the message string.
 
-    /**
-    a simple function for displaying a message
-    */
-    void displaySimpleMsg(String message) {
-      lcd->clear();
-      lcd->setCursor(0,0);
-      lcd->print(message);
-      lcd->display();
-    }
+/**
+a simple function for displaying a message
+*/
+void displaySimpleMsg(String message) {
+  lcd->clear();
+  lcd->setCursor(0,0);
+  lcd->print(message);
+  lcd->display();
+}
 
-    /**
-    clear lcd
-    */
-    void clearLcd() {
-      lcd->clear();
-    }
+/**
+clear lcd
+*/
+void clearLcd() {
+  lcd->clear();
+}
 
-    /**
-    display lcd
-    */
-    void displayLcd() {
-      lcd->display();
-    }
+/**
+display lcd
+*/
+void displayLcd() {
+  lcd->display();
+}
 
-    /**
-    display a message at row.
-    */
-    void displayMsgAtRow(String message, int row) {
-      lcd->setCursor(0,row);
-      lcd->print(message);
-    }
+/**
+display a message at row.
+*/
+void displayMsgAtRow(String message, int row) {
+  lcd->setCursor(0,row);
+  lcd->print(message);
+}
 
 
-    /**
-    set the stored lcd message, this is what update uses to know if it needs to update the screen.
-    */
-    void storeMessage(String message) {
-      _storedMessage = message; //the stored message to show on the lcd screen.
-      _updateCounter = 0; //this it the counter to know when to update the lcd screen.
-      _charCount = 0; //this is the character count, used to write the message to the lcd screen char by char.
-    }
+/**
+set the stored lcd message, this is what update uses to know if it needs to update the screen.
+*/
+void storeMessage(String message) {
+  _storedMessage = message; //the stored message to show on the lcd screen.
+  _updateCounter = 0; //this it the counter to know when to update the lcd screen.
+  _charCount = 0; //this is the character count, used to write the message to the lcd screen char by char.
+}
 
-    /**
-    loop through each row and column, and write to the lcd screen
-    the character written is known by the _messageBeingDisplayed and
-    charCount determins where in that message to print the char.
-    */
-    void lcdWrite() {
-      //loop for each row in the lcd screen.
-        for (int row = 0; row < LCD_ROWS; row ++) {
-          //set the cursor to the correct row.
-          lcd->setCursor(0, row);
-          for (int col = 0; col < LCD_COLS; col ++) {
-            if (_storedMessage.length() > _charCount) {
-              lcd->write(_storedMessage[_charCount]);
-            }
-            if (_charCount < _storedMessage.length()) {
-              _charCount ++;
-            }          
-          }
+/**
+loop through each row and column, and write to the lcd screen
+the character written is known by the _messageBeingDisplayed and
+charCount determins where in that message to print the char.
+*/
+void lcdWrite() {
+  //loop for each row in the lcd screen.
+    for (int row = 0; row < LCD_ROWS; row ++) {
+      //set the cursor to the correct row.
+      lcd->setCursor(0, row);
+      for (int col = 0; col < LCD_COLS; col ++) {
+        if (_storedMessage.length() > _charCount) {
+          lcd->write(_storedMessage[_charCount]);
         }
-    }
-
-    /**
-    This function is called when finished writing to lcd rows and columns,
-    resets _charCount if _charCount is greater than the message length.
-    */
-    void resetCharCount() {
-        if (_charCount >= _storedMessage.length()) {
-          _charCount = 0;
-        }
-    }
-
-    /**
-    increments the update counter if is lower than the max. 
-    Otherwise reset it to 0.
-    */
-    void incrementUpdateCounter() {
-      if (_updateCounter < _updateCounterMax) {
-        _updateCounter ++;
-        return;
+        if (_charCount < _storedMessage.length()) {
+          _charCount ++;
+        }          
       }
-      //the update counter has reached the max, reset it to 0 and end the function.
-      if (_updateCounter >= _updateCounterMax) {
-        _updateCounter = 0;
-      }
-
     }
+}
 
-    /**
-    this function iterates through _updateCounter, and when it is at 0, it calls lcdWrite(),
-    when it does this, it checks if _charCount is at the max message length, if it it is, resets
-    _charCount.
-    when _updateCounter is at max, it is reset. 
-    */
-    void update() {
-      //the update counter is at 0, therefore update the lcd screen.
-      if (_updateCounter <= 0) {
-        lcd->clear();
-        lcdWrite();
-        resetCharCount();
-        lcd->display();
-      }
-      incrementUpdateCounter();
+/**
+This function is called when finished writing to lcd rows and columns,
+resets _charCount if _charCount is greater than the message length.
+*/
+void resetCharCount() {
+    if (_charCount >= _storedMessage.length()) {
+      _charCount = 0;
     }
+}
+
+/**
+increments the update counter if is lower than the max. 
+Otherwise reset it to 0.
+*/
+void incrementUpdateCounter() {
+  if (_updateCounter < _updateCounterMax) {
+    _updateCounter ++;
+    return;
+  }
+  //the update counter has reached the max, reset it to 0 and end the function.
+  if (_updateCounter >= _updateCounterMax) {
+    _updateCounter = 0;
+  }
+
+}
+
+/**
+this function iterates through _updateCounter, and when it is at 0, it calls lcdWrite(),
+when it does this, it checks if _charCount is at the max message length, if it it is, resets
+_charCount.
+when _updateCounter is at max, it is reset. 
+*/
+void update() {
+  //the update counter is at 0, therefore update the lcd screen.
+  if (_updateCounter <= 0) {
+    lcd->clear();
+    lcdWrite();
+    resetCharCount();
+    lcd->display();
+  }
+  incrementUpdateCounter();
+}
 
 //buttons from lcd input
-  int _adcKeyIn; //the key input 
-  bool _upPressed = false;
-  bool _downPressed = false;
-  bool _leftPressed = false;
-  bool _rightPressed = false;
-  bool _selectPressed = false;
-  bool _hasInputBeenRead = false; //this is set true when an input is read, and used to determine
-  //when pressed bools should be set from true to false in the _isPressesd functions.
+int _adcKeyIn; //the key input 
+bool _upPressed = false;
+bool _downPressed = false;
+bool _leftPressed = false;
+bool _rightPressed = false;
+bool _selectPressed = false;
+bool _hasInputBeenRead = false; //this is set true when an input is read, and used to determine
+//when pressed bools should be set from true to false in the _isPressesd functions.
 
 
-  void readButtons() {
-    _adcKeyIn = analogRead(0);
-    if (_adcKeyIn > 1000) {
-      if (_hasInputBeenRead) { //if input has been read, set the pressed bools to false.
-        _upPressed = false;
-        _downPressed = false;
-        _leftPressed = false;
-        _rightPressed = false;
-        _selectPressed = false;
-        _hasInputBeenRead = false; //also set the bool to false so another button press can be read.
-      }
-      return;
-    }
-    if (_adcKeyIn < 50) {
-      if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
-        _rightPressed = true;
-      }
-      return; 
-    }
-    if (_adcKeyIn < 250) {
-      if (!_hasInputBeenRead) {//used to keep a button from repeating when held down.
-        _upPressed = true;
-      }
-      return;
-    } 
-    if (_adcKeyIn < 450) {
-      if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
-        _downPressed = true;
-      }
-      return;
-    }
-    if (_adcKeyIn < 650) {
-      if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
-        _leftPressed = true;  
-      }
-      return;
-    }
-    if (_adcKeyIn < 850) {
-      if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
-        _selectPressed = true;
-      }
-    }
-  }
-
-  /**
-  return true if up was pressed, and reset up.
-  */
-  bool isUpPressed() {
-    if (_upPressed) {
-      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+void readButtons() {
+  _adcKeyIn = analogRead(0);
+  if (_adcKeyIn > 1000) {
+    if (_hasInputBeenRead) { //if input has been read, set the pressed bools to false.
       _upPressed = false;
-      return true;
-    }
-    return false;
-  }
-
-  /**
-  return true if down was pressed, and reset down.
-  */
-  bool isDownPressed() {
-    if (_downPressed) {
-      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
       _downPressed = false;
-      return true;
-    }
-    return false;
-  }
-
-  /**
-  return true if left was pressed, and reset left.
-  */
-  bool isLeftPressed() {
-    if (_leftPressed) {
-      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
       _leftPressed = false;
-      return true;
-    }
-    return false;
-  }
-
-  /**
-  return true if right was pressed, and reset left.
-  */
-  bool isRightPressed() {
-    if (_rightPressed) {
-      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
       _rightPressed = false;
-      return true;
-    }
-    return false;
-  }
-
-  /**
-  return true if select was pressed and reset select.
-  */
-  bool isSelectPressed() {
-    if (_selectPressed) {
-      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
       _selectPressed = false;
-      return true;
+      _hasInputBeenRead = false; //also set the bool to false so another button press can be read.
     }
-    return false;
+    return;
   }
+  if (_adcKeyIn < 50) {
+    if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+      _rightPressed = true;
+    }
+    return; 
+  }
+  if (_adcKeyIn < 250) {
+    if (!_hasInputBeenRead) {//used to keep a button from repeating when held down.
+      _upPressed = true;
+    }
+    return;
+  } 
+  if (_adcKeyIn < 450) {
+    if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+      _downPressed = true;
+    }
+    return;
+  }
+  if (_adcKeyIn < 650) {
+    if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+      _leftPressed = true;  
+    }
+    return;
+  }
+  if (_adcKeyIn < 850) {
+    if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+      _selectPressed = true;
+    }
+  }
+}
 
-  /**
-  return true if any button is pressed, else return false.
-  */
-  bool isAnyButtonPressed() {
-    return ((isSelectPressed()) || (isLeftPressed()) || (isRightPressed()) || (isUpPressed()) || (isDownPressed()));
+/**
+return true if up was pressed, and reset up.
+*/
+bool isUpPressed() {
+  if (_upPressed) {
+    _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+    _upPressed = false;
+    return true;
   }
+  return false;
+}
+
+/**
+return true if down was pressed, and reset down.
+*/
+bool isDownPressed() {
+  if (_downPressed) {
+    _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+    _downPressed = false;
+    return true;
+  }
+  return false;
+}
+
+/**
+return true if left was pressed, and reset left.
+*/
+bool isLeftPressed() {
+  if (_leftPressed) {
+    _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+    _leftPressed = false;
+    return true;
+  }
+  return false;
+}
+
+/**
+return true if right was pressed, and reset left.
+*/
+bool isRightPressed() {
+  if (_rightPressed) {
+    _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+    _rightPressed = false;
+    return true;
+  }
+  return false;
+}
+
+/**
+return true if select was pressed and reset select.
+*/
+bool isSelectPressed() {
+  if (_selectPressed) {
+    _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+    _selectPressed = false;
+    return true;
+  }
+  return false;
+}
+
+/**
+return true if any button is pressed, else return false.
+*/
+bool isAnyButtonPressed() {
+  return ((isSelectPressed()) || (isLeftPressed()) || (isRightPressed()) || (isUpPressed()) || (isDownPressed()));
+}
 
 //the file navigator
-    int _numFilesInDir = 0;
-    int _currentNavigatedFileCount = 0;
-    String _fileToOpen;
-    String _tempFileName;
+int _numFilesInDir = 0;
+int _currentNavigatedFileCount = 0;
+String _fileToOpen;
+String _tempFileName;
 
-    /**
-    get the file to open
-    */
-    String getFileToOpen() {
-      return _fileToOpen;
-    }
+/**
+get the file to open
+*/
+String getFileToOpen() {
+  return _fileToOpen;
+}
 
-    /**
-    open the directory
-    */
-    File openDirectory(String address) {
-      File myFile = SD.open(address);
-      String message;
-      if (myFile) {
-        message = "directory opened"
-        DEBUG_LN(message);
-        // displaySimpleMsg("opening dir");
-        // delay(1000);
-      }
-      else {
-        message = "failed directory open";
-        DEBUG_LN(message);
-        displaySimpleMsg("err opening dir");
-        delay(3000);
-      }
-      return myFile;
-    }
+/**
+open the directory
+*/
+File openDirectory(String address) {
+  File myFile = SD.open(address);
+  String message;
+  if (myFile) {
+    message = "directory opened"
+    DEBUG_LN(message);
+    // displaySimpleMsg("opening dir");
+    // delay(1000);
+  }
+  else {
+    message = "failed directory open";
+    DEBUG_LN(message);
+    displaySimpleMsg("err opening dir");
+    delay(3000);
+  }
+  return myFile;
+}
 
-    /**
-    close the file
-    */
-    void closeFile(File root) {
-      root.close();
-      String message = "closing file";
-        DEBUG_LN(message);
-        // displaySimpleMsg(message);
-        // delay(1000);
-    }
+/**
+close the file
+*/
+void closeFile(File root) {
+  root.close();
+  String message = "closing file";
+    DEBUG_LN(message);
+    // displaySimpleMsg(message);
+    // delay(1000);
+}
 
-    /**
-    display files within the directory. then waits for button presses to respond.
-    up or down will navigate, right will open a file if it's valid, select will 
-    go back to the config.
-    */
-    void displayFiles(String address) {
-      bool loopDisplayFilesCondition = true; //if to continue displaying files.
-      File root;
-      File entry;
-      while (loopDisplayFilesCondition) {
-        root = openDirectory(address);//open the directory.
-        int fileCount = 0;//file count is the count of displayed files.
-        int row = 0;//row is the row displayed on the lcd screen.
-        clearLcd(); //clear the lcd
-        while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
-          entry = nextFile(root);//opens the next file.
-          fileCount ++;//iterates the count of displayed files.
-          //checks if the current file is high enough in the navigated file count to 
-          //display on the lcd screen.
-          if (fileCount > _currentNavigatedFileCount) {
-            if (isFile(entry)) {//if file is open.
-                String fileNameThisRow = getFileName(entry);
-              if (row == 0) {//if this is the first file in the row, set the temporary file name.
-                _tempFileName = getFileName(entry);
-                fileNameThisRow += "_";
-              }
-              displayMsgAtRow(fileNameThisRow, row);//display file on lcd
-              row ++;//iterate row.
-            } else {//file could not be opened so end loop.
-              row = LCD_ROWS;//match loop condition to end loop.
-            }
+/**
+display files within the directory. then waits for button presses to respond.
+up or down will navigate, right will open a file if it's valid, select will 
+go back to the config.
+*/
+void displayFiles(String address) {
+  bool loopDisplayFilesCondition = true; //if to continue displaying files.
+  File root;
+  File entry;
+  while (loopDisplayFilesCondition) {
+    root = openDirectory(address);//open the directory.
+    int fileCount = 0;//file count is the count of displayed files.
+    int row = 0;//row is the row displayed on the lcd screen.
+    clearLcd(); //clear the lcd
+    while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
+      entry = nextFile(root);//opens the next file.
+      fileCount ++;//iterates the count of displayed files.
+      //checks if the current file is high enough in the navigated file count to 
+      //display on the lcd screen.
+      if (fileCount > _currentNavigatedFileCount) {
+        if (isFile(entry)) {//if file is open.
+            String fileNameThisRow = getFileName(entry);
+          if (row == 0) {//if this is the first file in the row, set the temporary file name.
+            _tempFileName = getFileName(entry);
+            fileNameThisRow += "_";
           }
-          closeFile(entry);
+          displayMsgAtRow(fileNameThisRow, row);//display file on lcd
+          row ++;//iterate row.
+        } else {//file could not be opened so end loop.
+          row = LCD_ROWS;//match loop condition to end loop.
         }
-        displayLcd();//display lcd screen.
-        //loop to check button presses, return value is outer loop condition.
-        loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
-        closeFile(root);//close directory so it can be opened and files freshly iterated again.
       }
+      closeFile(entry);
     }
+    displayLcd();//display lcd screen.
+    //loop to check button presses, return value is outer loop condition.
+    loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
+    closeFile(root);//close directory so it can be opened and files freshly iterated again.
+  }
+}
 
-    /**
-    loop until a button has been pressed, this also controls the loop
-    it exists inside, in case a file is loaded, or select is pressed.
-    */
-    bool checkButtonPressesInDisplayFiles() {
-      bool loopButtonCheckingCondition = true;
-      while (loopButtonCheckingCondition) {
-        readButtons();
-        if (isDownPressed()) {
-          _currentNavigatedFileCount ++;
-          // break;
-          loopButtonCheckingCondition = false;
-        }
-        else if (isUpPressed()) {
-          _currentNavigatedFileCount --;
-          if (_currentNavigatedFileCount < 0) {
-            _currentNavigatedFileCount = 0;
-          }
-          // break;
-          loopButtonCheckingCondition = false;
-        }
-        else if (isRightPressed()) {
-          if (isFileNamevalid()) {
-            setFile();
-            loopButtonCheckingCondition = false;
-            displaySimpleMsg("name valid");
-            delay(1500);
-            return false;
-          }
-
-        }
-      }
-      return true;
+/**
+loop until a button has been pressed, this also controls the loop
+it exists inside, in case a file is loaded, or select is pressed.
+*/
+bool checkButtonPressesInDisplayFiles() {
+  bool loopButtonCheckingCondition = true;
+  while (loopButtonCheckingCondition) {
+    readButtons();
+    if (isDownPressed()) {
+      _currentNavigatedFileCount ++;
+      // break;
+      loopButtonCheckingCondition = false;
     }
-
-    /**
-    check if the file name is valid, it must end in .bmp
-    */
-    bool isFileNamevalid() {
-      String lowerCaseFileName = toLowerCase(_tempFileName);
-      if (lowerCaseFileName.endsWith(".bmp")) {
-        return true;
+    else if (isUpPressed()) {
+      _currentNavigatedFileCount --;
+      if (_currentNavigatedFileCount < 0) {
+        _currentNavigatedFileCount = 0;
       }
+      // break;
+      loopButtonCheckingCondition = false;
+    }
+    else if (isRightPressed()) {
+      if (isFileNamevalid()) {
+        setFile();
+        loopButtonCheckingCondition = false;
+        displaySimpleMsg("name valid");
+        delay(1500);
+        return false;
+      }
+
+    }
+  }
+  return true;
+}
+
+/**
+check if the file name is valid, it must end in .bmp
+*/
+bool isFileNamevalid() {
+  String lowerCaseFileName = toLowerCase(_tempFileName);
+  if (lowerCaseFileName.endsWith(".bmp")) {
+    return true;
+  }
+  return false;
+}
+
+/**
+convert a string to lower case
+*/
+String toLowerCase(String myString) {
+  for (int i = 0; i < myString.length(); i++) {
+    myString[i] = tolower(myString[i]);
+  }
+  return myString;
+}
+
+/**
+set the file to open
+*/
+void setFile() {
+  _fileToOpen = _tempFileName;
+}
+
+/**
+next file
+*/
+File nextFile(File root) {
+  return root.openNextFile();
+}
+
+/**
+return true if there is a file opened, else return false.
+*/
+bool isFile(File entry) {
+    if (!entry) {
       return false;
     }
+    return true;
+}
 
-    /**
-    convert a string to lower case
-    */
-    String toLowerCase(String myString) {
-      for (int i = 0; i < myString.length(); i++) {
-        myString[i] = tolower(myString[i]);
-      }
-      return myString;
-    }
+// /**
+// close the file
+// */
+// void closeFile() {
+//   _entry.close();
+// }
 
-    /**
-    set the file to open
-    */
-    void setFile() {
-      _fileToOpen = _tempFileName;
-    }
-
-    /**
-    next file
-    */
-    File nextFile(File root) {
-      return root.openNextFile();
-    }
-
-    /**
-    return true if there is a file opened, else return false.
-    */
-    bool isFile(File entry) {
-        if (!entry) {
-          return false;
-        }
-        return true;
-    }
-
-    // /**
-    // close the file
-    // */
-    // void closeFile() {
-    //   _entry.close();
-    // }
-
-    /**
-    return the string of the name of the opened file
-    */
-    String getFileName(File entry) {
-      String fileName = entry.name();
-      return fileName;
-    }
+/**
+return the string of the name of the opened file
+*/
+String getFileName(File entry) {
+  String fileName = entry.name();
+  return fileName;
+}
 
 
-    /**
-    file uses file navigator at root.
-    */
-    void navigateFilesAtRoot() {
-      displayFiles("/");
-    }
+/**
+file uses file navigator at root.
+*/
+void navigateFilesAtRoot() {
+  displayFiles("/");
+}
 
 
 //LED strip handler
-    Adafruit_NeoPixel * strip;
+Adafruit_NeoPixel * strip;
 
-    /**
-    strip creation function
-    */
-    void createStrip() {
-      //instantiate the strip
-      strip = new Adafruit_NeoPixel(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800);
-      strip->begin(); //initialize NeoPixel strip object (REQUIRED)
-      strip->setBrightness(brightness); //set the brightness.
-      strip->show(); //turn off all pixels.
-    }
-    // /**
-    // the constructor, constructs the strip object
-    // */
-    // LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
-    //   DEBUG_LN("LblLedStripHandler constructor called.");
-    //   strip.begin(); //initialize NeoPixel strip object (REQUIRED)
-    //   strip.setBrightness(brightness); //set the brightness.
-    //   strip.show(); //turn off all pixels.
-    // }
+/**
+strip creation function
+*/
+void createStrip() {
+  //instantiate the strip
+  strip = new Adafruit_NeoPixel(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800);
+  strip->begin(); //initialize NeoPixel strip object (REQUIRED)
+  strip->setBrightness(brightness); //set the brightness.
+  strip->show(); //turn off all pixels.
+}
+// /**
+// the constructor, constructs the strip object
+// */
+// LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
+//   DEBUG_LN("LblLedStripHandler constructor called.");
+//   strip.begin(); //initialize NeoPixel strip object (REQUIRED)
+//   strip.setBrightness(brightness); //set the brightness.
+//   strip.show(); //turn off all pixels.
+// }
 
 
-    /**
-    set the brightness
-    */
-    void setLedBrightness() {
-      strip->setBrightness(brightness);
-      showStrip();
-    }
+/**
+set the brightness
+*/
+void setLedBrightness() {
+  strip->setBrightness(brightness);
+  showStrip();
+}
 
-    /**
-    set a pixel to true or false at a specific location
-    */
-    void setPixel(int pixelIndex, bool isTrue) {
-      if (isTrue) {
-        strip->setPixelColor(pixelIndex, strip->Color(0,0,255));
-        DEBUG_MSG("set pixel to true at index ");
-        DEBUG_MSG(pixelIndex);
-      }
-      else {
-        strip->setPixelColor(pixelIndex, strip->Color(0,0,0));
-        DEBUG_MSG("set pixel to false at index ");
-        DEBUG_MSG(pixelIndex);
-      }
-    }
+/**
+set a pixel to true or false at a specific location
+*/
+void setPixel(int pixelIndex, bool isTrue) {
+  if (isTrue) {
+    strip->setPixelColor(pixelIndex, strip->Color(0,0,255));
+    DEBUG_MSG("set pixel to true at index ");
+    DEBUG_MSG(pixelIndex);
+  }
+  else {
+    strip->setPixelColor(pixelIndex, strip->Color(0,0,0));
+    DEBUG_MSG("set pixel to false at index ");
+    DEBUG_MSG(pixelIndex);
+  }
+}
 
-    /**
-    display the set lights on the light strip.
-    */
-    void showStrip() {
-      strip->show();
-    }
+/**
+display the set lights on the light strip.
+*/
+void showStrip() {
+  strip->show();
+}
 
 
 
@@ -549,375 +549,375 @@ LiquidCrystal * lcd;
 bitmap handler is for opening the bitmap on the SD card, and decoding it. it nees to open
 and verify a file before reading pixels as true or false.
 */
-  bool fileOk = false; //if file is ok to use
-  File bmpFile; //the file itself
-  int _bytesPerRow;
-  int _numEmptyBytesPerRow;
+bool fileOk = false; //if file is ok to use
+File bmpFile; //the file itself
+int _bytesPerRow;
+int _numEmptyBytesPerRow;
 
 
-  int currentRow; //current row of bitmap being displayed.
-  // BMP header fields
-  uint16_t headerField;
-  // uint32_t fileSize;
-  uint32_t imageOffset;
-  // DIB header
-  // uint32_t headerSize;
-  uint32_t imageWidth;
-  uint32_t imageHeight;
-  uint16_t colourPlanes;
-  uint16_t bitsPerPixel;
-  uint32_t compression;
-  // uint32_t imageSize;
-  // uint32_t xPixelsPerMeter;
-  // uint32_t yPixelsPerMeter;
-  // uint32_t totalColors;
-  // uint32_t importantColors;
-
-  
-  // /**
-  // *constructor, sets instance variables for filename.
-  // */
-  // BitmapHandler(String filename){
-  //   fileOk = false;
-  //   bmpFilename = filename;
-  //   currentRow = 0;
-  // }
+int currentRow; //current row of bitmap being displayed.
+// BMP header fields
+uint16_t headerField;
+// uint32_t fileSize;
+uint32_t imageOffset;
+// DIB header
+// uint32_t headerSize;
+uint32_t imageWidth;
+uint32_t imageHeight;
+uint16_t colourPlanes;
+uint16_t bitsPerPixel;
+uint32_t compression;
+// uint32_t imageSize;
+// uint32_t xPixelsPerMeter;
+// uint32_t yPixelsPerMeter;
+// uint32_t totalColors;
+// uint32_t importantColors;
 
 
-  bool isFileOk() {
-    return fileOk;
+// /**
+// *constructor, sets instance variables for filename.
+// */
+// BitmapHandler(String filename){
+//   fileOk = false;
+//   bmpFilename = filename;
+//   currentRow = 0;
+// }
+
+
+bool isFileOk() {
+  return fileOk;
+}
+
+void incrementRow() {
+  currentRow++;
+  if (currentRow >= imageHeight) {
+    currentRow = 0;
   }
+  isLightOnAtColumn(currentRow); //set the lights array according to the current row.
+}
 
-  void incrementRow() {
-    currentRow++;
-    if (currentRow >= imageHeight) {
-      currentRow = 0;
-    }
-    isLightOnAtColumn(currentRow); //set the lights array according to the current row.
+void decrementRow() {
+  currentRow--;
+  if (currentRow < 0) {
+    currentRow = imageHeight - 1;
   }
+  isLightOnAtColumn(currentRow); //set the lights array according to the current row.
+}
 
-  void decrementRow() {
-    currentRow--;
-    if (currentRow < 0) {
-      currentRow = imageHeight - 1;
-    }
-    isLightOnAtColumn(currentRow); //set the lights array according to the current row.
-  }
-
-  /**
-  *read a byte and return it as an unsigned 8 bit int.
-  * code was sourced from: 
-  *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-  */
-  uint8_t read8Bit(){
-    if (!bmpFile) {
-      return 0;
-    }
-    else {
-      return bmpFile.read();
-    }
-  }
-
-  /**
-  *read 2 bytes, and return them as an unsigned 16 bit int.
-  * code sourced from: 
-  *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-  */
-  uint16_t read16Bit(){
-    uint16_t lsb, msb;
-    if (!bmpFile) {
-      return 0;
-    }
-    else {
-      lsb = bmpFile.read();
-      msb = bmpFile.read();
-      return (msb<<8) + lsb;
-    }
-  }
-
-  /**
-  *read 4 bytes, an return them as an unsigned 32 bit int.
-  * code was sourced from: 
-  *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-  */
-  uint32_t read32Bit(){
-    uint32_t lsb, b2, b3, msb;
-    if (!bmpFile) {
-      return 0;
-    }
-    else {
-      lsb = bmpFile.read();
-      b2 = bmpFile.read();
-      b3 = bmpFile.read();
-      msb = bmpFile.read();
-      return (msb<<24) + (b3<<16) + (b2<<8) + lsb;
-    }
-  }
-
-  /**
-  print an error message
-  */
-  void errorMessage(String message) {
-      storeMessage(message);
-      for (int i = 0; i< 150; i++) {
-        update();
-        readButtons();
-        delay(100);
-        if (isAnyButtonPressed()) {
-          break;
-        }
-      }
-  }
-
-  /**
-  *verify the opened file.
-  * code modified after being sourced from: 
-  *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-  */
-  bool verifyFile() {
-    if (!bmpFile) {
-      String message;
-      message = "unable to open file";
-      DEBUG_LN(message);
-      errorMessage(message);
-      fileOk = false;
-      return false;
-    }
-    if (!readFileHeaders()){
-      String message;
-      message = "Unable to read file headers";
-      DEBUG_LN(message);
-      errorMessage(message);
-      fileOk = false;
-      return false;
-    }
-    if (!checkFileHeaders()){
-      String message;
-      message = "Not compatable file";
-      DEBUG_LN(message);
-      errorMessage(message);
-      fileOk = false;
-      return false;
-    }
-    //image width check, uncomment this later.
-    // if (ledCount < imageWidth) {
-    //   String message;
-    //   message = "Image width greater then LED count ";
-    //   message += ledCount;
-    //   DEBUG_LN(message);
-    //   errorMessage(message);
-    //   fileOk = false;
-    //   return false;
-    // }
-    // all OK
-    String message;
-    message = "file OK";
-    DEBUG_LN("BMP file all OK");
-    errorMessage(message);
-    fileOk = true;
-    return true;
-  }
-
-  /**
-  *read file headers from file and set instance variables.
-  * code modified after being sourced from: 
-  *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-  */
-  bool readFileHeaders(){
-    if (bmpFile) {
-      // reset to start of file
-      bmpFile.seek(0);
-      
-      // BMP Header
-      headerField = read16Bit();
-      // fileSize = read32Bit();
-      // read16Bit(); // reserved
-      // read16Bit(); // reserved
-      bmpFile.seek(10);
-      imageOffset = read32Bit();
-
-      // DIB Header
-      // headerSize = read32Bit();
-      bmpFile.seek(18);
-      imageWidth = read32Bit();
-      imageHeight = read32Bit();
-      colourPlanes = read16Bit();
-      bitsPerPixel = read16Bit();
-      compression = read32Bit();
-      // imageSize = read32Bit();
-      // xPixelsPerMeter = read32Bit();
-      // yPixelsPerMeter = read32Bit();
-      // totalColors = read32Bit();
-      // importantColors = read32Bit();
-      //the empty bytes in a row, becase a row must be a multiple of 4 bytes.;
-      _numEmptyBytesPerRow = ((4 - ((3 * imageWidth) % 4)) % 4); 
-      //the number of bytes in a row.
-      _bytesPerRow = (3 * imageWidth) + _numEmptyBytesPerRow;
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
-  /**
-  *check file header values are valid.
-  * code was sourced from: 
-  *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-  */
-  bool checkFileHeaders(){
-
-    // BMP file id
-    if (headerField != 0x4D42){
-      String message = "file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.";
-      DEBUG_LN(message);
-      errorMessage(message);
-      return false;
-    }
-    // must be single colour plane
-    if (colourPlanes != 1){
-      String message = "file is not single colour plane";
-      DEBUG_LN(message);
-      errorMessage(message);
-      return false;
-    }
-    // only working with 24 bit bitmaps
-    if (bitsPerPixel != 24){
-      String message = "is not 24 bit bitmap.";
-      DEBUG_LN(message);
-      errorMessage(message);
-      return false;
-    }
-    // no compression
-    if (compression != 0){
-      String message = "bitmap is compressed.";
-      DEBUG_LN(message);
-      errorMessage(message);
-      return false;
-    }
-    // all ok
-    return true;
-  }
-
-  /**
-  *print file hader values to serial.
-  * code sourced from: 
-  *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-  */
-  void serialPrintHeaders() {
-    DEBUG_MSG("filename : ");
-    DEBUG_LN(bmpFilename);
-    // BMP Header
-    // DEBUG_MSG(F("headerField : "));
-    // Serial.println(headerField, HEX);
-    DEBUG_MSG("fileSize : ");
-    DEBUG_LN(fileSize);
-    DEBUG_MSG("imageOffset : ");
-    DEBUG_LN(imageOffset);
-    DEBUG_MSG("headerSize : ");
-    DEBUG_LN(headerSize);
-    DEBUG_MSG("imageWidth : ");
-    DEBUG_LN(imageWidth);
-    DEBUG_MSG("imageHeight : ");
-    DEBUG_LN(imageHeight);
-    DEBUG_MSG("colourPlanes : ");
-    DEBUG_LN(colourPlanes);
-    DEBUG_MSG("bitsPerPixel : ");
-    DEBUG_LN(bitsPerPixel);
-    DEBUG_MSG("compression : ");
-    DEBUG_LN(compression);
-    DEBUG_MSG("imageSize : ");
-    DEBUG_LN(imageSize);
-    DEBUG_MSG("xPixelsPerMeter : ");
-    DEBUG_LN(xPixelsPerMeter);
-    DEBUG_MSG("yPixelsPerMeter : ");
-    DEBUG_LN(yPixelsPerMeter);
-    DEBUG_MSG("totalColors : ");
-    DEBUG_LN(totalColors);
-    DEBUG_MSG("importantColors : ");
-    DEBUG_LN(importantColors);
-  }
-
-
-  /**
-  *open the file, print an error message if it is not opened. return true if the file is opened, otherwise false.
-  */
-  bool openFile(String fileName) {
-  bmpFile = SD.open(fileName, FILE_READ);
+/**
+*read a byte and return it as an unsigned 8 bit int.
+* code was sourced from: 
+*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+*/
+uint8_t read8Bit(){
   if (!bmpFile) {
-      DEBUG_MSG(F("BitmapHandler : Unable to open file "));
-      DEBUG_LN(filename);
-      fileOk = false;
-      errorMessage("unable to open");
-      return false;
-    }
-    errorMessage("file opened");
-    return true;
+    return 0;
   }
-
-  // /**
-  // *close the file.
-  // */
-  // void closeFile() {
-  //   bmpFile.close();
-  // }
-
-  /**
-  return true if light is on at column, first it gets the pixel row offset, based on the base pixel row offset
-  and adding the empty filler bytes (because the bytes containing pixel info must be multiples of 4) and also
-  the column times 3 for for each pixel in that row. it then sets the read position for the SD reader, then reads
-  a buffer of 3 bytes. It then passes the read bytes to isPixelTrue() and gets back if the pixel is 
-  true or not, returning that.
-  */
-  bool isLightOnAtColumn(int column) {
-    if ((column < ledOffset) || (column >= (ledOffset + imageWidth))) {
-      return false;
-    }
-    uint8_t pixelBuffer[NUM_BYTES_PER_PIXEL]; //create the pixel buffer array which is used to read a pixel.
-    //find the pixel row offset for this specific pixel.
-    int pixelRowFileOffset = imageOffset + ((column - ledOffset) * NUM_BYTES_PER_PIXEL) + ((imageHeight - currentRow - 1) * _bytesPerRow);
-    bmpFile.seek(pixelRowFileOffset);//seek to the pixel row offset.
-    bmpFile.read(pixelBuffer, NUM_BYTES_PER_PIXEL);//read into the pixel buffer.
-    return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);//return if the pixel is true or not.
+  else {
+    return bmpFile.read();
   }
+}
 
-  /**
-  *this find the initial binary shift which additionally shifts the 
-  * binary values of the first byte in the lights array.
-  */
-  int calculateInitialBinaryShift(int imageWidth) {
-      int initialBinaryShift = 8 - imageWidth;
-    if (initialBinaryShift < 0) {
-      initialBinaryShift = 0;
-    }
-    return initialBinaryShift;
+/**
+*read 2 bytes, and return them as an unsigned 16 bit int.
+* code sourced from: 
+*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+*/
+uint16_t read16Bit(){
+  uint16_t lsb, msb;
+  if (!bmpFile) {
+    return 0;
   }
+  else {
+    lsb = bmpFile.read();
+    msb = bmpFile.read();
+    return (msb<<8) + lsb;
+  }
+}
 
-  /**
-  *is passed 3 colors, checks the combined saturation and returns if the pixel is true or false.
-  */
-  bool isPixelTrue(uint8_t blue, uint8_t red, uint8_t green) {
-    uint8_t total = blue + red + green;
-    int redInt = (int)red;
-    int blueInt = (int)blue;
-    int greenInt = (int)green;
-    int totalInt = redInt + blueInt + greenInt;
-    if (totalInt < 384) {
-      return true;
+/**
+*read 4 bytes, an return them as an unsigned 32 bit int.
+* code was sourced from: 
+*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+*/
+uint32_t read32Bit(){
+  uint32_t lsb, b2, b3, msb;
+  if (!bmpFile) {
+    return 0;
+  }
+  else {
+    lsb = bmpFile.read();
+    b2 = bmpFile.read();
+    b3 = bmpFile.read();
+    msb = bmpFile.read();
+    return (msb<<24) + (b3<<16) + (b2<<8) + lsb;
+  }
+}
+
+/**
+print an error message
+*/
+void errorMessage(String message) {
+    storeMessage(message);
+    for (int i = 0; i< 150; i++) {
+      update();
+      readButtons();
+      delay(100);
+      if (isAnyButtonPressed()) {
+        break;
+      }
     }
+}
+
+/**
+*verify the opened file.
+* code modified after being sourced from: 
+*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+*/
+bool verifyFile() {
+  if (!bmpFile) {
+    String message;
+    message = "unable to open file";
+    DEBUG_LN(message);
+    errorMessage(message);
+    fileOk = false;
     return false;
   }
-
-  
-  /**
-  return true if bit in byte is true at bit position, 
-  note: position goes from left to right.
-  */
-  bool isBitTrueInByte(byte myByte, int bitPos) {
-    bitPos = 7 - bitPos;
-    bool isBitTrue = ((myByte >> bitPos) & 0X01);
-    return isBitTrue;
+  if (!readFileHeaders()){
+    String message;
+    message = "Unable to read file headers";
+    DEBUG_LN(message);
+    errorMessage(message);
+    fileOk = false;
+    return false;
   }
+  if (!checkFileHeaders()){
+    String message;
+    message = "Not compatable file";
+    DEBUG_LN(message);
+    errorMessage(message);
+    fileOk = false;
+    return false;
+  }
+  //image width check, uncomment this later.
+  // if (ledCount < imageWidth) {
+  //   String message;
+  //   message = "Image width greater then LED count ";
+  //   message += ledCount;
+  //   DEBUG_LN(message);
+  //   errorMessage(message);
+  //   fileOk = false;
+  //   return false;
+  // }
+  // all OK
+  String message;
+  message = "file OK";
+  DEBUG_LN("BMP file all OK");
+  errorMessage(message);
+  fileOk = true;
+  return true;
+}
+
+/**
+*read file headers from file and set instance variables.
+* code modified after being sourced from: 
+*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+*/
+bool readFileHeaders(){
+  if (bmpFile) {
+    // reset to start of file
+    bmpFile.seek(0);
+    
+    // BMP Header
+    headerField = read16Bit();
+    // fileSize = read32Bit();
+    // read16Bit(); // reserved
+    // read16Bit(); // reserved
+    bmpFile.seek(10);
+    imageOffset = read32Bit();
+
+    // DIB Header
+    // headerSize = read32Bit();
+    bmpFile.seek(18);
+    imageWidth = read32Bit();
+    imageHeight = read32Bit();
+    colourPlanes = read16Bit();
+    bitsPerPixel = read16Bit();
+    compression = read32Bit();
+    // imageSize = read32Bit();
+    // xPixelsPerMeter = read32Bit();
+    // yPixelsPerMeter = read32Bit();
+    // totalColors = read32Bit();
+    // importantColors = read32Bit();
+    //the empty bytes in a row, becase a row must be a multiple of 4 bytes.;
+    _numEmptyBytesPerRow = ((4 - ((3 * imageWidth) % 4)) % 4); 
+    //the number of bytes in a row.
+    _bytesPerRow = (3 * imageWidth) + _numEmptyBytesPerRow;
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+/**
+*check file header values are valid.
+* code was sourced from: 
+*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+*/
+bool checkFileHeaders(){
+
+  // BMP file id
+  if (headerField != 0x4D42){
+    String message = "file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.";
+    DEBUG_LN(message);
+    errorMessage(message);
+    return false;
+  }
+  // must be single colour plane
+  if (colourPlanes != 1){
+    String message = "file is not single colour plane";
+    DEBUG_LN(message);
+    errorMessage(message);
+    return false;
+  }
+  // only working with 24 bit bitmaps
+  if (bitsPerPixel != 24){
+    String message = "is not 24 bit bitmap.";
+    DEBUG_LN(message);
+    errorMessage(message);
+    return false;
+  }
+  // no compression
+  if (compression != 0){
+    String message = "bitmap is compressed.";
+    DEBUG_LN(message);
+    errorMessage(message);
+    return false;
+  }
+  // all ok
+  return true;
+}
+
+/**
+*print file hader values to serial.
+* code sourced from: 
+*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+*/
+void serialPrintHeaders() {
+  DEBUG_MSG("filename : ");
+  DEBUG_LN(bmpFilename);
+  // BMP Header
+  // DEBUG_MSG(F("headerField : "));
+  // Serial.println(headerField, HEX);
+  DEBUG_MSG("fileSize : ");
+  DEBUG_LN(fileSize);
+  DEBUG_MSG("imageOffset : ");
+  DEBUG_LN(imageOffset);
+  DEBUG_MSG("headerSize : ");
+  DEBUG_LN(headerSize);
+  DEBUG_MSG("imageWidth : ");
+  DEBUG_LN(imageWidth);
+  DEBUG_MSG("imageHeight : ");
+  DEBUG_LN(imageHeight);
+  DEBUG_MSG("colourPlanes : ");
+  DEBUG_LN(colourPlanes);
+  DEBUG_MSG("bitsPerPixel : ");
+  DEBUG_LN(bitsPerPixel);
+  DEBUG_MSG("compression : ");
+  DEBUG_LN(compression);
+  DEBUG_MSG("imageSize : ");
+  DEBUG_LN(imageSize);
+  DEBUG_MSG("xPixelsPerMeter : ");
+  DEBUG_LN(xPixelsPerMeter);
+  DEBUG_MSG("yPixelsPerMeter : ");
+  DEBUG_LN(yPixelsPerMeter);
+  DEBUG_MSG("totalColors : ");
+  DEBUG_LN(totalColors);
+  DEBUG_MSG("importantColors : ");
+  DEBUG_LN(importantColors);
+}
+
+
+/**
+*open the file, print an error message if it is not opened. return true if the file is opened, otherwise false.
+*/
+bool openFile(String fileName) {
+bmpFile = SD.open(fileName, FILE_READ);
+if (!bmpFile) {
+    DEBUG_MSG(F("BitmapHandler : Unable to open file "));
+    DEBUG_LN(filename);
+    fileOk = false;
+    errorMessage("unable to open");
+    return false;
+  }
+  errorMessage("file opened");
+  return true;
+}
+
+// /**
+// *close the file.
+// */
+// void closeFile() {
+//   bmpFile.close();
+// }
+
+/**
+return true if light is on at column, first it gets the pixel row offset, based on the base pixel row offset
+and adding the empty filler bytes (because the bytes containing pixel info must be multiples of 4) and also
+the column times 3 for for each pixel in that row. it then sets the read position for the SD reader, then reads
+a buffer of 3 bytes. It then passes the read bytes to isPixelTrue() and gets back if the pixel is 
+true or not, returning that.
+*/
+bool isLightOnAtColumn(int column) {
+  if ((column < ledOffset) || (column >= (ledOffset + imageWidth))) {
+    return false;
+  }
+  uint8_t pixelBuffer[NUM_BYTES_PER_PIXEL]; //create the pixel buffer array which is used to read a pixel.
+  //find the pixel row offset for this specific pixel.
+  int pixelRowFileOffset = imageOffset + ((column - ledOffset) * NUM_BYTES_PER_PIXEL) + ((imageHeight - currentRow - 1) * _bytesPerRow);
+  bmpFile.seek(pixelRowFileOffset);//seek to the pixel row offset.
+  bmpFile.read(pixelBuffer, NUM_BYTES_PER_PIXEL);//read into the pixel buffer.
+  return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);//return if the pixel is true or not.
+}
+
+/**
+*this find the initial binary shift which additionally shifts the 
+* binary values of the first byte in the lights array.
+*/
+int calculateInitialBinaryShift(int imageWidth) {
+    int initialBinaryShift = 8 - imageWidth;
+  if (initialBinaryShift < 0) {
+    initialBinaryShift = 0;
+  }
+  return initialBinaryShift;
+}
+
+/**
+*is passed 3 colors, checks the combined saturation and returns if the pixel is true or false.
+*/
+bool isPixelTrue(uint8_t blue, uint8_t red, uint8_t green) {
+  uint8_t total = blue + red + green;
+  int redInt = (int)red;
+  int blueInt = (int)blue;
+  int greenInt = (int)green;
+  int totalInt = redInt + blueInt + greenInt;
+  if (totalInt < 384) {
+    return true;
+  }
+  return false;
+}
+
+
+/**
+return true if bit in byte is true at bit position, 
+note: position goes from left to right.
+*/
+bool isBitTrueInByte(byte myByte, int bitPos) {
+  bitPos = 7 - bitPos;
+  bool isBitTrue = ((myByte >> bitPos) & 0X01);
+  return isBitTrue;
+}
 
 
 /**
