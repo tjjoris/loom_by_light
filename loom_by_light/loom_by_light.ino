@@ -376,6 +376,12 @@ class LblFileNavigator {
     String _tempFileName;
   public:
 
+    /**
+    get the file to open
+    */
+    String getFileToOpen() {
+      return _fileToOpen;
+    }
 
     /**
     set the address
@@ -481,8 +487,8 @@ class LblFileNavigator {
           if (isFileNamevalid()) {
             setFile();
             loopButtonCheckingCondition = false;
-            lblLcdDisplay->displaySimpleMsg("file valid");
-            delay(3000);
+            lblLcdDisplay->displaySimpleMsg("name valid");
+            delay(1500);
             return false;
           }
 
@@ -1520,20 +1526,24 @@ void setup() {
   
   lblFileNavigator = new LblFileNavigator();
   navigateFilesAtRoot();
-  while(1);
-  lblFileNavigator->setAddress("/");
+  // while(1);
+  // lblFileNavigator->setAddress("/");
   // lblFileNavigator->setFileNames();
-  delay(3000);
+  // delay(3000);
   // lblLcdDisplay->storeMessage(lblFileNavigator->getFileNames());
-  while(1)
+  // while(1)
   {
-    lblLcdDisplay->update();
-    delay(100);
+    // lblLcdDisplay->update();
+    // delay(100);
   }
 
 
   //create bitmap handler object, and pass it the bitmap to read.
-  bmh = new BitmapHandler("bitmap.bmp");
+  String fileNameLowerCase = lblFileNavigator->toLowerCase(lblFileNavigator->getFileToOpen());
+  bmh = new BitmapHandler(fileNameLowerCase);
+  lblLcdDisplay->displaySimpleMsg(fileNameLowerCase);
+  delete lblFileNavigator; //destroy the file navigator object to save memory.
+  delay(1500);
   // //open the file
   bmh->openFile();
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
@@ -1551,6 +1561,7 @@ void setup() {
 }
 void loop() {
   if (!bmh->isFileOk()) {
+    lblLcdDisplay->displaySimpleMsg("file not ok");
     return;
   }
   uiIntro();
