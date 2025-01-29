@@ -298,8 +298,7 @@ LiquidCrystal * lcd;
   }
 
 //the file navigator
-    // String _fileNames[64];
-    File _root;
+    // File _root;
     File _entry;
     String _address;
     int _numFilesInDir = 0;
@@ -314,20 +313,20 @@ LiquidCrystal * lcd;
       return _fileToOpen;
     }
 
-    /**
-    set the address
-    */
-    void setAddress(String address) {
-      _address = address;
-    }
+    // /**
+    // set the address
+    // */
+    // void setAddress(String address) {
+    //   _address = address;
+    // }
 
     /**
     open the directory
     */
-    void openDirectory() {
-      _root = SD.open(_address);
+    File openDirectory(String address) {
+      File myFile = SD.open(address);
       String message;
-      if (_root) {
+      if (myFile) {
         message = "directory opened"
         DEBUG_LN(message);
         // displaySimpleMsg("opening dir");
@@ -339,14 +338,15 @@ LiquidCrystal * lcd;
         displaySimpleMsg("err opening dir");
         delay(3000);
       }
+      return myFile;
     }
 
     /**
-    close the directory
+    close the file
     */
-    void closeDirectory() {
-      _root.close();
-      String message = "closing dir";
+    void closeFile(File root) {
+      root.close();
+      String message = "closing file";
         DEBUG_LN(message);
         // displaySimpleMsg(message);
         // delay(1000);
@@ -357,15 +357,16 @@ LiquidCrystal * lcd;
     up or down will navigate, right will open a file if it's valid, select will 
     go back to the config.
     */
-    void displayFiles() {
+    void displayFiles(String address) {
       bool loopDisplayFilesCondition = true; //if to continue displaying files.
+      File root;
       while (loopDisplayFilesCondition) {
-        openDirectory();//open the directory.
+        root = openDirectory(address);//open the directory.
         int fileCount = 0;//file count is the count of displayed files.
         int row = 0;//row is the row displayed on the lcd screen.
         clearLcd(); //clear the lcd
         while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
-          nextFile();//opens the next file.
+          nextFile(root);//opens the next file.
           fileCount ++;//iterates the count of displayed files.
           //checks if the current file is high enough in the navigated file count to 
           //display on the lcd screen.
@@ -385,12 +386,12 @@ LiquidCrystal * lcd;
           // if (this->isFile()) {//file exists so close file.
           //   this->closeFile();
           // }
-          closeFile();
+          closeFile(_entry);
         }
         displayLcd();//display lcd screen.
         //loop to check button presses, return value is outer loop condition.
         loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
-        closeDirectory();//close directory so it can be opened and files freshly iterated again.
+        closeFile(root);//close directory so it can be opened and files freshly iterated again.
       }
     }
 
@@ -460,8 +461,8 @@ LiquidCrystal * lcd;
     /**
     next file
     */
-    void nextFile() {
-      _entry = _root.openNextFile();
+    void nextFile(File root) {
+      _entry = root.openNextFile();
     }
 
     /**
@@ -474,12 +475,12 @@ LiquidCrystal * lcd;
         return true;
     }
 
-    /**
-    close the file
-    */
-    void closeFile() {
-      _entry.close();
-    }
+    // /**
+    // close the file
+    // */
+    // void closeFile() {
+    //   _entry.close();
+    // }
 
     /**
     return the string of the name of the opened file
@@ -545,8 +546,7 @@ LiquidCrystal * lcd;
     file uses file navigator at root.
     */
     void navigateFilesAtRoot() {
-      setAddress("/");
-      displayFiles();
+      displayFiles("/");
     }
 
 
@@ -933,12 +933,12 @@ class BitmapHandler {
     return true;
   }
 
-  /**
-  *close the file.
-  */
-  void closeFile() {
-    this->bmpFile.close();
-  }
+  // /**
+  // *close the file.
+  // */
+  // void closeFile() {
+  //   this->bmpFile.close();
+  // }
 
   /**
   return true if light is on at column, first it gets the pixel row offset, based on the base pixel row offset
@@ -1454,7 +1454,7 @@ void setup() {
   initializeCard();
 
   
-  // navigateFilesAtRoot();
+  navigateFilesAtRoot();
 
 
 
@@ -1469,7 +1469,7 @@ void setup() {
   // root.close();
   
   String lowerCaseName = toLowerCase(getFileToOpen());
-  bmh = new BitmapHandler("bitmap.bmp");
+  bmh = new BitmapHandler(lowerCaseName);
   // displaySimpleMsg(fileNameLowerCase);
   // delay(1500);
   // //open the file
