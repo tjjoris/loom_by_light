@@ -61,15 +61,7 @@ int ledOffset;
 int ledCount = (int)LED_COUNT;
 LiquidCrystal * lcd;
 
-/**
-forward declaration of classes:
-*/
-class LblFileNavigator;
 
-/**
-global variables for classes.
-*/
-LblFileNavigator * lblFileNavigator;
 
   //lcd display variables
     String _storedMessage = "";    //the stored message to be written to the lcd screen.
@@ -305,12 +297,7 @@ LblFileNavigator * lblFileNavigator;
     return ((isSelectPressed()) || (isLeftPressed()) || (isRightPressed()) || (isUpPressed()) || (isDownPressed()));
   }
 
-/**
-this class is used to store the names of files in a given directory.
-it uses the instance pointer array fileNames to point to strings of file names.
-*/
-class LblFileNavigator {
-  private:
+//the file navigator
     // String _fileNames[64];
     File _root;
     File _entry;
@@ -319,7 +306,6 @@ class LblFileNavigator {
     int _currentNavigatedFileCount = 0;
     String _fileToOpen;
     String _tempFileName;
-  public:
 
     /**
     get the file to open
@@ -332,7 +318,7 @@ class LblFileNavigator {
     set the address
     */
     void setAddress(String address) {
-      this->_address = address;
+      _address = address;
     }
 
     /**
@@ -379,15 +365,15 @@ class LblFileNavigator {
         int row = 0;//row is the row displayed on the lcd screen.
         clearLcd(); //clear the lcd
         while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
-          this->nextFile();//opens the next file.
+          nextFile();//opens the next file.
           fileCount ++;//iterates the count of displayed files.
           //checks if the current file is high enough in the navigated file count to 
           //display on the lcd screen.
           if (fileCount > _currentNavigatedFileCount) {
-            if (this->isFile()) {//if file is open.
-                String fileNameThisRow = this->getFileName();
+            if (isFile()) {//if file is open.
+                String fileNameThisRow = getFileName();
               if (row == 0) {//if this is the first file in the row, set the temporary file name.
-                _tempFileName = this->getFileName();
+                _tempFileName = getFileName();
                 fileNameThisRow += "_";
               }
               displayMsgAtRow(fileNameThisRow, row);//display file on lcd
@@ -399,7 +385,7 @@ class LblFileNavigator {
           // if (this->isFile()) {//file exists so close file.
           //   this->closeFile();
           // }
-          this->closeFile();
+          closeFile();
         }
         displayLcd();//display lcd screen.
         //loop to check button presses, return value is outer loop condition.
@@ -553,15 +539,14 @@ class LblFileNavigator {
       
     //   return message;
     // }
-};
 
 
     /**
     file uses file navigator at root.
     */
     void navigateFilesAtRoot() {
-      lblFileNavigator->setAddress("/");
-      lblFileNavigator->displayFiles();
+      setAddress("/");
+      displayFiles();
     }
 
 
@@ -1469,33 +1454,21 @@ void setup() {
   initializeCard();
 
   
-  lblFileNavigator = new LblFileNavigator();
-  navigateFilesAtRoot();
+  // navigateFilesAtRoot();
 
-  // while(1);
-  // lblFileNavigator->setAddress("/");
-  // lblFileNavigator->setFileNames();
-  // delay(3000);
-  // storeMessage(lblFileNavigator->getFileNames());
-  // while(1)
-  {
-    // update();
-    // delay(100);
-  }
 
 
   //create bitmap handler object, and pass it the bitmap to read.
-  // String fileNameLowerCase = lblFileNavigator->toLowerCase(lblFileNavigator->getFileToOpen());
+  // String fileNameLowerCase = toLowerCase(getFileToOpen());
   
-  lblFileNavigator->closeFile();
-  lblFileNavigator->closeDirectory();
-  delete lblFileNavigator; //destroy the file navigator object to save memory.
+  // closeFile();
+  // closeDirectory();
   // File root = SD.open("/");
   // File myFile = root.openNextFile();
   // myFile.close();
   // root.close();
   
-  String lowerCaseName = lblFileNavigator->toLowerCase(lblFileNavigator->getFileToOpen());
+  String lowerCaseName = toLowerCase(getFileToOpen());
   bmh = new BitmapHandler("bitmap.bmp");
   // displaySimpleMsg(fileNameLowerCase);
   // delay(1500);
