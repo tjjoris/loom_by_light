@@ -1216,7 +1216,7 @@ void uiIntro() {
     stateInt = 1;
   }
   if (isSelectPressed()) {
-    stateInt = 100;
+    stateInt = 10;//enter config mode.
   }
 }
 
@@ -1249,7 +1249,7 @@ void uiDisplayRow() {
     return;
   }
   if (isSelectPressed()) {
-    stateInt = 100;
+    stateInt = 10;//enter config mode.
   }
 }
 
@@ -1258,7 +1258,7 @@ the UI for the brigtness in the menu, up goes to the last menu setting, down to 
 left decreases the brightness, right increases the brightness, select goes to row mode.
 */
 void uiBrightness() {
-  if (stateInt != 100) {
+  if (stateInt != 10) {
     return;
   }
   String message;
@@ -1274,10 +1274,10 @@ void uiBrightness() {
     decreaseBrightnessVar();
   } else
   if (isUpPressed()) {
-    stateInt = 102;
+    stateInt = 12;
   } else
   if (isDownPressed()) {
-    stateInt = 101;
+    stateInt = 11; //enter offset config mode.
   } else
   if (isSelectPressed()) {
     writeAllEepromData(); 
@@ -1290,7 +1290,7 @@ the led offset setting, display current offset, up goes to previous config, down
 left decreases offset, right increases offset, select goes back to row mode.
 */
 void uiOffset() {
-  if (stateInt != 101) {
+  if (stateInt != 11) { //in offset config mode.
     return;
   }
   String message;
@@ -1300,10 +1300,10 @@ void uiOffset() {
   update();
   readButtons();
   if (isUpPressed()) {
-    stateInt = 100;
+    stateInt = 10;
   } else
   if (isDownPressed()) {
-    stateInt = 102;
+    stateInt = 12;
   } else
   if (isLeftPressed()) {
     decreaseLedOffset();
@@ -1322,7 +1322,7 @@ void uiOffset() {
 the ui configure for the led count.
 */
 void uiLedCount() {
-  if (stateInt != 102) {
+  if (stateInt != 12) { //led count config mode.
     return;
   }
   String message;
@@ -1335,10 +1335,10 @@ void uiLedCount() {
   lcd->display();
   readButtons();
   if (isUpPressed()) {
-    stateInt = 101;
+    stateInt = 11;
   } else
   if (isDownPressed()) {
-    stateInt = 100;
+    stateInt = 10;
   } else
   if (isLeftPressed()) {
     decreaseLedCount();
