@@ -481,6 +481,8 @@ class LblFileNavigator {
           if (isFileNamevalid()) {
             setFile();
             loopButtonCheckingCondition = false;
+            lblLcdDisplay->displaySimpleMsg("file valid");
+            delay(3000);
             return false;
           }
 
@@ -493,10 +495,21 @@ class LblFileNavigator {
     check if the file name is valid, it must end in .bmp
     */
     bool isFileNamevalid() {
-      if (_tempFileName.endsWith(".bmp")) {
+      String lowerCaseFileName = toLowerCase(_tempFileName);
+      if (lowerCaseFileName.endsWith(".bmp")) {
         return true;
       }
       return false;
+    }
+
+    /**
+    convert a string to lower case
+    */
+    String toLowerCase(String myString) {
+      for (int i = 0; i < myString.length(); i++) {
+        myString[i] = tolower(myString[i]);
+      }
+      return myString;
     }
 
     /**
