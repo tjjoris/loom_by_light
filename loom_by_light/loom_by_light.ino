@@ -373,6 +373,7 @@ class LblFileNavigator {
     int _numFilesInDir = 0;
     int _currentNavigatedFileCount = 0;
     String _fileToOpen;
+    String _tempFileName;
   public:
 
 
@@ -415,7 +416,9 @@ class LblFileNavigator {
     }
 
     /**
-    display files within the directory.
+    display files within the directory. then waits for button presses to respond.
+    up or down will navigate, right will open a file if it's valid, select will 
+    go back to the config.
     */
     void displayFiles() {
       bool loopDisplayFilesCondition = true; //if to continue displaying files.
@@ -431,7 +434,12 @@ class LblFileNavigator {
           //display on the lcd screen.
           if (fileCount > _currentNavigatedFileCount) {
             if (this->isFile()) {//if file is open.
-              lblLcdDisplay->displayMsgAtRow(this->getFileName(), row);//display file on lcd
+                String fileNameThisRow = this->getFileName();
+              if (row == 0) {//if this is the first file in the row, set the temporary file name.
+                _tempFileName = this->getFileName();
+                fileNameThisRow += "_";
+              }
+              lblLcdDisplay->displayMsgAtRow(fileNameThisRow, row);//display file on lcd
               row ++;//iterate row.
             } else {//file could not be opened so end loop.
               row = LCD_ROWS;//match loop condition to end loop.
@@ -442,7 +450,8 @@ class LblFileNavigator {
           }
         }
         lblLcdDisplay->displayLcd();//display lcd screen.
-        checkButtonPressesInDisplayFiles();//loop to check button presses.
+        //loop to check button presses, return value is outer loop condition.
+        loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
         closeDirectory();//close directory so it can be opened and files freshly iterated again.
       }
     }
@@ -451,24 +460,50 @@ class LblFileNavigator {
     loop until a button has been pressed, this also controls the loop
     it exists inside, in case a file is loaded, or select is pressed.
     */
-    void checkButtonPressesInDisplayFiles() {
+    bool checkButtonPressesInDisplayFiles() {
       bool loopButtonCheckingCondition = true;
-        while (loopButtonCheckingCondition) {
-          lblButtons->readButtons();
-          if (lblButtons->isDownPressed()) {
-            _currentNavigatedFileCount ++;
-            // break;
-            loopButtonCheckingCondition = false;
-          }
-          else if (lblButtons->isUpPressed()) {
-            _currentNavigatedFileCount --;
-            if (_currentNavigatedFileCount < 0) {
-              _currentNavigatedFileCount = 0;
-            }
-            // break;
-            loopButtonCheckingCondition = false;
-          }
+      while (loopButtonCheckingCondition) {
+        lblButtons->readButtons();
+        if (lblButtons->isDownPressed()) {
+          _currentNavigatedFileCount ++;
+          // break;
+          loopButtonCheckingCondition = false;
         }
+        else if (lblButtons->isUpPressed()) {
+          _currentNavigatedFileCount --;
+          if (_currentNavigatedFileCount < 0) {
+            _currentNavigatedFileCount = 0;
+          }
+          // break;
+          loopButtonCheckingCondition = false;
+        }
+        else if (lblButtons->isRightPressed()) {
+          if (isFileNamevalid()) {
+            setFile();
+            loopButtonCheckingCondition = false;
+            return false;
+          }
+
+        }
+      }
+      return true;
+    }
+
+    /**
+    check if the file name is valid, it must end in .bmp
+    */
+    bool isFileNamevalid() {
+      if (_tempFileName.endsWith(".bmp")) {
+        return true;
+      }
+      return false;
+    }
+
+    /**
+    set the file to open
+    */
+    void setFile() {
+      _fileToOpen = _tempFileName;
     }
 
     /**
@@ -557,27 +592,12 @@ class LblFileNavigator {
 
 
     /**
-    file navigatorHandler
+    file uses file navigator at root.
     */
     void navigateFilesAtRoot() {
       lblFileNavigator->setAddress("/");
       lblFileNavigator->openDirectory();
       lblFileNavigator->displayFiles();
-      // lblLcdDisplay->clearLcd(); //clear the lcd
-      // for (int row = 0; row< LCD_ROWS; row++) {
-      //   if (lblFileNavigator->isFile()) {
-      //     lblLcdDisplay->displayMsgAtRow(lblFileNavigator->getFileName(), row);
-      //     // lblLcdDisplay->displaySimpleMsg("my file");
-      //     lblFileNavigator->closeFile();
-      //   }
-      //   else {
-      //     // lblLcdDisplay->displaySimpleMsg("no file");
-      //     // delay(1500);
-      //     // break;
-      //   }
-      // }
-      // lblLcdDisplay->displayLcd();
-      // delay(2500);
     }
 
 
