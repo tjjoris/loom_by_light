@@ -487,36 +487,35 @@ LiquidCrystal * lcd;
     }
 
 
-/**
-LblLedStripHandler - the class to create the NeoPixel strip object, 
-and display the specific lights
-*/
-class LblLedStripHandler {
-  public:
-    Adafruit_NeoPixel strip;
+//LED strip handler
+    Adafruit_NeoPixel * strip;
 
     /**
-    the constructor, constructs the strip object
+    strip creation function
     */
-    LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
-      DEBUG_LN("LblLedStripHandler constructor called.");
-      strip.begin(); //initialize NeoPixel strip object (REQUIRED)
-      strip.setBrightness(brightness); //set the brightness.
-      strip.show(); //turn off all pixels.
+    void createStrip() {
+      //instantiate the strip
+      strip = new Adafruit_NeoPixel(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800);
+      strip->begin(); //initialize NeoPixel strip object (REQUIRED)
+      strip->setBrightness(brightness); //set the brightness.
+      strip->show(); //turn off all pixels.
     }
+    // /**
+    // the constructor, constructs the strip object
+    // */
+    // LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
+    //   DEBUG_LN("LblLedStripHandler constructor called.");
+    //   strip.begin(); //initialize NeoPixel strip object (REQUIRED)
+    //   strip.setBrightness(brightness); //set the brightness.
+    //   strip.show(); //turn off all pixels.
+    // }
 
-    /**
-    recreate the led strip, probably because the led count has changed.
-    */
-    void recreateStrip() {
-
-    }
 
     /**
     set the brightness
     */
     void setLedBrightness() {
-      strip.setBrightness(brightness);
+      strip->setBrightness(brightness);
       showStrip();
     }
 
@@ -525,12 +524,12 @@ class LblLedStripHandler {
     */
     void setPixel(int pixelIndex, bool isTrue) {
       if (isTrue) {
-        strip.setPixelColor(pixelIndex, strip.Color(0,0,255));
+        strip->setPixelColor(pixelIndex, strip->Color(0,0,255));
         DEBUG_MSG("set pixel to true at index ");
         DEBUG_MSG(pixelIndex);
       }
       else {
-        strip.setPixelColor(pixelIndex, strip.Color(0,0,0));
+        strip->setPixelColor(pixelIndex, strip->Color(0,0,0));
         DEBUG_MSG("set pixel to false at index ");
         DEBUG_MSG(pixelIndex);
       }
@@ -540,14 +539,13 @@ class LblLedStripHandler {
     display the set lights on the light strip.
     */
     void showStrip() {
-      strip.show();
+      strip->show();
     }
-};
 
 
 
 /**
-This class is for opening the bitmap on the SD card, and decoding it. it nees to open
+bitmap handler is for opening the bitmap on the SD card, and decoding it. it nees to open
 and verify a file before reading pixels as true or false.
 */
 class BitmapHandler {
@@ -968,21 +966,20 @@ void printBool(bool boolToPrint) {
 
 //global class variables:
 BitmapHandler * bmh;
-LblLedStripHandler * lblLedStripHandler;
 
 /**
 delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
 */
 void recreateLedStripHandler() {
-  delete lblLedStripHandler;
-  lblLedStripHandler = new LblLedStripHandler();
+  delete strip;
+  createStrip();
 }
 
 void showLightsForRow() {
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
-    lblLedStripHandler->setPixel(i, bmh->isLightOnAtColumn(i));
-    lblLedStripHandler->showStrip();
+    setPixel(i, bmh->isLightOnAtColumn(i));
+    showStrip();
   }
 }
 
@@ -1007,8 +1004,8 @@ void decreaseLedCount() {
   } else {
     
     //set the pixel of the led strip that has been removed to false.
-    lblLedStripHandler->setPixel(ledCount, false); 
-    lblLedStripHandler->showStrip(); //show the strip again to update the removed pixel.
+    setPixel(ledCount, false); 
+    showStrip(); //show the strip again to update the removed pixel.
   }
   checkLedOffset();
 }
@@ -1044,7 +1041,7 @@ void increaseBrightnessVar() {
   if (brightness > 255) {
     brightness = 0;
   }
-  lblLedStripHandler->setLedBrightness();
+  setLedBrightness();
 }
 
 /**
@@ -1055,7 +1052,7 @@ void decreaseBrightnessVar() {
   if (brightness <= 0) {
     brightness = 255;
   }
-  lblLedStripHandler->setLedBrightness();
+  setLedBrightness();
 }
 
 /**
@@ -1414,7 +1411,7 @@ void setup() {
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
   bmh->verifyFile();
   //instantiate light strip handler
-  lblLedStripHandler = new LblLedStripHandler();
+  createStrip();
   
   readAllEepromData();
 
