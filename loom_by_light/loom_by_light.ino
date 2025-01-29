@@ -298,7 +298,6 @@ LiquidCrystal * lcd;
   }
 
 //the file navigator
-    String _address;
     int _numFilesInDir = 0;
     int _currentNavigatedFileCount = 0;
     String _fileToOpen;
@@ -478,57 +477,6 @@ LiquidCrystal * lcd;
       String fileName = entry.name();
       return fileName;
     }
-
-
-    // /**
-    // set pointer array of strings to names of file names in passed directory.
-    // can i iterate through a file on the sd card without opening it?
-    // */
-    // void setFileNames() {
-    //   _root = SD.open(_address);
-    //   int fileCount = 0;
-    //   bool loopCondition = true;
-    //   _numFilesInDir = 0;
-    //   while (loopCondition) {
-    //     File entry = _root.openNextFile();
-    //     if ((!entry) || (fileCount > 64)) {
-    //       _numFilesInDir = fileCount;
-    //       break;
-    //     }
-    //     _fileNames[fileCount] = (String)entry.name();
-    //     DEBUG_LN(entry.name());
-    //     fileCount ++;
-    //     String message;
-    //     // message += "+";
-    //     message += (String)entry.name();
-    //     // message += String(fileCount);
-    //     storeMessage(message);
-    //     update();
-    //     delay(1500);
-
-    //     entry.close();
-    //   }
-
-      // String message;
-      // for (int i=0; i< count; i++) {
-      //   message += fileNames[i];
-      //   message += " ";
-      //   DEBUG_LN(fileNames[i]);
-      // }
-    // }
-    // String getFileNames() {
-    //   String message ;
-    //   // message += "_";
-    //   for (int i=0; i< _numFilesInDir; i++) {
-    //     message += (_fileNames[i]);
-    //     message += " ";
-    //     DEBUG_LN(_fileNames[i]);
-    //     message += i;
-    //   }
-    //   message += (String)_numFilesInDir;
-      
-    //   return message;
-    // }
 
 
     /**
