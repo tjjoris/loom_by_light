@@ -551,7 +551,6 @@ and verify a file before reading pixels as true or false.
 */
   bool fileOk = false; //if file is ok to use
   File bmpFile; //the file itself
-  String bmpFilename; //the file name
   int _bytesPerRow;
   int _numEmptyBytesPerRow;
 
@@ -583,6 +582,7 @@ and verify a file before reading pixels as true or false.
   //   bmpFilename = filename;
   //   currentRow = 0;
   // }
+
 
   bool isFileOk() {
     return fileOk;
@@ -677,8 +677,7 @@ and verify a file before reading pixels as true or false.
   bool verifyFile() {
     if (!bmpFile) {
       String message;
-      message = "unable to open file: ";
-      message += bmpFilename;
+      message = "unable to open file";
       DEBUG_LN(message);
       errorMessage(message);
       fileOk = false;
@@ -839,23 +838,15 @@ and verify a file before reading pixels as true or false.
     DEBUG_LN(importantColors);
   }
 
-  bool fileExists() {
-    if (SD.exists(bmpFilename)) {
-      DEBUG_MSG(F("File exists "));
-      DEBUG_LN((bmpFilename));
-      return true;
-    }
-    return false;
-  }
 
   /**
   *open the file, print an error message if it is not opened. return true if the file is opened, otherwise false.
   */
-  bool openFile() {
-  bmpFile = SD.open(bmpFilename, FILE_READ);
+  bool openFile(String fileName) {
+  bmpFile = SD.open(fileName, FILE_READ);
   if (!bmpFile) {
       DEBUG_MSG(F("BitmapHandler : Unable to open file "));
-      DEBUG_LN(bmpFilename);
+      DEBUG_LN(filename);
       fileOk = false;
       errorMessage("unable to open");
       return false;
@@ -1383,6 +1374,7 @@ void setup() {
 
   
   navigateFilesAtRoot();
+  // while(1);
 
 
 
@@ -1400,7 +1392,7 @@ void setup() {
   // displaySimpleMsg(fileNameLowerCase);
   // delay(1500);
   // //open the file
-  openFile();
+  openFile(lowerCaseName);
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
   verifyFile();
   //instantiate light strip handler
