@@ -451,9 +451,10 @@ class LblFileNavigator {
               row = LCD_ROWS;//match loop condition to end loop.
             }
           }
-          if (this->isFile()) {//file exists so close file.
-            this->closeFile();
-          }
+          // if (this->isFile()) {//file exists so close file.
+          //   this->closeFile();
+          // }
+          this->closeFile();
         }
         lblLcdDisplay->displayLcd();//display lcd screen.
         //loop to check button presses, return value is outer loop condition.
@@ -615,7 +616,6 @@ class LblFileNavigator {
     */
     void navigateFilesAtRoot() {
       lblFileNavigator->setAddress("/");
-      lblFileNavigator->openDirectory();
       lblFileNavigator->displayFiles();
     }
 
@@ -698,20 +698,20 @@ class BitmapHandler {
   int currentRow; //current row of bitmap being displayed.
   // BMP header fields
   uint16_t headerField;
-  // uint32_t fileSize;
+  uint32_t fileSize;
   uint32_t imageOffset;
   // DIB header
-  // uint32_t headerSize;
+  uint32_t headerSize;
   uint32_t imageWidth;
   uint32_t imageHeight;
   uint16_t colourPlanes;
   uint16_t bitsPerPixel;
   uint32_t compression;
-  // uint32_t imageSize;
-  // uint32_t xPixelsPerMeter;
-  // uint32_t yPixelsPerMeter;
-  // uint32_t totalColors;
-  // uint32_t importantColors;
+  uint32_t imageSize;
+  uint32_t xPixelsPerMeter;
+  uint32_t yPixelsPerMeter;
+  uint32_t totalColors;
+  uint32_t importantColors;
 
   
   /**
@@ -798,7 +798,7 @@ class BitmapHandler {
   */
   void errorMessage(String message) {
       lblLcdDisplay->storeMessage(message);
-      for (int i = 0; i< 60; i++) {
+      for (int i = 0; i< 150; i++) {
         lblLcdDisplay->update();
         lblButtons->readButtons();
         delay(100);
@@ -839,17 +839,21 @@ class BitmapHandler {
       this->fileOk = false;
       return false;
     }
-    if (ledCount < imageWidth) {
-      String message;
-      message = "Image width greater then LED count ";
-      message += ledCount;
-      DEBUG_LN(message);
-      errorMessage(message);
-      this->fileOk = false;
-      return false;
-    }
+    //image width check, uncomment this later.
+    // if (ledCount < imageWidth) {
+    //   String message;
+    //   message = "Image width greater then LED count ";
+    //   message += ledCount;
+    //   DEBUG_LN(message);
+    //   errorMessage(message);
+    //   this->fileOk = false;
+    //   return false;
+    // }
     // all OK
+    String message;
+    message = "file OK";
     DEBUG_LN("BMP file all OK");
+    errorMessage(message);
     this->fileOk = true;
     return true;
   }
@@ -867,29 +871,29 @@ class BitmapHandler {
       // BMP Header
       this->headerField = this->read16Bit();
       // this->bmpFile.seek(2)
-      // this->fileSize = this->read32Bit();
-      // this->read16Bit(); // reserved
-      // this->read16Bit(); // reserved
-      this->bmpFile.seek(10);
+      this->fileSize = this->read32Bit();
+      this->read16Bit(); // reserved
+      this->read16Bit(); // reserved
+      // this->bmpFile.seek(10);
       this->imageOffset = this->read32Bit();
 
       // DIB Header
-      // this->headerSize = this->read32Bit();
-      this->bmpFile.seek(18);
+      this->headerSize = this->read32Bit();
+      // this->bmpFile.seek(18);
       this->imageWidth = this->read32Bit();
       this->imageHeight = this->read32Bit();
       this->colourPlanes = this->read16Bit();
       this->bitsPerPixel = this->read16Bit();
       this->compression = this->read32Bit();
-      // this->imageSize = this->read32Bit();
-      // this->xPixelsPerMeter = this->read32Bit();
-      // this->yPixelsPerMeter = this->read32Bit();
-      // this->totalColors = this->read32Bit();
-      // this->importantColors = this->read32Bit();
-      // //the empty bytes in a row, becase a row must be a multiple of 4 bytes.;
-      // this->_numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4); 
-      // //the number of bytes in a row.
-      // this->_bytesPerRow = (3 * this->imageWidth) + _numEmptyBytesPerRow;
+      this->imageSize = this->read32Bit();
+      this->xPixelsPerMeter = this->read32Bit();
+      this->yPixelsPerMeter = this->read32Bit();
+      this->totalColors = this->read32Bit();
+      this->importantColors = this->read32Bit();
+      //the empty bytes in a row, becase a row must be a multiple of 4 bytes.;
+      this->_numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4); 
+      //the number of bytes in a row.
+      this->_bytesPerRow = (3 * this->imageWidth) + _numEmptyBytesPerRow;
       return true;
     }
     else {
@@ -993,8 +997,10 @@ class BitmapHandler {
       DEBUG_MSG(F("BitmapHandler : Unable to open file "));
       DEBUG_LN(this->bmpFilename);
       this->fileOk = false;
+      this->errorMessage("unable to open");
       return false;
     }
+    this->errorMessage("file opened");
     return true;
   }
 
@@ -1529,6 +1535,7 @@ void setup() {
   
   lblFileNavigator = new LblFileNavigator();
   navigateFilesAtRoot();
+
   // while(1);
   // lblFileNavigator->setAddress("/");
   // lblFileNavigator->setFileNames();
@@ -1542,11 +1549,20 @@ void setup() {
 
 
   //create bitmap handler object, and pass it the bitmap to read.
-  String fileNameLowerCase = lblFileNavigator->toLowerCase(lblFileNavigator->getFileToOpen());
-  bmh = new BitmapHandler(fileNameLowerCase);
-  lblLcdDisplay->displaySimpleMsg(fileNameLowerCase);
+  // String fileNameLowerCase = lblFileNavigator->toLowerCase(lblFileNavigator->getFileToOpen());
+  
+  lblFileNavigator->closeFile();
+  lblFileNavigator->closeDirectory();
   delete lblFileNavigator; //destroy the file navigator object to save memory.
-  delay(1500);
+  // File root = SD.open("/");
+  // File myFile = root.openNextFile();
+  // myFile.close();
+  // root.close();
+  
+
+  bmh = new BitmapHandler("bitmap.bmp");
+  // lblLcdDisplay->displaySimpleMsg(fileNameLowerCase);
+  // delay(1500);
   // //open the file
   bmh->openFile();
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
@@ -1565,6 +1581,7 @@ void setup() {
 void loop() {
   if (!bmh->isFileOk()) {
     lblLcdDisplay->displaySimpleMsg("file not ok");
+    while(1);
     return;
   }
   uiIntro();
