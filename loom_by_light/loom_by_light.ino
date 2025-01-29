@@ -298,8 +298,6 @@ LiquidCrystal * lcd;
   }
 
 //the file navigator
-    // File _root;
-    File _entry;
     String _address;
     int _numFilesInDir = 0;
     int _currentNavigatedFileCount = 0;
@@ -312,13 +310,6 @@ LiquidCrystal * lcd;
     String getFileToOpen() {
       return _fileToOpen;
     }
-
-    // /**
-    // set the address
-    // */
-    // void setAddress(String address) {
-    //   _address = address;
-    // }
 
     /**
     open the directory
@@ -360,21 +351,22 @@ LiquidCrystal * lcd;
     void displayFiles(String address) {
       bool loopDisplayFilesCondition = true; //if to continue displaying files.
       File root;
+      File entry;
       while (loopDisplayFilesCondition) {
         root = openDirectory(address);//open the directory.
         int fileCount = 0;//file count is the count of displayed files.
         int row = 0;//row is the row displayed on the lcd screen.
         clearLcd(); //clear the lcd
         while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
-          nextFile(root);//opens the next file.
+          entry = nextFile(root);//opens the next file.
           fileCount ++;//iterates the count of displayed files.
           //checks if the current file is high enough in the navigated file count to 
           //display on the lcd screen.
           if (fileCount > _currentNavigatedFileCount) {
-            if (isFile()) {//if file is open.
-                String fileNameThisRow = getFileName();
+            if (isFile(entry)) {//if file is open.
+                String fileNameThisRow = getFileName(entry);
               if (row == 0) {//if this is the first file in the row, set the temporary file name.
-                _tempFileName = getFileName();
+                _tempFileName = getFileName(entry);
                 fileNameThisRow += "_";
               }
               displayMsgAtRow(fileNameThisRow, row);//display file on lcd
@@ -383,10 +375,7 @@ LiquidCrystal * lcd;
               row = LCD_ROWS;//match loop condition to end loop.
             }
           }
-          // if (this->isFile()) {//file exists so close file.
-          //   this->closeFile();
-          // }
-          closeFile(_entry);
+          closeFile(entry);
         }
         displayLcd();//display lcd screen.
         //loop to check button presses, return value is outer loop condition.
@@ -461,15 +450,15 @@ LiquidCrystal * lcd;
     /**
     next file
     */
-    void nextFile(File root) {
-      _entry = root.openNextFile();
+    File nextFile(File root) {
+      return root.openNextFile();
     }
 
     /**
     return true if there is a file opened, else return false.
     */
-    bool isFile() {
-        if (!_entry) {
+    bool isFile(File entry) {
+        if (!entry) {
           return false;
         }
         return true;
@@ -485,8 +474,8 @@ LiquidCrystal * lcd;
     /**
     return the string of the name of the opened file
     */
-    String getFileName() {
-      String fileName = _entry.name();
+    String getFileName(File entry) {
+      String fileName = entry.name();
       return fileName;
     }
 
