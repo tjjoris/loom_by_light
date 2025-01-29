@@ -39,6 +39,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 #define EEPROM_BRIGHTNESS 2 //the memory location in the EEPROM for the brigthness.
 #define EEPROM_OFFSET 3 //the memory location in the EEPROM for the led offset.
 #define EEPROM_LED_COUNT 5
+#define NUM_BYTES_PER_PIXEL 3 //the number of bytes per a pixel in a bitmap.
 
 //to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
 #define DO_DEBUG 0
@@ -548,17 +549,12 @@ LiquidCrystal * lcd;
 bitmap handler is for opening the bitmap on the SD card, and decoding it. it nees to open
 and verify a file before reading pixels as true or false.
 */
-class BitmapHandler {
-  //instance variables:
-  private:
   bool fileOk = false; //if file is ok to use
   File bmpFile; //the file itself
   String bmpFilename; //the file name
   int _bytesPerRow;
   int _numEmptyBytesPerRow;
-  const int _numBytesPerPixel = 3; //the size of the pixel buffer array
 
-  public:
 
   int currentRow; //current row of bitmap being displayed.
   // BMP header fields
@@ -579,17 +575,17 @@ class BitmapHandler {
   // uint32_t importantColors;
 
   
-  /**
-  *constructor, sets instance variables for filename.
-  */
-  BitmapHandler(String filename){
-    this->fileOk = false;
-    this->bmpFilename = filename;
-    currentRow = 0;
-  }
+  // /**
+  // *constructor, sets instance variables for filename.
+  // */
+  // BitmapHandler(String filename){
+  //   fileOk = false;
+  //   bmpFilename = filename;
+  //   currentRow = 0;
+  // }
 
   bool isFileOk() {
-    return this->fileOk;
+    return fileOk;
   }
 
   void incrementRow() {
@@ -614,11 +610,11 @@ class BitmapHandler {
   *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
   */
   uint8_t read8Bit(){
-    if (!this->bmpFile) {
+    if (!bmpFile) {
       return 0;
     }
     else {
-      return this->bmpFile.read();
+      return bmpFile.read();
     }
   }
 
@@ -629,12 +625,12 @@ class BitmapHandler {
   */
   uint16_t read16Bit(){
     uint16_t lsb, msb;
-    if (!this->bmpFile) {
+    if (!bmpFile) {
       return 0;
     }
     else {
-      lsb = this->bmpFile.read();
-      msb = this->bmpFile.read();
+      lsb = bmpFile.read();
+      msb = bmpFile.read();
       return (msb<<8) + lsb;
     }
   }
@@ -646,14 +642,14 @@ class BitmapHandler {
   */
   uint32_t read32Bit(){
     uint32_t lsb, b2, b3, msb;
-    if (!this->bmpFile) {
+    if (!bmpFile) {
       return 0;
     }
     else {
-      lsb = this->bmpFile.read();
-      b2 = this->bmpFile.read();
-      b3 = this->bmpFile.read();
-      msb = this->bmpFile.read();
+      lsb = bmpFile.read();
+      b2 = bmpFile.read();
+      b3 = bmpFile.read();
+      msb = bmpFile.read();
       return (msb<<24) + (b3<<16) + (b2<<8) + lsb;
     }
   }
@@ -679,29 +675,29 @@ class BitmapHandler {
   *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
   */
   bool verifyFile() {
-    if (!this->bmpFile) {
+    if (!bmpFile) {
       String message;
       message = "unable to open file: ";
-      message += this->bmpFilename;
+      message += bmpFilename;
       DEBUG_LN(message);
       errorMessage(message);
-      this->fileOk = false;
+      fileOk = false;
       return false;
     }
-    if (!this->readFileHeaders()){
+    if (!readFileHeaders()){
       String message;
       message = "Unable to read file headers";
       DEBUG_LN(message);
       errorMessage(message);
-      this->fileOk = false;
+      fileOk = false;
       return false;
     }
-    if (!this->checkFileHeaders()){
+    if (!checkFileHeaders()){
       String message;
       message = "Not compatable file";
       DEBUG_LN(message);
       errorMessage(message);
-      this->fileOk = false;
+      fileOk = false;
       return false;
     }
     //image width check, uncomment this later.
@@ -711,7 +707,7 @@ class BitmapHandler {
     //   message += ledCount;
     //   DEBUG_LN(message);
     //   errorMessage(message);
-    //   this->fileOk = false;
+    //   fileOk = false;
     //   return false;
     // }
     // all OK
@@ -719,7 +715,7 @@ class BitmapHandler {
     message = "file OK";
     DEBUG_LN("BMP file all OK");
     errorMessage(message);
-    this->fileOk = true;
+    fileOk = true;
     return true;
   }
 
@@ -729,35 +725,35 @@ class BitmapHandler {
   *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
   */
   bool readFileHeaders(){
-    if (this->bmpFile) {
+    if (bmpFile) {
       // reset to start of file
-      this->bmpFile.seek(0);
+      bmpFile.seek(0);
       
       // BMP Header
-      this->headerField = this->read16Bit();
-      // this->fileSize = this->read32Bit();
-      // this->read16Bit(); // reserved
-      // this->read16Bit(); // reserved
-      this->bmpFile.seek(10);
-      this->imageOffset = this->read32Bit();
+      headerField = read16Bit();
+      // fileSize = read32Bit();
+      // read16Bit(); // reserved
+      // read16Bit(); // reserved
+      bmpFile.seek(10);
+      imageOffset = read32Bit();
 
       // DIB Header
-      // this->headerSize = this->read32Bit();
-      this->bmpFile.seek(18);
-      this->imageWidth = this->read32Bit();
-      this->imageHeight = this->read32Bit();
-      this->colourPlanes = this->read16Bit();
-      this->bitsPerPixel = this->read16Bit();
-      this->compression = this->read32Bit();
-      // this->imageSize = this->read32Bit();
-      // this->xPixelsPerMeter = this->read32Bit();
-      // this->yPixelsPerMeter = this->read32Bit();
-      // this->totalColors = this->read32Bit();
-      // this->importantColors = this->read32Bit();
+      // headerSize = read32Bit();
+      bmpFile.seek(18);
+      imageWidth = read32Bit();
+      imageHeight = read32Bit();
+      colourPlanes = read16Bit();
+      bitsPerPixel = read16Bit();
+      compression = read32Bit();
+      // imageSize = read32Bit();
+      // xPixelsPerMeter = read32Bit();
+      // yPixelsPerMeter = read32Bit();
+      // totalColors = read32Bit();
+      // importantColors = read32Bit();
       //the empty bytes in a row, becase a row must be a multiple of 4 bytes.;
-      this->_numEmptyBytesPerRow = ((4 - ((3 * this->imageWidth) % 4)) % 4); 
+      _numEmptyBytesPerRow = ((4 - ((3 * imageWidth) % 4)) % 4); 
       //the number of bytes in a row.
-      this->_bytesPerRow = (3 * this->imageWidth) + _numEmptyBytesPerRow;
+      _bytesPerRow = (3 * imageWidth) + _numEmptyBytesPerRow;
       return true;
     }
     else {
@@ -773,28 +769,28 @@ class BitmapHandler {
   bool checkFileHeaders(){
 
     // BMP file id
-    if (this->headerField != 0x4D42){
+    if (headerField != 0x4D42){
       String message = "file is not Windows 3.1x, 95, NT, ... etc. bitmap file id.";
       DEBUG_LN(message);
       errorMessage(message);
       return false;
     }
     // must be single colour plane
-    if (this->colourPlanes != 1){
+    if (colourPlanes != 1){
       String message = "file is not single colour plane";
       DEBUG_LN(message);
       errorMessage(message);
       return false;
     }
     // only working with 24 bit bitmaps
-    if (this->bitsPerPixel != 24){
+    if (bitsPerPixel != 24){
       String message = "is not 24 bit bitmap.";
       DEBUG_LN(message);
       errorMessage(message);
       return false;
     }
     // no compression
-    if (this->compression != 0){
+    if (compression != 0){
       String message = "bitmap is compressed.";
       DEBUG_LN(message);
       errorMessage(message);
@@ -811,42 +807,42 @@ class BitmapHandler {
   */
   void serialPrintHeaders() {
     DEBUG_MSG("filename : ");
-    DEBUG_LN(this->bmpFilename);
+    DEBUG_LN(bmpFilename);
     // BMP Header
     // DEBUG_MSG(F("headerField : "));
-    // Serial.println(this->headerField, HEX);
+    // Serial.println(headerField, HEX);
     DEBUG_MSG("fileSize : ");
-    DEBUG_LN(this->fileSize);
+    DEBUG_LN(fileSize);
     DEBUG_MSG("imageOffset : ");
-    DEBUG_LN(this->imageOffset);
+    DEBUG_LN(imageOffset);
     DEBUG_MSG("headerSize : ");
-    DEBUG_LN(this->headerSize);
+    DEBUG_LN(headerSize);
     DEBUG_MSG("imageWidth : ");
-    DEBUG_LN(this->imageWidth);
+    DEBUG_LN(imageWidth);
     DEBUG_MSG("imageHeight : ");
-    DEBUG_LN(this->imageHeight);
+    DEBUG_LN(imageHeight);
     DEBUG_MSG("colourPlanes : ");
-    DEBUG_LN(this->colourPlanes);
+    DEBUG_LN(colourPlanes);
     DEBUG_MSG("bitsPerPixel : ");
-    DEBUG_LN(this->bitsPerPixel);
+    DEBUG_LN(bitsPerPixel);
     DEBUG_MSG("compression : ");
-    DEBUG_LN(this->compression);
+    DEBUG_LN(compression);
     DEBUG_MSG("imageSize : ");
-    DEBUG_LN(this->imageSize);
+    DEBUG_LN(imageSize);
     DEBUG_MSG("xPixelsPerMeter : ");
-    DEBUG_LN(this->xPixelsPerMeter);
+    DEBUG_LN(xPixelsPerMeter);
     DEBUG_MSG("yPixelsPerMeter : ");
-    DEBUG_LN(this->yPixelsPerMeter);
+    DEBUG_LN(yPixelsPerMeter);
     DEBUG_MSG("totalColors : ");
-    DEBUG_LN(this->totalColors);
+    DEBUG_LN(totalColors);
     DEBUG_MSG("importantColors : ");
-    DEBUG_LN(this->importantColors);
+    DEBUG_LN(importantColors);
   }
 
   bool fileExists() {
-    if (SD.exists(this->bmpFilename)) {
+    if (SD.exists(bmpFilename)) {
       DEBUG_MSG(F("File exists "));
-      DEBUG_LN((this->bmpFilename));
+      DEBUG_LN((bmpFilename));
       return true;
     }
     return false;
@@ -856,15 +852,15 @@ class BitmapHandler {
   *open the file, print an error message if it is not opened. return true if the file is opened, otherwise false.
   */
   bool openFile() {
-  this->bmpFile = SD.open(this->bmpFilename, FILE_READ);
-  if (!this->bmpFile) {
+  bmpFile = SD.open(bmpFilename, FILE_READ);
+  if (!bmpFile) {
       DEBUG_MSG(F("BitmapHandler : Unable to open file "));
-      DEBUG_LN(this->bmpFilename);
-      this->fileOk = false;
-      this->errorMessage("unable to open");
+      DEBUG_LN(bmpFilename);
+      fileOk = false;
+      errorMessage("unable to open");
       return false;
     }
-    this->errorMessage("file opened");
+    errorMessage("file opened");
     return true;
   }
 
@@ -872,7 +868,7 @@ class BitmapHandler {
   // *close the file.
   // */
   // void closeFile() {
-  //   this->bmpFile.close();
+  //   bmpFile.close();
   // }
 
   /**
@@ -883,14 +879,15 @@ class BitmapHandler {
   true or not, returning that.
   */
   bool isLightOnAtColumn(int column) {
-    if ((column < ledOffset) || (column >= (ledOffset + this->imageWidth))) {
+    if ((column < ledOffset) || (column >= (ledOffset + imageWidth))) {
       return false;
     }
-    uint8_t pixelBuffer[_numBytesPerPixel];
-    int pixelRowFileOffset = this->imageOffset + ((column - ledOffset) * _numBytesPerPixel) + ((this->imageHeight - this->currentRow - 1) * _bytesPerRow);
-    this->bmpFile.seek(pixelRowFileOffset);
-    this->bmpFile.read(pixelBuffer, _numBytesPerPixel);
-    return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);
+    uint8_t pixelBuffer[NUM_BYTES_PER_PIXEL]; //create the pixel buffer array which is used to read a pixel.
+    //find the pixel row offset for this specific pixel.
+    int pixelRowFileOffset = imageOffset + ((column - ledOffset) * NUM_BYTES_PER_PIXEL) + ((imageHeight - currentRow - 1) * _bytesPerRow);
+    bmpFile.seek(pixelRowFileOffset);//seek to the pixel row offset.
+    bmpFile.read(pixelBuffer, NUM_BYTES_PER_PIXEL);//read into the pixel buffer.
+    return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);//return if the pixel is true or not.
   }
 
   /**
@@ -930,7 +927,6 @@ class BitmapHandler {
     bool isBitTrue = ((myByte >> bitPos) & 0X01);
     return isBitTrue;
   }
-};
 
 
 /**
@@ -964,8 +960,6 @@ void printBool(bool boolToPrint) {
   }
 }
 
-//global class variables:
-BitmapHandler * bmh;
 
 /**
 delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
@@ -978,7 +972,7 @@ void recreateLedStripHandler() {
 void showLightsForRow() {
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
-    setPixel(i, bmh->isLightOnAtColumn(i));
+    setPixel(i, isLightOnAtColumn(i));
     showStrip();
   }
 }
@@ -1015,7 +1009,7 @@ increasse the led offset, if it's above max, set it to 0.
 */
 void increaseLedOffset() {
   ledOffset ++;
-  if (ledOffset > (ledCount - bmh->imageWidth)) {
+  if (ledOffset > (ledCount - imageWidth)) {
     ledOffset = 0;
   }
   showLightsForRow();
@@ -1027,7 +1021,7 @@ decrease the LED offset, if it's below 0, set it to the max.
 void decreaseLedOffset() {
   ledOffset --;
   if (ledOffset < 0) {
-    ledOffset = (ledCount - bmh->imageWidth);
+    ledOffset = (ledCount - imageWidth);
     EEPROM.put(EEPROM_OFFSET, ledOffset);
   }
   showLightsForRow();
@@ -1102,8 +1096,8 @@ void writeEepromLedCount(int ledCount) {
 check that the led offset is within bounds
 */
 void checkLedOffset() {
-  if (ledOffset > (ledCount - bmh->imageWidth)) {
-    ledOffset = ledCount - bmh->imageWidth;
+  if (ledOffset > (ledCount - imageWidth)) {
+    ledOffset = ledCount - imageWidth;
   } else 
   if (ledOffset < 0) {
     ledOffset = 0;
@@ -1167,7 +1161,7 @@ read the row number from the EEPROM. If it is outside the image bounds, reset it
 int readEepromRow() {
   int rowRead = 0;
   EEPROM.get(EEPROM_ROW, rowRead);
-  if ((rowRead <=0) | (rowRead >= bmh->imageHeight)) {
+  if ((rowRead <=0) | (rowRead >= imageHeight)) {
     rowRead = 0;
     EEPROM.put(EEPROM_ROW, rowRead);
   }
@@ -1178,7 +1172,7 @@ int readEepromRow() {
 write the row number to the EEPROM, first check if it's within the image bounds.
 */
 void writeEepromRow(int row) {
-  if ((row <=0) | (row >= bmh->imageHeight)) {
+  if ((row <=0) | (row >= imageHeight)) {
     row = 0;
   }
   EEPROM.put(EEPROM_ROW, row);
@@ -1195,14 +1189,14 @@ void uiIntro() {
   }
   String message;
   // message = "bmp width: ";
-  message += String(bmh->imageWidth);
+  message += String(imageWidth);
   message += "x";
-  message += String(bmh->imageHeight);
+  message += String(imageHeight);
   storeMessage(message);
   update();
   readButtons();
   if ((isUpPressed()) || (isDownPressed())) {
-    bmh->currentRow = readEepromRow(); //read the current row from the EEPROM.
+    currentRow = readEepromRow(); //read the current row from the EEPROM.
     stateInt = 1;
   }
   if (isSelectPressed()) {
@@ -1219,19 +1213,19 @@ void uiDisplayRow() {
   }
   String message;
   message = "current row: ";
-  message += (bmh->currentRow + 1);
+  message += (currentRow + 1);
   storeMessage(message);
   update();
   showLightsForRow();
   readButtons();
   if (isUpPressed()) {
-    bmh->decrementRow();
+    decrementRow();
   } else
   if (isDownPressed()) {
-    bmh->incrementRow();
+    incrementRow();
   }
   if (isRightPressed()) {
-    uiSaveRowEeprom(bmh->currentRow);
+    uiSaveRowEeprom(currentRow);
     return;
   }
   if (isLeftPressed()) {
@@ -1350,7 +1344,7 @@ void uiLedCount() {
 display message, and load eeprom row to bitmap handler current row
 */
 void uiLoadRowEeprom() {
-  bmh->currentRow = readEepromRow();
+  currentRow = readEepromRow();
   storeMessage("loading row");
   update();
   delay(3000);
@@ -1403,13 +1397,12 @@ void setup() {
   // root.close();
   
   String lowerCaseName = toLowerCase(getFileToOpen());
-  bmh = new BitmapHandler(lowerCaseName);
   // displaySimpleMsg(fileNameLowerCase);
   // delay(1500);
   // //open the file
-  bmh->openFile();
+  openFile();
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
-  bmh->verifyFile();
+  verifyFile();
   //instantiate light strip handler
   createStrip();
   
@@ -1422,7 +1415,7 @@ void setup() {
   // delay(3000);
 }
 void loop() {
-  if (!bmh->isFileOk()) {
+  if (!isFileOk()) {
     displaySimpleMsg("file not ok");
     while(1);
     return;
