@@ -59,11 +59,11 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 uint8_t brightness;
 int ledOffset;
 int ledCount = (int)LED_COUNT;
+LiquidCrystal * lcd;
 
 /**
 forward declaration of classes:
 */
-class LblLcdDisplay;
 class StateEngine;
 class UiState;
 class UiStateInRow;
@@ -74,81 +74,45 @@ class LblFileNavigator;
 /**
 global variables for classes.
 */
-LblLcdDisplay * lblLcdDisplay;
 LblButtons * lblButtons;
 LblFileNavigator * lblFileNavigator;
 
-// /**
-// test class header(declaration), this is seperated from implementation to hide implementation details
-// and improve encapsulation, making it easier to modify the implementation without affecing to ther code which
-// depends on the class interface, this class is to be deleted
-// */
-// class TestClass {
-//   private:
-//     LblLcdDisplay * _lcdDisplay;
-//   public:
-//     TestClass(LblLcdDisplay * lcdDisplay) ;
-//     // void doStuff();
-// };
-
-// /**
-// test class implementation, to be deleted.
-// */
-// TestClass::TestClass(LblLcdDisplay * lcdDisplay) {
-//   _lcdDisplay = lcdDisplay;
-// }
-
-/**
-lcd class for displaying messages to the lcd display.
-*/
-class LblLcdDisplay {
-  private:
-    LiquidCrystal * _lcd;
+  //lcd display variables
     String _storedMessage = "";    //the stored message to be written to the lcd screen.
     uint8_t _updateCounter = 0; //the counter to determine if the substring should be continued.
     uint8_t _updateCounterMax = 25; //the max the counter should go for the substring to be continued.
     uint8_t _charCount = 0; //the character count in the message string.
 
-  public:
-
-    /**
-    class constructor, initializes lcd
-    */
-    LblLcdDisplay (LiquidCrystal * lcd) {
-      _lcd = lcd;
-      _lcd->begin(LCD_COLS, LCD_ROWS);
-    }
-
     /**
     a simple function for displaying a message
     */
     void displaySimpleMsg(String message) {
-      _lcd->clear();
-      _lcd->setCursor(0,0);
-      _lcd->print(message);
-      _lcd->display();
+      lcd->clear();
+      lcd->setCursor(0,0);
+      lcd->print(message);
+      lcd->display();
     }
 
     /**
     clear lcd
     */
     void clearLcd() {
-      _lcd->clear();
+      lcd->clear();
     }
 
     /**
     display lcd
     */
     void displayLcd() {
-      _lcd->display();
+      lcd->display();
     }
 
     /**
     display a message at row.
     */
     void displayMsgAtRow(String message, int row) {
-      _lcd->setCursor(0,row);
-      _lcd->print(message);
+      lcd->setCursor(0,row);
+      lcd->print(message);
     }
 
 
@@ -170,10 +134,10 @@ class LblLcdDisplay {
       //loop for each row in the lcd screen.
         for (int row = 0; row < LCD_ROWS; row ++) {
           //set the cursor to the correct row.
-          _lcd->setCursor(0, row);
+          lcd->setCursor(0, row);
           for (int col = 0; col < LCD_COLS; col ++) {
             if (_storedMessage.length() > _charCount) {
-              _lcd->write(_storedMessage[_charCount]);
+              lcd->write(_storedMessage[_charCount]);
             }
             if (_charCount < _storedMessage.length()) {
               _charCount ++;
@@ -217,14 +181,13 @@ class LblLcdDisplay {
     void update() {
       //the update counter is at 0, therefore update the lcd screen.
       if (_updateCounter <= 0) {
-        _lcd->clear();
+        lcd->clear();
         lcdWrite();
         resetCharCount();
-        _lcd->display();
+        lcd->display();
       }
       incrementUpdateCounter();
     }
-};
 
 
 /**
@@ -399,13 +362,13 @@ class LblFileNavigator {
       if (_root) {
         message = "directory opened"
         DEBUG_LN(message);
-        // lblLcdDisplay->displaySimpleMsg("opening dir");
+        // displaySimpleMsg("opening dir");
         // delay(1000);
       }
       else {
         message = "failed directory open";
         DEBUG_LN(message);
-        lblLcdDisplay->displaySimpleMsg("err opening dir");
+        displaySimpleMsg("err opening dir");
         delay(3000);
       }
     }
@@ -417,7 +380,7 @@ class LblFileNavigator {
       _root.close();
       String message = "closing dir";
         DEBUG_LN(message);
-        // lblLcdDisplay->displaySimpleMsg(message);
+        // displaySimpleMsg(message);
         // delay(1000);
     }
 
@@ -432,7 +395,7 @@ class LblFileNavigator {
         openDirectory();//open the directory.
         int fileCount = 0;//file count is the count of displayed files.
         int row = 0;//row is the row displayed on the lcd screen.
-        lblLcdDisplay->clearLcd(); //clear the lcd
+        clearLcd(); //clear the lcd
         while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
           this->nextFile();//opens the next file.
           fileCount ++;//iterates the count of displayed files.
@@ -445,7 +408,7 @@ class LblFileNavigator {
                 _tempFileName = this->getFileName();
                 fileNameThisRow += "_";
               }
-              lblLcdDisplay->displayMsgAtRow(fileNameThisRow, row);//display file on lcd
+              displayMsgAtRow(fileNameThisRow, row);//display file on lcd
               row ++;//iterate row.
             } else {//file could not be opened so end loop.
               row = LCD_ROWS;//match loop condition to end loop.
@@ -456,7 +419,7 @@ class LblFileNavigator {
           // }
           this->closeFile();
         }
-        lblLcdDisplay->displayLcd();//display lcd screen.
+        displayLcd();//display lcd screen.
         //loop to check button presses, return value is outer loop condition.
         loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
         closeDirectory();//close directory so it can be opened and files freshly iterated again.
@@ -488,7 +451,7 @@ class LblFileNavigator {
           if (isFileNamevalid()) {
             setFile();
             loopButtonCheckingCondition = false;
-            lblLcdDisplay->displaySimpleMsg("name valid");
+            displaySimpleMsg("name valid");
             delay(1500);
             return false;
           }
@@ -581,8 +544,8 @@ class LblFileNavigator {
     //     // message += "+";
     //     message += (String)entry.name();
     //     // message += String(fileCount);
-    //     lblLcdDisplay->storeMessage(message);
-    //     lblLcdDisplay->update();
+    //     storeMessage(message);
+    //     update();
     //     delay(1500);
 
     //     entry.close();
@@ -797,9 +760,9 @@ class BitmapHandler {
   print an error message
   */
   void errorMessage(String message) {
-      lblLcdDisplay->storeMessage(message);
+      storeMessage(message);
       for (int i = 0; i< 150; i++) {
-        lblLcdDisplay->update();
+        update();
         lblButtons->readButtons();
         delay(100);
         if (lblButtons->isAnyButtonPressed()) {
@@ -1077,13 +1040,13 @@ void initializeCard() {
   if (!SD.begin(CHIP_SELECT)) {
     String message = "SD initialization failed";
     DEBUG_LN(message);
-    lblLcdDisplay->storeMessage(message);
+    storeMessage(message);
     while (1); //infinate loop to force resetting arduino
   }
   DEBUG_LN("SD Initalized successfully"); //if you reach here setup successfully
   DEBUG_LN("----------------------------\n");
-  lblLcdDisplay->storeMessage("SD initialized successfully");
-  lblLcdDisplay->update();
+  storeMessage("SD initialized successfully");
+  update();
   delay(400);
 }
 
@@ -1102,9 +1065,7 @@ void printBool(bool boolToPrint) {
 //global class variables:
 BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
-// LblLcdDisplay * lblLcdDisplay;
 // LblButtons * lblButtons;
-LiquidCrystal * lcd;
 
 /**
 delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
@@ -1337,14 +1298,8 @@ void uiIntro() {
   message += String(bmh->imageWidth);
   message += "x";
   message += String(bmh->imageHeight);
-  if (lblLcdDisplay) {
-    DEBUG_MSG ("object extist ");
-    DEBUG_LN((String)message);
-  } else {
-    DEBUG_LN("object does not exist");
-  }
-  lblLcdDisplay->storeMessage(message);
-  lblLcdDisplay->update();
+  storeMessage(message);
+  update();
   lblButtons->readButtons();
   if ((lblButtons->isUpPressed()) || (lblButtons->isDownPressed())) {
     bmh->currentRow = readEepromRow(); //read the current row from the EEPROM.
@@ -1365,8 +1320,8 @@ void uiDisplayRow() {
   String message;
   message = "current row: ";
   message += (bmh->currentRow + 1);
-  lblLcdDisplay->storeMessage(message);
-  lblLcdDisplay->update();
+  storeMessage(message);
+  update();
   showLightsForRow();
   lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
@@ -1399,8 +1354,8 @@ void uiBrightness() {
   String message;
   message = "brightness: ";
   message += String(brightness);
-  lblLcdDisplay->storeMessage(message);
-  lblLcdDisplay->update();
+  storeMessage(message);
+  update();
   lblButtons->readButtons();
   if (lblButtons->isRightPressed()) {
     increaseBrightnessVar();
@@ -1431,8 +1386,8 @@ void uiOffset() {
   String message;
   message = "offset: ";
   message += ledOffset;
-  lblLcdDisplay->storeMessage(message);
-  lblLcdDisplay->update();
+  storeMessage(message);
+  update();
   lblButtons->readButtons();
   if (lblButtons->isUpPressed()) {
     stateInt = 100;
@@ -1463,8 +1418,8 @@ void uiLedCount() {
   String message;
   message += "LED count: ";
   message += (String)ledCount;
-  // lblLcdDisplay->storeMessage(message);
-  // lblLcdDisplay->update();
+  // storeMessage(message);
+  // update();
   lcd->clear();
   lcd->print(message);
   lcd->display();
@@ -1496,8 +1451,8 @@ display message, and load eeprom row to bitmap handler current row
 */
 void uiLoadRowEeprom() {
   bmh->currentRow = readEepromRow();
-  lblLcdDisplay->storeMessage("loading row");
-  lblLcdDisplay->update();
+  storeMessage("loading row");
+  update();
   delay(3000);
   stateInt = 1;
 }
@@ -1509,8 +1464,8 @@ void uiSaveRowEeprom(int row) {
   String message;
   message += "saving row: ";
   message += String(row + 1);
-  lblLcdDisplay->storeMessage(message);
-  lblLcdDisplay->update();
+  storeMessage(message);
+  update();
   writeEepromRow(row);
   delay(3000);
   stateInt = 1;
@@ -1529,7 +1484,6 @@ void setup() {
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
-  lblLcdDisplay = new LblLcdDisplay(lcd);
   lblButtons = new LblButtons(lcd);
   //initialize the SD card
   initializeCard();
@@ -1542,10 +1496,10 @@ void setup() {
   // lblFileNavigator->setAddress("/");
   // lblFileNavigator->setFileNames();
   // delay(3000);
-  // lblLcdDisplay->storeMessage(lblFileNavigator->getFileNames());
+  // storeMessage(lblFileNavigator->getFileNames());
   // while(1)
   {
-    // lblLcdDisplay->update();
+    // update();
     // delay(100);
   }
 
@@ -1563,7 +1517,7 @@ void setup() {
   
   String lowerCaseName = lblFileNavigator->toLowerCase(lblFileNavigator->getFileToOpen());
   bmh = new BitmapHandler("bitmap.bmp");
-  // lblLcdDisplay->displaySimpleMsg(fileNameLowerCase);
+  // displaySimpleMsg(fileNameLowerCase);
   // delay(1500);
   // //open the file
   bmh->openFile();
@@ -1576,13 +1530,13 @@ void setup() {
 
   // //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
   // int myInt = EEPROM.get(EEPROM_OFFSET, myInt);
-  // lblLcdDisplay->storeMessage(String(myInt));
-  // lblLcdDisplay->update();
+  // storeMessage(String(myInt));
+  // update();
   // delay(3000);
 }
 void loop() {
   if (!bmh->isFileOk()) {
-    lblLcdDisplay->displaySimpleMsg("file not ok");
+    displaySimpleMsg("file not ok");
     while(1);
     return;
   }
