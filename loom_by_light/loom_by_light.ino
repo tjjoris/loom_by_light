@@ -64,17 +64,11 @@ LiquidCrystal * lcd;
 /**
 forward declaration of classes:
 */
-class StateEngine;
-class UiState;
-class UiStateInRow;
-class UiStateIntro;
-class LblButtons;
 class LblFileNavigator;
 
 /**
 global variables for classes.
 */
-LblButtons * lblButtons;
 LblFileNavigator * lblFileNavigator;
 
   //lcd display variables
@@ -189,139 +183,127 @@ LblFileNavigator * lblFileNavigator;
       incrementUpdateCounter();
     }
 
+//buttons from lcd input
+  int _adcKeyIn; //the key input 
+  bool _upPressed = false;
+  bool _downPressed = false;
+  bool _leftPressed = false;
+  bool _rightPressed = false;
+  bool _selectPressed = false;
+  bool _hasInputBeenRead = false; //this is set true when an input is read, and used to determine
+  //when pressed bools should be set from true to false in the _isPressesd functions.
 
-/**
-this class is used to get button inputs from the lcd and button shield. It's constructor is passed the 
-LiquidCrystal object
-*/
-class LblButtons {
-  private:
-    LiquidCrystal * _lcd; //the lcd object.
-    int _adcKeyIn; //the key input 
-    bool _upPressed = false;
-    bool _downPressed = false;
-    bool _leftPressed = false;
-    bool _rightPressed = false;
-    bool _selectPressed = false;
-    bool _hasInputBeenRead = false; //this is set true when an input is read, and used to determine
-    //when pressed bools should be set from true to false in the _isPressesd functions.
-  
-  public:
-    LblButtons(LiquidCrystal * lcd) {
-        _lcd = lcd;
-    }
 
-    void readButtons() {
-      _adcKeyIn = analogRead(0);
-      if (_adcKeyIn > 1000) {
-        if (_hasInputBeenRead) { //if input has been read, set the pressed bools to false.
-          _upPressed = false;
-          _downPressed = false;
-          _leftPressed = false;
-          _rightPressed = false;
-          _selectPressed = false;
-          _hasInputBeenRead = false; //also set the bool to false so another button press can be read.
-        }
-        return;
-      }
-      if (_adcKeyIn < 50) {
-        if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
-          _rightPressed = true;
-        }
-        return; 
-      }
-      if (_adcKeyIn < 250) {
-        if (!_hasInputBeenRead) {//used to keep a button from repeating when held down.
-          _upPressed = true;
-        }
-        return;
-      } 
-      if (_adcKeyIn < 450) {
-        if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
-          _downPressed = true;
-        }
-        return;
-      }
-      if (_adcKeyIn < 650) {
-        if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
-          _leftPressed = true;  
-        }
-        return;
-      }
-      if (_adcKeyIn < 850) {
-        if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
-          _selectPressed = true;
-        }
-      }
-    }
-
-    /**
-    return true if up was pressed, and reset up.
-    */
-    bool isUpPressed() {
-      if (_upPressed) {
-        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+  void readButtons() {
+    _adcKeyIn = analogRead(0);
+    if (_adcKeyIn > 1000) {
+      if (_hasInputBeenRead) { //if input has been read, set the pressed bools to false.
         _upPressed = false;
-        return true;
-      }
-      return false;
-    }
-
-    /**
-    return true if down was pressed, and reset down.
-    */
-    bool isDownPressed() {
-      if (_downPressed) {
-        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _downPressed = false;
-        return true;
-      }
-      return false;
-    }
-
-    /**
-    return true if left was pressed, and reset left.
-    */
-    bool isLeftPressed() {
-      if (_leftPressed) {
-        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _leftPressed = false;
-        return true;
-      }
-      return false;
-    }
-
-    /**
-    return true if right was pressed, and reset left.
-    */
-    bool isRightPressed() {
-      if (_rightPressed) {
-        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _rightPressed = false;
-        return true;
-      }
-      return false;
-    }
-
-    /**
-    return true if select was pressed and reset select.
-    */
-    bool isSelectPressed() {
-      if (_selectPressed) {
-        _hasInputBeenRead = true; //used to keep a button from repeating when held down.
         _selectPressed = false;
-        return true;
+        _hasInputBeenRead = false; //also set the bool to false so another button press can be read.
       }
-      return false;
+      return;
     }
+    if (_adcKeyIn < 50) {
+      if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+        _rightPressed = true;
+      }
+      return; 
+    }
+    if (_adcKeyIn < 250) {
+      if (!_hasInputBeenRead) {//used to keep a button from repeating when held down.
+        _upPressed = true;
+      }
+      return;
+    } 
+    if (_adcKeyIn < 450) {
+      if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+        _downPressed = true;
+      }
+      return;
+    }
+    if (_adcKeyIn < 650) {
+      if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+        _leftPressed = true;  
+      }
+      return;
+    }
+    if (_adcKeyIn < 850) {
+      if (!_hasInputBeenRead) { //used to keep a button from repeating when held down.
+        _selectPressed = true;
+      }
+    }
+  }
 
-    /**
-    return true if any button is pressed, else return false.
-    */
-    bool isAnyButtonPressed() {
-      return ((lblButtons->isSelectPressed()) || (lblButtons->isLeftPressed()) || (lblButtons->isRightPressed()) || (lblButtons->isUpPressed()) || (lblButtons->isDownPressed()));
+  /**
+  return true if up was pressed, and reset up.
+  */
+  bool isUpPressed() {
+    if (_upPressed) {
+      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+      _upPressed = false;
+      return true;
     }
-};
+    return false;
+  }
+
+  /**
+  return true if down was pressed, and reset down.
+  */
+  bool isDownPressed() {
+    if (_downPressed) {
+      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+      _downPressed = false;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+  return true if left was pressed, and reset left.
+  */
+  bool isLeftPressed() {
+    if (_leftPressed) {
+      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+      _leftPressed = false;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+  return true if right was pressed, and reset left.
+  */
+  bool isRightPressed() {
+    if (_rightPressed) {
+      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+      _rightPressed = false;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+  return true if select was pressed and reset select.
+  */
+  bool isSelectPressed() {
+    if (_selectPressed) {
+      _hasInputBeenRead = true; //used to keep a button from repeating when held down.
+      _selectPressed = false;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+  return true if any button is pressed, else return false.
+  */
+  bool isAnyButtonPressed() {
+    return ((isSelectPressed()) || (isLeftPressed()) || (isRightPressed()) || (isUpPressed()) || (isDownPressed()));
+  }
 
 /**
 this class is used to store the names of files in a given directory.
@@ -433,13 +415,13 @@ class LblFileNavigator {
     bool checkButtonPressesInDisplayFiles() {
       bool loopButtonCheckingCondition = true;
       while (loopButtonCheckingCondition) {
-        lblButtons->readButtons();
-        if (lblButtons->isDownPressed()) {
+        readButtons();
+        if (isDownPressed()) {
           _currentNavigatedFileCount ++;
           // break;
           loopButtonCheckingCondition = false;
         }
-        else if (lblButtons->isUpPressed()) {
+        else if (isUpPressed()) {
           _currentNavigatedFileCount --;
           if (_currentNavigatedFileCount < 0) {
             _currentNavigatedFileCount = 0;
@@ -447,7 +429,7 @@ class LblFileNavigator {
           // break;
           loopButtonCheckingCondition = false;
         }
-        else if (lblButtons->isRightPressed()) {
+        else if (isRightPressed()) {
           if (isFileNamevalid()) {
             setFile();
             loopButtonCheckingCondition = false;
@@ -763,9 +745,9 @@ class BitmapHandler {
       storeMessage(message);
       for (int i = 0; i< 150; i++) {
         update();
-        lblButtons->readButtons();
+        readButtons();
         delay(100);
-        if (lblButtons->isAnyButtonPressed()) {
+        if (isAnyButtonPressed()) {
           break;
         }
       }
@@ -1065,7 +1047,6 @@ void printBool(bool boolToPrint) {
 //global class variables:
 BitmapHandler * bmh;
 LblLedStripHandler * lblLedStripHandler;
-// LblButtons * lblButtons;
 
 /**
 delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
@@ -1300,12 +1281,12 @@ void uiIntro() {
   message += String(bmh->imageHeight);
   storeMessage(message);
   update();
-  lblButtons->readButtons();
-  if ((lblButtons->isUpPressed()) || (lblButtons->isDownPressed())) {
+  readButtons();
+  if ((isUpPressed()) || (isDownPressed())) {
     bmh->currentRow = readEepromRow(); //read the current row from the EEPROM.
     stateInt = 1;
   }
-  if (lblButtons->isSelectPressed()) {
+  if (isSelectPressed()) {
     stateInt = 100;
   }
 }
@@ -1323,22 +1304,22 @@ void uiDisplayRow() {
   storeMessage(message);
   update();
   showLightsForRow();
-  lblButtons->readButtons();
-  if (lblButtons->isUpPressed()) {
+  readButtons();
+  if (isUpPressed()) {
     bmh->decrementRow();
   } else
-  if (lblButtons->isDownPressed()) {
+  if (isDownPressed()) {
     bmh->incrementRow();
   }
-  if (lblButtons->isRightPressed()) {
+  if (isRightPressed()) {
     uiSaveRowEeprom(bmh->currentRow);
     return;
   }
-  if (lblButtons->isLeftPressed()) {
+  if (isLeftPressed()) {
     uiLoadRowEeprom();
     return;
   }
-  if (lblButtons->isSelectPressed()) {
+  if (isSelectPressed()) {
     stateInt = 100;
   }
 }
@@ -1356,20 +1337,20 @@ void uiBrightness() {
   message += String(brightness);
   storeMessage(message);
   update();
-  lblButtons->readButtons();
-  if (lblButtons->isRightPressed()) {
+  readButtons();
+  if (isRightPressed()) {
     increaseBrightnessVar();
   } else
-  if (lblButtons->isLeftPressed()) {
+  if (isLeftPressed()) {
     decreaseBrightnessVar();
   } else
-  if (lblButtons->isUpPressed()) {
+  if (isUpPressed()) {
     stateInt = 102;
   } else
-  if (lblButtons->isDownPressed()) {
+  if (isDownPressed()) {
     stateInt = 101;
   } else
-  if (lblButtons->isSelectPressed()) {
+  if (isSelectPressed()) {
     writeAllEepromData(); 
     stateInt = 1;
   }
@@ -1388,20 +1369,20 @@ void uiOffset() {
   message += ledOffset;
   storeMessage(message);
   update();
-  lblButtons->readButtons();
-  if (lblButtons->isUpPressed()) {
+  readButtons();
+  if (isUpPressed()) {
     stateInt = 100;
   } else
-  if (lblButtons->isDownPressed()) {
+  if (isDownPressed()) {
     stateInt = 102;
   } else
-  if (lblButtons->isLeftPressed()) {
+  if (isLeftPressed()) {
     decreaseLedOffset();
   } else
-  if (lblButtons->isRightPressed()) {
+  if (isRightPressed()) {
     increaseLedOffset();
   } else
-  if (lblButtons->isSelectPressed()) {
+  if (isSelectPressed()) {
     writeAllEepromData();
     stateInt = 1;
   }
@@ -1423,24 +1404,24 @@ void uiLedCount() {
   lcd->clear();
   lcd->print(message);
   lcd->display();
-  lblButtons->readButtons();
-  if (lblButtons->isUpPressed()) {
+  readButtons();
+  if (isUpPressed()) {
     stateInt = 101;
   } else
-  if (lblButtons->isDownPressed()) {
+  if (isDownPressed()) {
     stateInt = 100;
   } else
-  if (lblButtons->isLeftPressed()) {
+  if (isLeftPressed()) {
     decreaseLedCount();
     recreateLedStripHandler();
     showLightsForRow();
   } else
-  if (lblButtons->isRightPressed()) {
+  if (isRightPressed()) {
     increaseLedCount();
     recreateLedStripHandler();
     showLightsForRow();
   } else
-  if (lblButtons->isSelectPressed()) {
+  if (isSelectPressed()) {
     writeAllEepromData();
     stateInt = 1;
   }
@@ -1484,7 +1465,6 @@ void setup() {
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
-  lblButtons = new LblButtons(lcd);
   //initialize the SD card
   initializeCard();
 
