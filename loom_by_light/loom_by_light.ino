@@ -105,9 +105,9 @@ class LblLcdDisplay {
   private:
     LiquidCrystal * _lcd;
     String _storedMessage = "";    //the stored message to be written to the lcd screen.
-    int _updateCounter = 0; //the counter to determine if the substring should be continued.
-    int _updateCounterMax = 25; //the max the counter should go for the substring to be continued.
-    int _charCount = 0; //the character count in the message string.
+    uint8_t _updateCounter = 0; //the counter to determine if the substring should be continued.
+    uint8_t _updateCounterMax = 25; //the max the counter should go for the substring to be continued.
+    uint8_t _charCount = 0; //the character count in the message string.
 
   public:
 
