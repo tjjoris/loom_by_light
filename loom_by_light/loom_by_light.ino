@@ -866,12 +866,6 @@ if (!bmpFile) {
   return true;
 }
 
-// /**
-// *close the file.
-// */
-// void closeFile() {
-//   bmpFile.close();
-// }
 
 /**
 return true if light is on at column, first it gets the pixel row offset, based on the base pixel row offset
@@ -1180,7 +1174,27 @@ void writeEepromRow(int row) {
   EEPROM.put(EEPROM_ROW, row);
 }
 
-int stateInt = 0;
+uint8_t stateInt = 0;
+
+/**
+gets the byte at index number in the byte.
+*/
+bool getBitFromByte(byte myByte, uint8_t index) {
+  return (myByte >> (index - 1)) & 0x01;
+}
+
+/**
+get the value of bits of the bitCount number of bits from 
+the byte
+*/
+uint8_t getBitsFromByte(byte myByte, uint8_t bitCount) {
+  uint8_t apersandCompare = 1;
+  for (int i = 0; i< bitCount - 1; i++) {
+    apersandCompare = (apersandCompare << 1) + 1;
+  }
+  return apersandCompare & myByte;
+}
+
 
 /**
 the intro menu screen.
@@ -1380,6 +1394,10 @@ void setup() {
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_ROWS, LCD_COLS);
+
+  uint8_t myInt = getBitFromByte(0b00001000, 4);
+  displaySimpleMsg((String)myInt);
+  while(1);
   //initialize the SD card
   initializeCard();
 
