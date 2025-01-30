@@ -1351,6 +1351,10 @@ void uiReset() {
     update();
     delay(2500);
     setLedBrightness();
+  } else
+  if (isSelectPressed()) {
+    writeAllEepromData(); 
+    stateInt = 1;
   }
 }
 
