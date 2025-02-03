@@ -39,7 +39,9 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 
 
 #define CHIP_SELECT 10 //the chip select used for the SD card.
-#define LED_COUNT 60 //the number of lights on the light strip.
+//the maximum number of LED's that can be configured to be allowed on a light strip,
+// the amount of LEDs is configured by pressing select in the program.
+#define LED_COUNT 144 
 #define LED_PIN 1 //the pin the data line for the addressable LED strip is connected to.
 // NeoPixel brightness, 0 (min) to 255 (max)
 #define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
