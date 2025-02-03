@@ -23,12 +23,14 @@ up / down - iterates through rows, configure settings, and file navigation.
 right - selects the file to load in file navigator.
 left / right - changes the values in the current configure.
 
+Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
+
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-January-29
+*@date 2025-February-03
 */
 
 #include <SPI.h>
@@ -675,7 +677,7 @@ print an error message
 */
 void errorMessage(String message) {
     storeMessage(message);
-    for (int i = 0; i< 150; i++) {
+    for (int i = 0; i< 10; i++) {
       update();
       readButtons();
       delay(100);
@@ -723,7 +725,7 @@ bool verifyFile() {
     DEBUG_LN(message);
     errorMessage(message);
     // fileOk = false;
-    return false;
+    // return false;
   }
   // all OK
   String message;
