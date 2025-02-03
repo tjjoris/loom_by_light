@@ -1237,6 +1237,18 @@ bool isUIInRow() {
 }
 
 /**
+this is when the ui state is leaving config and going into row.
+first it writes all eeprom data,
+then runs verifyFile() which is mainly to check image width,
+ then sets the stateInt to the row state int.
+*/
+void setStateDepartingConfig() {
+  writeAllEepromData();
+  verifyFile();
+  stateInt = 1;
+}
+
+/**
 the intro menu screen.
 */
 void uiIntro() {
@@ -1355,8 +1367,9 @@ void uiReset() {
     setLedBrightness();
   } else
   if (isSelectPressed()) {
-    writeAllEepromData(); 
-    stateInt = 1;
+    // writeAllEepromData(); 
+    // stateInt = 1;
+    setStateDepartingConfig();
   }
 }
 
@@ -1387,8 +1400,9 @@ void uiBrightness() {
     stateInt = 11; //enter offset config mode.
   } else
   if (isSelectPressed()) {
-    writeAllEepromData(); 
-    stateInt = 1;
+    // writeAllEepromData(); 
+    // stateInt = 1;
+    setStateDepartingConfig();
   }
 }
 
@@ -1419,8 +1433,9 @@ void uiOffset() {
     increaseLedOffset();
   } else
   if (isSelectPressed()) {
-    writeAllEepromData();
-    stateInt = 1;
+    // writeAllEepromData();
+    // stateInt = 1;
+    setStateDepartingConfig();
   }
   showLightsForRow();
 }
@@ -1458,8 +1473,9 @@ void uiLedCount() {
     showLightsForRow();
   } else
   if (isSelectPressed()) {
-    writeAllEepromData();
-    stateInt = 1;
+    // writeAllEepromData();
+    // stateInt = 1;
+    setStateDepartingConfig();
   }
 }
 
