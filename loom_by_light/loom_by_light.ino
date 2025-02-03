@@ -1059,6 +1059,7 @@ void decreaseBrightnessVar() {
 reads all the eeprom configure data, setting global variables.
 */
 void readAllEepromData() {
+  readEepromRow();
   readEepromLedCount();
   readEepromBrightness();
   readEepromLedOffset();
@@ -1165,13 +1166,12 @@ void writeEepromBrightness(uint8_t writeBrightness) {
 read the row number from the EEPROM. If it is outside the image bounds, reset it to 0.
 */
 int readEepromRow() {
-  int rowRead = 0;
-  EEPROM.get(EEPROM_ROW, rowRead);
-  if ((rowRead <=0) | (rowRead >= imageHeight)) {
-    rowRead = 0;
-    EEPROM.put(EEPROM_ROW, rowRead);
+  // int rowRead = 0;
+  EEPROM.get(EEPROM_ROW, currentRow);
+  if ((currentRow <0) | (currentRow >= imageHeight)) {
+    currentRow = 0;
   }
-  return rowRead;
+  return currentRow;
 }
 
 /**
@@ -1567,13 +1567,14 @@ void setup() {
   //instantiate light strip handler
   createStrip();
   
-  readAllEepromData();
+  // readAllEepromData();
 
   // //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
   // int myInt = EEPROM.get(EEPROM_OFFSET, myInt);
   // storeMessage(String(myInt));
   // update();
   // delay(3000);
+  stateInt = 0;
 }
 void loop() {
   if (!isFileOk()) {
