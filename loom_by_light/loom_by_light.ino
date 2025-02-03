@@ -1519,7 +1519,8 @@ void setup() {
   readAllEepromData();
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
-  lcd->begin(LCD_ROWS, LCD_COLS);
+  lcd->begin(LCD_COLS, LCD_ROWS);
+  // delay(1000); //delay after initializing lcd display.
 
   // stateInt = 16;
   // stateInt = setBitInByte(stateInt, 7, 0x01);
