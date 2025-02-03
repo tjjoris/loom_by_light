@@ -82,34 +82,12 @@ uint8_t stateInt = 0;
 
 
 //lcd display variables
-String _storedMessage = "";    //the stored message to be written to the lcd screen.
-uint8_t _updateCounter = 0; //the counter to determine if the substring should be continued.
-uint8_t _updateCounterMax = 25; //the max the counter should go for the substring to be continued.
-uint8_t _charCount = 0; //the character count in the message string.
+long timeAtLcdReset;
+#define LCD_CYCLE_DURATION 1000
+uint8_t charCount = 0; //the character count in the message string.
 
-/**
-a simple function for displaying a message
-*/
-void displaySimpleMsg(String message) {
-  lcd->clear();
-  lcd->setCursor(0,0);
-  lcd->print(message);
-  lcd->display();
-}
 
-/**
-clear lcd
-*/
-void clearLcd() {
-  lcd->clear();
-}
 
-/**
-display lcd
-*/
-void displayLcd() {
-  lcd->display();
-}
 
 /**
 display a message at row.
@@ -123,58 +101,14 @@ void displayMsgAtRow(String message, int row) {
 /**
 set the stored lcd message, this is what update uses to know if it needs to update the screen.
 */
-void storeMessage(String message) {
-  _storedMessage = message; //the stored message to show on the lcd screen.
-  _updateCounter = 0; //this it the counter to know when to update the lcd screen.
-  _charCount = 0; //this is the character count, used to write the message to the lcd screen char by char.
+void resetAndDisplayStringLcd(String message) {
+  lcd->clear();
+  timeAtLcdReset = millis();
+  charCount = 0;
+  displayStringLcd(message);
 }
 
-/**
-loop through each row and column, and write to the lcd screen
-the character written is known by the _messageBeingDisplayed and
-charCount determins where in that message to print the char.
-*/
-void lcdWrite() {
-  //loop for each row in the lcd screen.
-    for (int row = 0; row < LCD_ROWS; row ++) {
-      //set the cursor to the correct row.
-      lcd->setCursor(0, row);
-      for (int col = 0; col < LCD_COLS; col ++) {
-        if (_storedMessage.length() > _charCount) {
-          lcd->write(_storedMessage[_charCount]);
-        }
-        if (_charCount < _storedMessage.length()) {
-          _charCount ++;
-        }          
-      }
-    }
-}
 
-/**
-This function is called when finished writing to lcd rows and columns,
-resets _charCount if _charCount is greater than the message length.
-*/
-void resetCharCount() {
-    if (_charCount >= _storedMessage.length()) {
-      _charCount = 0;
-    }
-}
-
-/**
-increments the update counter if is lower than the max. 
-Otherwise reset it to 0.
-*/
-void incrementUpdateCounter() {
-  if (_updateCounter < _updateCounterMax) {
-    _updateCounter ++;
-    return;
-  }
-  //the update counter has reached the max, reset it to 0 and end the function.
-  if (_updateCounter >= _updateCounterMax) {
-    _updateCounter = 0;
-  }
-
-}
 
 /**
 this function iterates through _updateCounter, and when it is at 0, it calls lcdWrite(),
@@ -182,15 +116,42 @@ when it does this, it checks if _charCount is at the max message length, if it i
 _charCount.
 when _updateCounter is at max, it is reset. 
 */
-void update() {
-  //the update counter is at 0, therefore update the lcd screen.
-  if (_updateCounter <= 0) {
+void displayStringLcd(String message) {
+  //loop vars
+  int row = 0;
+  int col = 0;
+  int charCountInsideLoop = charCount;
+  //if timer for lcd is above threshold
+  if (millis() >= timeAtLcdReset + LCD_CYCLE_DURATION) {
+    //increase charCount by LCD_ROWS * LCD_COLS
+    charCountInsideLoop += (LCD_ROWS * LCD_COLS);
+    //if char count inside loop bigger than size of message string.
+    if (charCountInsideLoop >= message.length()) {
+      //set char count inside loop to 0 to reset lcd message start.
+      charCountInsideLoop = 0;
+    }
+    //reset the lcd
     lcd->clear();
-    lcdWrite();
-    resetCharCount();
-    lcd->display();
   }
-  incrementUpdateCounter();
+  //only loop while withing row and column bounds and within character bounds for chars
+  //within this loop.
+  while ((row < LCD_ROWS) && (col < LCD_COLS) && (charCountInsideLoop < message.length())) {
+    //write this row
+    lcd->setCursor(col, row); //set the position on the lcd
+    lcd->write((char)message[charCountInsideLoop]); //write the lcd character at postion
+    charCountInsideLoop ++; //increment the char count inside this loop.
+    col ++; //increment the column
+    if (col >= LCD_COLS) {//if at max columns for this row
+      col = 0;//set column to 0
+      row ++;//iterate row
+    }
+    //lcd cycle finished, display the lcd.
+    if (millis() >= timeAtLcdReset + LCD_CYCLE_DURATION) {
+      timeAtLcdReset = millis();
+      lcd->display();//display the lcd
+    }
+
+  }
 }
 
 //buttons from lcd input
@@ -337,13 +298,13 @@ File openDirectory(String address) {
   if (myFile) {
     message = "directory opened";
     DEBUG_LN(message);
-    // displaySimpleMsg("opening dir");
+    // resetAndDisplayStringLcd("opening dir");
     // delay(1000);
   }
   else {
     message = "failed directory open";
     DEBUG_LN(message);
-    displaySimpleMsg("err opening dir");
+    resetAndDisplayStringLcd("err opening dir");
     delay(3000);
   }
   return myFile;
@@ -356,7 +317,7 @@ void closeFile(File root) {
   root.close();
   String message = "closing file";
     DEBUG_LN(message);
-    // displaySimpleMsg(message);
+    // resetAndDisplayStringLcd(message);
     // delay(1000);
 }
 
@@ -373,7 +334,7 @@ void displayFiles(String address) {
     root = openDirectory(address);//open the directory.
     int fileCount = 0;//file count is the count of displayed files.
     int row = 0;//row is the row displayed on the lcd screen.
-    clearLcd(); //clear the lcd
+    lcd->clear(); //clear the lcd
     while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
       entry = nextFile(root);//opens the next file.
       fileCount ++;//iterates the count of displayed files.
@@ -394,7 +355,7 @@ void displayFiles(String address) {
       }
       closeFile(entry);
     }
-    displayLcd();//display lcd screen.
+    lcd->display();//display lcd screen.
     //loop to check button presses, return value is outer loop condition.
     loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
     closeFile(root);//close directory so it can be opened and files freshly iterated again.
@@ -427,7 +388,7 @@ bool checkButtonPressesInDisplayFiles() {
         setFile();
         loopButtonCheckingCondition = false;
         stateInt = 1; //set the state to navigate a row.
-        displaySimpleMsg("name valid");
+        resetAndDisplayStringLcd("name valid");
         delay(1500);
         return false;
       }
@@ -679,9 +640,9 @@ uint32_t read32Bit(){
 print an error message
 */
 void errorMessage(String message) {
-    storeMessage(message);
+    resetAndDisplayStringLcd(message);
     for (int i = 0; i< 10; i++) {
-      update();
+      displayStringLcd(message);
       readButtons();
       delay(100);
       if (isAnyButtonPressed()) {
@@ -924,13 +885,14 @@ void initializeCard() {
   if (!SD.begin(CHIP_SELECT)) {
     String message = "SD initialization failed";
     DEBUG_LN(message);
-    storeMessage(message);
+    resetAndDisplayStringLcd(message);
     while (1); //infinate loop to force resetting arduino
   }
   DEBUG_LN("SD Initalized successfully"); //if you reach here setup successfully
   DEBUG_LN("----------------------------\n");
-  storeMessage("SD initialized successfully");
-  update();
+  String message = "SD initialized successfully";
+  resetAndDisplayStringLcd(message);
+  displayStringLcd(message);
   delay(400);
 }
 
@@ -1243,8 +1205,8 @@ void uiIntro() {
   message += String(imageWidth);
   message += "x";
   message += String(imageHeight);
-  storeMessage(message);
-  update();
+  resetAndDisplayStringLcd(message);
+  displayStringLcd(message);
   readButtons();
   if ((isUpPressed()) || (isDownPressed())) {
     currentRow = readEepromRow(); //read the current row from the EEPROM.
@@ -1265,8 +1227,8 @@ void uiDisplayRow() {
   String message;
   message = "current row: ";
   message += (currentRow + 1);
-  storeMessage(message);
-  update();
+  resetAndDisplayStringLcd(message);
+  displayStringLcd(message);
   showLightsForRow();
   readButtons();
   if (isUpPressed()) {
@@ -1330,8 +1292,8 @@ void uiReset() {
   }
   String message;
   message = "Reset";
-  storeMessage(message);
-  update();
+  resetAndDisplayStringLcd(message);
+  displayStringLcd(message);
   readButtons();
   if (isUpPressed()) {
     stateInt = 12;
@@ -1344,8 +1306,8 @@ void uiReset() {
     ledCount = 60;
     ledOffset = 0;
     message = "Resetting...";
-    storeMessage(message);
-    update();
+    resetAndDisplayStringLcd(message);
+    displayStringLcd(message);
     delay(2500);
     setLedBrightness();
   } else
@@ -1367,8 +1329,8 @@ void uiBrightness() {
   String message;
   message = "brightness: ";
   message += String(brightness);
-  storeMessage(message);
-  update();
+  resetAndDisplayStringLcd(message);
+  displayStringLcd(message);
   readButtons();
   if (isRightPressed()) {
     increaseBrightnessVar();
@@ -1400,8 +1362,8 @@ void uiOffset() {
   String message;
   message = "offset: ";
   message += ledOffset;
-  storeMessage(message);
-  update();
+  resetAndDisplayStringLcd(message);
+  displayStringLcd(message);
   readButtons();
   if (isUpPressed()) {
     stateInt = 10;
@@ -1467,8 +1429,9 @@ display message, and load eeprom row to bitmap handler current row
 */
 void uiLoadRowEeprom() {
   currentRow = readEepromRow();
-  storeMessage("loading row");
-  update();
+  String message = "loading row";
+  resetAndDisplayStringLcd(message);
+  displayStringLcd(message);
   delay(3000);
   stateInt = 1;
 }
@@ -1480,8 +1443,8 @@ void uiSaveRowEeprom(int row) {
   String message;
   message += "saving row: ";
   message += String(row + 1);
-  storeMessage(message);
-  update();
+  resetAndDisplayStringLcd(message);
+  displayStringLcd(message);
   writeEepromRow(row);
   delay(3000);
   stateInt = 1;
@@ -1504,17 +1467,17 @@ void setup() {
 
   // stateInt = 16;
   // stateInt = setBitInByte(stateInt, 7, 0x01);
-  // displaySimpleMsg((String)getState());
+  // resetAndDisplayStringLcd((String)getState());
   // delay(2000);
-  // displaySimpleMsg((String)stateInt);
+  // resetAndDisplayStringLcd((String)stateInt);
   // delay(2000);
-  // displaySimpleMsg((String)getBitFromByte(stateInt, 7));
+  // resetAndDisplayStringLcd((String)getBitFromByte(stateInt, 7));
   // delay(2000);
   // uint8_t myInt = setBitInByte(0, 0, 1);
-  // displaySimpleMsg((String)myInt);
+  // resetAndDisplayStringLcd((String)myInt);
   // delay(2000);
   // bool myBool = getBitFromByte(myInt, 1);
-  // displaySimpleMsg((String)myBool);
+  // resetAndDisplayStringLcd((String)myBool);
   // delay(2000);
 
   // while(1);
@@ -1539,7 +1502,7 @@ void setup() {
   // root.close();
   
   String lowerCaseName = toLowerCase(getFileToOpen());
-  // displaySimpleMsg(fileNameLowerCase);
+  // resetAndDisplayStringLcd(fileNameLowerCase);
   // delay(1500);
   // //open the file
   openFile(lowerCaseName);
@@ -1559,7 +1522,7 @@ void setup() {
 }
 void loop() {
   if (!isFileOk()) {
-    displaySimpleMsg("file not ok");
+    resetAndDisplayStringLcd("file not ok");
     while(1);
     return;
   }
