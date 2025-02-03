@@ -84,10 +84,9 @@ uint8_t stateInt = 0;
 //lcd display variables
 long timeAtLcdReset;
 #define LCD_CYCLE_DURATION 1000
+#define LCD_SHORT_MESSAGE_DURATION 1000
+#define LCD_MED_MESSAGE_DURATION 2000
 uint8_t charCount = 0; //the character count in the message string.
-
-
-
 
 /**
 display a message at row.
@@ -97,9 +96,24 @@ void displayMsgAtRow(String message, int row) {
   lcd->print(message);
 }
 
+/**
+display a message, waiting a duration before continuing, if a button is pressed
+it breaks the loop
+*/
+void resetAndDisplayMessageWithBreakableLoopLcd(String message, int timeAmount) {
+  resetAndDisplayStringLcd(message);
+  long timeWhenMessageLoopStarted = millis();
+  while(millis() < timeWhenMessageLoopStarted + timeAmount) {
+    readButtons();
+    displayStringLcd(message);
+    if (isAnyButtonPressed()) {
+      break;
+    }
+  }
+}
 
 /**
-set the stored lcd message, this is what update uses to know if it needs to update the screen.
+reset the lcd display and display the string to the lcd.
 */
 void resetAndDisplayStringLcd(String message) {
   lcd->clear();
@@ -111,10 +125,8 @@ void resetAndDisplayStringLcd(String message) {
 
 
 /**
-this function iterates through _updateCounter, and when it is at 0, it calls lcdWrite(),
-when it does this, it checks if _charCount is at the max message length, if it it is, resets
-_charCount.
-when _updateCounter is at max, it is reset. 
+display the string to the lcd display. It uses the timer timeAtLcdReset to know 
+when to progress to the next phase of the message.
 */
 void displayStringLcd(String message) {
   //loop vars
@@ -298,14 +310,12 @@ File openDirectory(String address) {
   if (myFile) {
     message = "directory opened";
     DEBUG_LN(message);
-    // resetAndDisplayStringLcd("opening dir");
-    // delay(1000);
+    // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   }
   else {
-    message = "failed directory open";
+    message = "err opening dir";
     DEBUG_LN(message);
-    resetAndDisplayStringLcd("err opening dir");
-    delay(3000);
+    resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   }
   return myFile;
 }
@@ -317,8 +327,7 @@ void closeFile(File root) {
   root.close();
   String message = "closing file";
     DEBUG_LN(message);
-    // resetAndDisplayStringLcd(message);
-    // delay(1000);
+    // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
 }
 
 /**
@@ -388,8 +397,10 @@ bool checkButtonPressesInDisplayFiles() {
         setFile();
         loopButtonCheckingCondition = false;
         stateInt = 1; //set the state to navigate a row.
-        resetAndDisplayStringLcd("name valid");
-        delay(1500);
+        String message = "name valid";
+        // resetAndDisplayStringLcd(message);
+        // delay(1000);
+        resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
         return false;
       }
     }
@@ -636,20 +647,6 @@ uint32_t read32Bit(){
   }
 }
 
-/**
-print an error message
-*/
-void errorMessage(String message) {
-    resetAndDisplayStringLcd(message);
-    for (int i = 0; i< 10; i++) {
-      displayStringLcd(message);
-      readButtons();
-      delay(100);
-      if (isAnyButtonPressed()) {
-        break;
-      }
-    }
-}
 
 /**
 *verify the opened file.
@@ -661,7 +658,7 @@ bool verifyFile() {
     String message;
     message = "unable to open file";
     DEBUG_LN(message);
-    errorMessage(message);
+    resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
     return false;
   }
@@ -669,7 +666,7 @@ bool verifyFile() {
     String message;
     message = "Unable to read file headers";
     DEBUG_LN(message);
-    errorMessage(message);
+    resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
     return false;
   }
@@ -677,7 +674,7 @@ bool verifyFile() {
     String message;
     message = "Not compatable file";
     DEBUG_LN(message);
-    errorMessage(message);
+    resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
     return false;
   }
@@ -687,7 +684,7 @@ bool verifyFile() {
     message = "Image width greater then LED count ";
     message += ledCount;
     DEBUG_LN(message);
-    errorMessage(message);
+    resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     // fileOk = false;
     // return false;
   }
@@ -695,7 +692,7 @@ bool verifyFile() {
   String message;
   message = "file OK";
   DEBUG_LN("BMP file all OK");
-  errorMessage(message);
+  resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   fileOk = true;
   return true;
 }
@@ -767,14 +764,14 @@ bool checkFileHeaders(){
   if (bitsPerPixel != 24){
     String message = "is not 24 bit bitmap.";
     DEBUG_LN(message);
-    errorMessage(message);
+    resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
   }
   // no compression
   if (compression != 0){
     String message = "bitmap is compressed.";
     DEBUG_LN(message);
-    errorMessage(message);
+    resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
   }
   // all ok
@@ -807,13 +804,16 @@ void serialPrintHeaders() {
 */
 bool openFile(String fileName) {
 bmpFile = SD.open(fileName, FILE_READ);
+String message;
 if (!bmpFile) {
-    DEBUG_MSG("BitmapHandler : Unable to open file ");
+    message = "Unable to open file"
+    DEBUG_MSG(message);
     fileOk = false;
-    errorMessage("unable to open");
+    resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
   }
-  errorMessage("file opened");
+  message = "file opened";
+  resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   return true;
 }
 
