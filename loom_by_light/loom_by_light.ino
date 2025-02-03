@@ -45,7 +45,8 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
 #define LCD_COLS 16 //the number of character columns on the lcd screen, this is how many characters fit on one line.
 const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
-#define BRIGHTNESS_INCREMENT 26
+//this is the amount the brightness changes when changing the brightness in the config menu.
+#define BRIGHTNESS_INCREMENT 1
 
 //EEPROM memory address locations:
 #define EEPROM_ROW 0 //the memory location in the EEPROM for the current row.
