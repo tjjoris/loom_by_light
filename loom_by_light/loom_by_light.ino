@@ -64,7 +64,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 #define DEBUG_BEGIN Serial.begin(9600)
 #define DEBUG_MSG(x) Serial.print(x)
 #define DEBUG_LN(x) Serial.println(x)
-#define DEBUG_WR(x) Serial.write(x);
+#define DEBUG_WR(x) Serial.write(x)
 #else
 #define DEBUG_BEGIN
 #define DEBUG_MSG(x)
@@ -335,7 +335,7 @@ File openDirectory(String address) {
   File myFile = SD.open(address);
   String message;
   if (myFile) {
-    message = "directory opened"
+    message = "directory opened";
     DEBUG_LN(message);
     // displaySimpleMsg("opening dir");
     // delay(1000);
@@ -826,17 +826,8 @@ bool checkFileHeaders(){
 *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 */
 void serialPrintHeaders() {
-  DEBUG_MSG("filename : ");
-  DEBUG_LN(bmpFilename);
-  // BMP Header
-  // DEBUG_MSG(F("headerField : "));
-  // Serial.println(headerField, HEX);
-  DEBUG_MSG("fileSize : ");
-  DEBUG_LN(fileSize);
   DEBUG_MSG("imageOffset : ");
   DEBUG_LN(imageOffset);
-  DEBUG_MSG("headerSize : ");
-  DEBUG_LN(headerSize);
   DEBUG_MSG("imageWidth : ");
   DEBUG_LN(imageWidth);
   DEBUG_MSG("imageHeight : ");
@@ -847,16 +838,6 @@ void serialPrintHeaders() {
   DEBUG_LN(bitsPerPixel);
   DEBUG_MSG("compression : ");
   DEBUG_LN(compression);
-  DEBUG_MSG("imageSize : ");
-  DEBUG_LN(imageSize);
-  DEBUG_MSG("xPixelsPerMeter : ");
-  DEBUG_LN(xPixelsPerMeter);
-  DEBUG_MSG("yPixelsPerMeter : ");
-  DEBUG_LN(yPixelsPerMeter);
-  DEBUG_MSG("totalColors : ");
-  DEBUG_LN(totalColors);
-  DEBUG_MSG("importantColors : ");
-  DEBUG_LN(importantColors);
 }
 
 
@@ -866,8 +847,7 @@ void serialPrintHeaders() {
 bool openFile(String fileName) {
 bmpFile = SD.open(fileName, FILE_READ);
 if (!bmpFile) {
-    DEBUG_MSG(F("BitmapHandler : Unable to open file "));
-    DEBUG_LN(filename);
+    DEBUG_MSG("BitmapHandler : Unable to open file ");
     fileOk = false;
     errorMessage("unable to open");
     return false;
