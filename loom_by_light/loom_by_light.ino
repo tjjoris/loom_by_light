@@ -1319,24 +1319,31 @@ void uiBrightness() {
   message = "brightness: ";
   message += String(brightness);
   resetAndDisplayStringLcd(message);
-  displayStringLcd(message);
-  readButtons();
-  if (isRightPressed()) {
-    increaseBrightnessVar();
-  } else
-  if (isLeftPressed()) {
-    decreaseBrightnessVar();
-  } else
-  if (isUpPressed()) {
-    stateInt = 13;
-  } else
-  if (isDownPressed()) {
-    stateInt = 11; //enter offset config mode.
-  } else
-  if (isSelectPressed()) {
-    // writeAllEepromData(); 
-    // stateInt = 1;
-    setStateDepartingConfig();
+  while(1){
+    displayStringLcd(message);
+    readButtons();
+    if (isRightPressed()) {
+      increaseBrightnessVar();
+      break;
+    } else
+    if (isLeftPressed()) {
+      decreaseBrightnessVar();
+      break;
+    } else
+    if (isUpPressed()) {
+      stateInt = 13;
+      break;
+    } else
+    if (isDownPressed()) {
+      stateInt = 11; //enter offset config mode.
+      break;
+    } else
+    if (isSelectPressed()) {
+      // writeAllEepromData(); 
+      // stateInt = 1;
+      setStateDepartingConfig();
+      break;
+    }
   }
 }
 
