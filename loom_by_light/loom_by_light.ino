@@ -27,6 +27,7 @@ Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
 
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
+this version of Loom by Light: 1.6.2
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
