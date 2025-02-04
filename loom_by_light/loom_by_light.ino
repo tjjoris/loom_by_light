@@ -1398,32 +1398,36 @@ void uiLedCount() {
   String message;
   message += "LED count: ";
   message += (String)ledCount;
-  // storeMessage(message);
-  // update();
-  lcd->clear();
-  lcd->print(message);
-  lcd->display();
-  readButtons();
-  if (isUpPressed()) {
-    stateInt = 11;
-  } else
-  if (isDownPressed()) {
-    stateInt = 13;
-  } else
-  if (isLeftPressed()) {
-    decreaseLedCount();
-    recreateLedStripHandler();
-    showLightsForRow();
-  } else
-  if (isRightPressed()) {
-    increaseLedCount();
-    recreateLedStripHandler();
-    showLightsForRow();
-  } else
-  if (isSelectPressed()) {
-    // writeAllEepromData();
-    // stateInt = 1;
-    setStateDepartingConfig();
+  resetAndDisplayStringLcd(message);
+  while(1) {
+    displayStringLcd(message);
+    readButtons();
+    if (isUpPressed()) {
+      stateInt = 11;
+      break;
+    } else
+    if (isDownPressed()) {
+      stateInt = 13;
+      break;
+    } else
+    if (isLeftPressed()) {
+      decreaseLedCount();
+      recreateLedStripHandler();
+      showLightsForRow();
+      break;
+    } else
+    if (isRightPressed()) {
+      increaseLedCount();
+      recreateLedStripHandler();
+      showLightsForRow();
+      break;
+    } else
+    if (isSelectPressed()) {
+      // writeAllEepromData();
+      // stateInt = 1;
+      setStateDepartingConfig();
+      break;
+    }
   }
 }
 
