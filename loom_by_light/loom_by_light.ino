@@ -1466,6 +1466,7 @@ void setup() {
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_COLS, LCD_ROWS);
+  delay(1000);
   initializeCard();
   navigateFilesAtRoot();
   
