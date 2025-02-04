@@ -1465,61 +1465,15 @@ void setup() {
   //create lcd
   lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
   lcd->begin(LCD_COLS, LCD_ROWS);
-  // delay(1000); //delay after initializing lcd display.
-
-  // stateInt = 16;
-  // stateInt = setBitInByte(stateInt, 7, 0x01);
-  // resetAndDisplayStringLcd((String)getState());
-  // delay(2000);
-  // resetAndDisplayStringLcd((String)stateInt);
-  // delay(2000);
-  // resetAndDisplayStringLcd((String)getBitFromByte(stateInt, 7));
-  // delay(2000);
-  // uint8_t myInt = setBitInByte(0, 0, 1);
-  // resetAndDisplayStringLcd((String)myInt);
-  // delay(2000);
-  // bool myBool = getBitFromByte(myInt, 1);
-  // resetAndDisplayStringLcd((String)myBool);
-  // delay(2000);
-
-  // while(1);
-
-  //initialize the SD card
   initializeCard();
-
-  
   navigateFilesAtRoot();
-  // while(1);
-
-
-
-  //create bitmap handler object, and pass it the bitmap to read.
-  // String fileNameLowerCase = toLowerCase(getFileToOpen());
-  
-  // closeFile();
-  // closeDirectory();
-  // File root = SD.open("/");
-  // File myFile = root.openNextFile();
-  // myFile.close();
-  // root.close();
   
   String lowerCaseName = toLowerCase(getFileToOpen());
-  // resetAndDisplayStringLcd(fileNameLowerCase);
-  // delay(1500);
-  // //open the file
   openFile(lowerCaseName);
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
   verifyFile();
   //instantiate light strip handler
   createStrip();
-  
-  // readAllEepromData();
-
-  // //read the current value in eeprom at 0 (the current row number) and print it to lcd display.
-  // int myInt = EEPROM.get(EEPROM_OFFSET, myInt);
-  // storeMessage(String(myInt));
-  // update();
-  // delay(3000);
   stateInt = 0;
 }
 void loop() {
@@ -1535,7 +1489,4 @@ void loop() {
   uiLedCount();
   showLightsForRow();
   uiReset();
-  // uiLoadOption();
-  // uiNavigateFiles();
-  // delay(50);
 }
