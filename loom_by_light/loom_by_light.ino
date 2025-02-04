@@ -1201,19 +1201,22 @@ void uiIntro() {
     return;
   }
   String message;
-  // message = "bmp width: ";
   message += String(imageWidth);
   message += "x";
   message += String(imageHeight);
   resetAndDisplayStringLcd(message);
-  displayStringLcd(message);
-  readButtons();
-  if ((isUpPressed()) || (isDownPressed())) {
-    currentRow = readEepromRow(); //read the current row from the EEPROM.
-    stateInt = 1;
-  }
-  if (isSelectPressed()) {
-    stateInt = 10;//enter config mode.
+  while(1) {
+    displayStringLcd(message);
+    readButtons();
+    if ((isUpPressed()) || (isDownPressed())) {
+      currentRow = readEepromRow(); //read the current row from the EEPROM.
+      stateInt = 1;
+      break;
+    }
+    if (isSelectPressed()) {
+      stateInt = 10;//enter config mode.
+      break;
+    }
   }
 }
 
@@ -1228,50 +1231,32 @@ void uiDisplayRow() {
   message = "current row: ";
   message += (currentRow + 1);
   resetAndDisplayStringLcd(message);
-  displayStringLcd(message);
-  showLightsForRow();
-  readButtons();
-  if (isUpPressed()) {
-    decrementRow();
-  } else
-  if (isDownPressed()) {
-    incrementRow();
-  }
-  if (isRightPressed()) {
-    uiSaveRowEeprom(currentRow);
-    return;
-  }
-  if (isLeftPressed()) {
-    uiLoadRowEeprom();
-    return;
-  }
-  if (isSelectPressed()) {
-    stateInt = 10;//enter config mode.
+  while (1) {
+    displayStringLcd(message);
+    showLightsForRow();
+    readButtons();
+    if (isUpPressed()) {
+      decrementRow();
+      break;
+    } else
+    if (isDownPressed()) {
+      incrementRow();
+      break;
+    }
+    if (isRightPressed()) {
+      uiSaveRowEeprom(currentRow);
+      return;
+    }
+    if (isLeftPressed()) {
+      uiLoadRowEeprom();
+      return;
+    }
+    if (isSelectPressed()) {
+      stateInt = 10;//enter config mode.
+      break;
+    }
   }
 }
-
-// /**
-// the ui for showing the screen to navigate files
-// */
-// void uiLoadOption() {
-//   if (stateInt != 13) {
-//     return;
-//   }
-//   String message;
-//   message = "Load";
-//   storeMessage(message);
-//   update();
-//   readButtons();
-//   if (isUpPressed()) {
-//     stateInt = 12;
-//   }
-//   else if (isDownPressed()) {
-//     stateInt = 10;
-//   }
-//   else if (isRightPressed()) {
-//     stateInt = 20;
-//   }
-// }
 
 /**
 ui to navigate files
@@ -1293,28 +1278,32 @@ void uiReset() {
   String message;
   message = "Reset";
   resetAndDisplayStringLcd(message);
-  displayStringLcd(message);
-  readButtons();
-  if (isUpPressed()) {
-    stateInt = 12;
-  }
-  if (isDownPressed()) {
-    stateInt = 10;
-  }
-  if (isRightPressed()) {
-    brightness = 1;
-    ledCount = 60;
-    ledOffset = 0;
-    message = "Resetting...";
-    resetAndDisplayStringLcd(message);
+  while(1) {
     displayStringLcd(message);
-    delay(2500);
-    setLedBrightness();
-  } else
-  if (isSelectPressed()) {
-    // writeAllEepromData(); 
-    // stateInt = 1;
-    setStateDepartingConfig();
+    readButtons();
+    if (isUpPressed()) {
+      stateInt = 12;
+      break;
+    }
+    if (isDownPressed()) {
+      stateInt = 10;
+      break;
+    }
+    if (isRightPressed()) {
+      brightness = 1;
+      ledCount = 60;
+      ledOffset = 0;
+      message = "Resetting...";
+      resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
+      setLedBrightness();
+      break;
+    } else
+    if (isSelectPressed()) {
+      // writeAllEepromData(); 
+      // stateInt = 1;
+      setStateDepartingConfig();
+      break;
+    }
   }
 }
 
@@ -1535,5 +1524,5 @@ void loop() {
   uiReset();
   // uiLoadOption();
   // uiNavigateFiles();
-  delay(50);
+  // delay(50);
 }
