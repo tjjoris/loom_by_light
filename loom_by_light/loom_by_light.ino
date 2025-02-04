@@ -1359,26 +1359,33 @@ void uiOffset() {
   message = "offset: ";
   message += ledOffset;
   resetAndDisplayStringLcd(message);
-  displayStringLcd(message);
-  readButtons();
-  if (isUpPressed()) {
-    stateInt = 10;
-  } else
-  if (isDownPressed()) {
-    stateInt = 12;
-  } else
-  if (isLeftPressed()) {
-    decreaseLedOffset();
-  } else
-  if (isRightPressed()) {
-    increaseLedOffset();
-  } else
-  if (isSelectPressed()) {
-    // writeAllEepromData();
-    // stateInt = 1;
-    setStateDepartingConfig();
+  while(1) {
+    displayStringLcd(message);
+    readButtons();
+    if (isUpPressed()) {
+      stateInt = 10;
+      break;
+    } else
+    if (isDownPressed()) {
+      stateInt = 12;
+      break;
+    } else
+    if (isLeftPressed()) {
+      decreaseLedOffset();
+      break;
+    } else
+    if (isRightPressed()) {
+      increaseLedOffset();
+      break;
+    } else
+    if (isSelectPressed()) {
+      // writeAllEepromData();
+      // stateInt = 1;
+      setStateDepartingConfig();
+      break;
+    }
+    showLightsForRow();
   }
-  showLightsForRow();
 }
 
 /**
