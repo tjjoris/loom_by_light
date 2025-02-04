@@ -1437,9 +1437,7 @@ display message, and load eeprom row to bitmap handler current row
 void uiLoadRowEeprom() {
   currentRow = readEepromRow();
   String message = "loading row";
-  resetAndDisplayStringLcd(message);
-  displayStringLcd(message);
-  delay(3000);
+  resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   stateInt = 1;
 }
 
@@ -1450,10 +1448,7 @@ void uiSaveRowEeprom(int row) {
   String message;
   message += "saving row: ";
   message += String(row + 1);
-  resetAndDisplayStringLcd(message);
-  displayStringLcd(message);
-  writeEepromRow(row);
-  delay(3000);
+  resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   stateInt = 1;
 }
 
