@@ -300,12 +300,12 @@ File openDirectory(String address) {
   File myFile = SD.open(address);
   String message;
   if (myFile) {
-    message = "directory opened";
+    message = F("directory opened");
     DEBUG_LN(message);
     // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   }
   else {
-    message = "err opening dir";
+    message = F("err opening dir");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   }
@@ -317,7 +317,7 @@ close the file
 */
 void closeFile(File root) {
   root.close();
-  String message = "closing file";
+  String message = F("closing file");
     DEBUG_LN(message);
     // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
 }
@@ -350,7 +350,7 @@ String displayFiles(String address) {
             String fileNameThisRow = getFileName(entry); 
           if (row == 0) {//if this is the first file in the row, set the temporary file name.
             tempFileName = getFileName(entry);
-            fileNameThisRow += "_";
+            fileNameThisRow += F("_");
           }
           displayMsgAtRow(fileNameThisRow, row);//display file on lcd
           row ++;//iterate row.
@@ -446,7 +446,7 @@ check if the file name is valid, it must end in .bmp
 */
 bool isFileNamevalid(String _tempFileName) {
   String lowerCaseFileName = toLowerCase(_tempFileName);
-  if (lowerCaseFileName.endsWith(".bmp")) {
+  if (lowerCaseFileName.endsWith(F(".bmp"))) {
     return true;
   }
   return false;
@@ -542,12 +542,12 @@ set a pixel to true or false at a specific location
 void setPixel(int pixelIndex, bool isTrue) {
   if (isTrue) {
     strip->setPixelColor(pixelIndex, strip->Color(0,0,255));
-    DEBUG_MSG("set pixel to true at index ");
+    DEBUG_MSG(F("set pixel to true at index "));
     DEBUG_MSG(pixelIndex);
   }
   else {
     strip->setPixelColor(pixelIndex, strip->Color(0,0,0));
-    DEBUG_MSG("set pixel to false at index ");
+    DEBUG_MSG(F("set pixel to false at index "));
     DEBUG_MSG(pixelIndex);
   }
 }
@@ -658,7 +658,7 @@ uint32_t read32Bit(){
 bool verifyFile() {
   if (!bmpFile) {
     String message;
-    message = "unable to open file";
+    message = F("unable to open file");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
@@ -666,7 +666,7 @@ bool verifyFile() {
   }
   if (!readFileHeaders()){
     String message;
-    message = "Unable to read file headers";
+    message = F("Unable to read file headers");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
@@ -674,7 +674,7 @@ bool verifyFile() {
   }
   if (!checkFileHeaders()){
     String message;
-    message = "Not compatable file";
+    message = F("Not compatable file");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
@@ -683,7 +683,7 @@ bool verifyFile() {
   // //image width check, uncomment this later.
   if (ledCount < imageWidth) {
     String message;
-    message = "Image width greater then LED count ";
+    message = F("Image width greater then LED count ");
     message += ledCount;
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
@@ -692,8 +692,8 @@ bool verifyFile() {
   }
   // all OK
   String message;
-  message = "file OK";
-  DEBUG_LN("BMP file all OK");
+  message = F("file OK");
+  DEBUG_LN(message);
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   fileOk = true;
   return true;
@@ -764,14 +764,14 @@ bool checkFileHeaders(){
   // }
   // only working with 24 bit bitmaps
   if (bitsPerPixel != 24){
-    String message = "is not 24 bit bitmap.";
+    String message = F("is not 24 bit bitmap.");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
   }
   // no compression
   if (compression != 0){
-    String message = "bitmap is compressed.";
+    String message = F("bitmap is compressed.");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
@@ -780,25 +780,25 @@ bool checkFileHeaders(){
   return true;
 }
 
-/**
-*print file hader values to serial.
-* code sourced from: 
-*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-*/
-void serialPrintHeaders() {
-  DEBUG_MSG("imageOffset : ");
-  DEBUG_LN(imageOffset);
-  DEBUG_MSG("imageWidth : ");
-  DEBUG_LN(imageWidth);
-  DEBUG_MSG("imageHeight : ");
-  DEBUG_LN(imageHeight);
-  DEBUG_MSG("colourPlanes : ");
-  DEBUG_LN(colourPlanes);
-  DEBUG_MSG("bitsPerPixel : ");
-  DEBUG_LN(bitsPerPixel);
-  DEBUG_MSG("compression : ");
-  DEBUG_LN(compression);
-}
+// /**
+// *print file hader values to serial.
+// * code sourced from: 
+// *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+// */
+// void serialPrintHeaders() {
+//   DEBUG_MSG(F("imageOffset : "));
+//   DEBUG_LN(imageOffset);
+//   DEBUG_MSG("imageWidth : ");
+//   DEBUG_LN(imageWidth);
+//   DEBUG_MSG("imageHeight : ");
+//   DEBUG_LN(imageHeight);
+//   DEBUG_MSG("colourPlanes : ");
+//   DEBUG_LN(colourPlanes);
+//   DEBUG_MSG("bitsPerPixel : ");
+//   DEBUG_LN(bitsPerPixel);
+//   DEBUG_MSG("compression : ");
+//   DEBUG_LN(compression);
+// }
 
 
 /**
@@ -808,13 +808,13 @@ bool openFile(String fileName) {
 bmpFile = SD.open(fileName, FILE_READ);
 String message;
 if (!bmpFile) {
-    message = "Unable to open file"
+    message = F("Unable to open file")
     DEBUG_MSG(message);
     fileOk = false;
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
   }
-  message = "file opened";
+  message = F("file opened");
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   return true;
 }
@@ -882,17 +882,17 @@ bool isBitTrueInByte(byte myByte, int bitPos) {
 *initialize the SD card.
 */
 void initializeCard() {
-  DEBUG_MSG("beginning initialization of SD card");
+  DEBUG_MSG(F("beginning initialization of SD card"));
 
   if (!SD.begin(CHIP_SELECT)) {
-    String message = "SD initialization failed";
+    String message = F("SD initialization failed");
     DEBUG_LN(message);
     resetAndDisplayStringLcd(message);
     while (1); //infinate loop to force resetting arduino
   }
-  DEBUG_LN("SD Initalized successfully"); //if you reach here setup successfully
-  DEBUG_LN("----------------------------\n");
-  String message = "SD initialized successfully";
+  DEBUG_LN(F("SD Initalized successfully")); //if you reach here setup successfully
+  DEBUG_LN(F("----------------------------\n"));
+  String message = F("SD initialized successfully");
   resetAndDisplayStringLcd(message);
   displayStringLcd(message);
   delay(400);
@@ -906,7 +906,7 @@ void printBool(bool boolToPrint) {
     DEBUG_WR(1);
   }
   else {
-    DEBUG_MSG(" ");
+    DEBUG_MSG(F(" "));
   }
 }
 
@@ -962,7 +962,7 @@ void increaseLedOffset() {
   if (ledOffset > (ledCount - imageWidth)) {
     ledOffset = 0;
   }
-  showLightsForRow();
+  // showLightsForRow();
 }
 
 /**
@@ -1204,7 +1204,7 @@ void uiIntro() {
   }
   String message;
   message += String(imageWidth);
-  message += "x";
+  message += F("x");
   message += String(imageHeight);
   resetAndDisplayStringLcd(message);
   while(1) {
@@ -1268,7 +1268,7 @@ void uiNavigateFiles() {
     return;
   }
   // navigateFilesAtRoot();
-  displayFiles("/");
+  displayFiles(F("/"));
 }
 
 /**
@@ -1279,7 +1279,7 @@ void uiReset() {
     return;
   }
   String message;
-  message = "Reset";
+  message = F("Reset");
   resetAndDisplayStringLcd(message);
   while(1) {
     displayStringLcd(message);
@@ -1296,7 +1296,7 @@ void uiReset() {
       brightness = 1;
       ledCount = 60;
       ledOffset = 0;
-      message = "Resetting...";
+      message = F("Resetting...");
       resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
       setLedBrightness();
       break;
@@ -1319,7 +1319,7 @@ void uiBrightness() {
     return;
   }
   String message;
-  message = "brightness: ";
+  message = F("brightness: ");
   message += String(brightness);
   resetAndDisplayStringLcd(message);
   while(1){
@@ -1359,7 +1359,7 @@ void uiOffset() {
     return;
   }
   String message;
-  message = "offset: ";
+  message = F("offset: ");
   message += ledOffset;
   resetAndDisplayStringLcd(message);
   showLightsForRow();
@@ -1399,7 +1399,7 @@ void uiLedCount() {
     return;
   }
   String message;
-  message += "LED count: ";
+  message += F("LED count: ");
   message += (String)ledCount;
   resetAndDisplayStringLcd(message);
   while(1) {
@@ -1439,7 +1439,7 @@ display message, and load eeprom row to bitmap handler current row
 */
 void uiLoadRowEeprom() {
   currentRow = readEepromRow();
-  String message = "loading row";
+  String message = F("loading row");
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   stateInt = 1;
 }
@@ -1449,7 +1449,7 @@ display message, and save current row to eeprom
 */
 void uiSaveRowEeprom(int row) {
   String message;
-  message += "saving row: ";
+  message += F("saving row: ");
   message += String(row + 1);
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   stateInt = 1;
@@ -1470,7 +1470,7 @@ void setup() {
   lcd->begin(LCD_COLS, LCD_ROWS);
   delay(1000);
   initializeCard();
-  String _fileToOpen = displayFiles("/");
+  String _fileToOpen = displayFiles(F("/"));
   
   String lowerCaseName = toLowerCase(_fileToOpen);
   openFile(lowerCaseName);
@@ -1491,7 +1491,7 @@ void setup() {
     //if the file is not ok possibly because the image width is greater than the LED count.
     //stay in the config loop.
     if ((!fileOk) && (stateInt == 1)) {
-      resetAndDisplayStringLcd("file not ok");
+      resetAndDisplayStringLcd(F("file not ok"));
       stateInt = 0;
       uiIntro();
     }
