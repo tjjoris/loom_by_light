@@ -292,8 +292,8 @@ bool isAnyButtonPressed() {
 //the file navigator
 int _numFilesInDir = 0;
 int _currentNavigatedFileCount = 0;
-String _fileToOpen;
-String _tempFileName;
+// String _fileToOpen;
+// String _tempFileName;
 
 /**
 get the file to open
@@ -336,86 +336,128 @@ display files within the directory. then waits for button presses to respond.
 up or down will navigate, right will open a file if it's valid, select will 
 go back to the config.
 */
-void displayFiles(String address) {
+String displayFiles(String address) {
+  String _fileToOpen;
+  String _tempFileName;
   bool loopDisplayFilesCondition = true; //if to continue displaying files.
   File root;
   File entry;
-  while (loopDisplayFilesCondition) {
-    root = openDirectory(address);//open the directory.
-    int fileCount = 0;//file count is the count of displayed files.
-    int row = 0;//row is the row displayed on the lcd screen.
+  while (loopDisplayFilesCondition) { //main loop to display files.
+    root = openDirectory(address);//open the directory, gets back the dir File.
+    int fileCount = 0;// the count of displayed files.
+    int row = 0;//the row displayed on the lcd screen.
     lcd->clear(); //clear the lcd
-    while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
+    //loop that ends when all rows have been displayed.
+    while (row < LCD_ROWS) {
       entry = nextFile(root);//opens the next file.
       fileCount ++;//iterates the count of displayed files.
       //checks if the current file is high enough in the navigated file count to 
       //display on the lcd screen.
       if (fileCount > _currentNavigatedFileCount) {
         if (isFile(entry)) {//if file is open.
-            String fileNameThisRow = getFileName(entry);
+        //the string for the file name of this row, needed to add "_" if it's the first.
+            String fileNameThisRow = getFileName(entry); 
           if (row == 0) {//if this is the first file in the row, set the temporary file name.
             _tempFileName = getFileName(entry);
             fileNameThisRow += "_";
           }
           displayMsgAtRow(fileNameThisRow, row);//display file on lcd
           row ++;//iterate row.
-        } else {//file could not be opened so end loop.
+        } else {//file could not be opened so set loop condition to end loop.
           row = LCD_ROWS;//match loop condition to end loop.
         }
       }
-      closeFile(entry);
-    }
+      closeFile(entry); //close the file opened to get the file name.
+    }//loop has ended that all rows have been displayed.
     lcd->display();//display lcd screen.
     //loop to check button presses, return value is outer loop condition.
-    loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
+    // loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
+
+    //the following code reads button presses.
+    bool loopButtonCheckingCondition = true;
+    while (loopButtonCheckingCondition) {
+      readButtons();
+      if (isDownPressed()) {
+        _currentNavigatedFileCount ++;
+        // break;
+        loopButtonCheckingCondition = false;
+      }
+      else if (isUpPressed()) {
+        _currentNavigatedFileCount --;
+        if (_currentNavigatedFileCount < 0) {
+          _currentNavigatedFileCount = 0;
+        }
+        // break;
+        loopButtonCheckingCondition = false;
+      }
+      else if (isRightPressed()) {
+        if (isFileNamevalid(_tempFileName)) {
+          //set the filename to open
+          _fileToOpen = _tempFileName;
+          loopButtonCheckingCondition = false;
+          stateInt = 1; //set the state to navigate a row.
+          String message = "name valid";
+          //display lcd message to display the name is valid.
+          // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
+          loopDisplayFilesCondition =  false;
+        }
+      }
+      // else if (isSelectPressed()) {
+      //   stateInt = 10;//set state int to config.
+      //   loopButtonCheckingCondition = false;
+      // }
+    }
+    loopDisplayFilesCondition = true;
     closeFile(root);//close directory so it can be opened and files freshly iterated again.
-  }
+  }//end main loop to display files.
+  //return the file name of the file to open.
+  return _fileToOpen;
 }
 
-/**
-loop until a button has been pressed, this also controls the loop
-it exists inside, in case a file is loaded, or select is pressed.
-*/
-bool checkButtonPressesInDisplayFiles() {
-  bool loopButtonCheckingCondition = true;
-  while (loopButtonCheckingCondition) {
-    readButtons();
-    if (isDownPressed()) {
-      _currentNavigatedFileCount ++;
-      // break;
-      loopButtonCheckingCondition = false;
-    }
-    else if (isUpPressed()) {
-      _currentNavigatedFileCount --;
-      if (_currentNavigatedFileCount < 0) {
-        _currentNavigatedFileCount = 0;
-      }
-      // break;
-      loopButtonCheckingCondition = false;
-    }
-    else if (isRightPressed()) {
-      if (isFileNamevalid()) {
-        setFile();
-        loopButtonCheckingCondition = false;
-        stateInt = 1; //set the state to navigate a row.
-        String message = "name valid";
-        //display lcd message to display the name is valid.
-        // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
-        return false;
-      }
-    }
-    else if (isSelectPressed()) {
-      stateInt = 10;//set state int to config.
-      loopButtonCheckingCondition = false;
-    }
-  }
-  return true;
-}
+// /**
+// loop until a button has been pressed, this also controls the loop
+// it exists inside, in case a file is loaded, or select is pressed.
+// */
+// bool checkButtonPressesInDisplayFiles() {
+//   bool loopButtonCheckingCondition = true;
+//   while (loopButtonCheckingCondition) {
+//     readButtons();
+//     if (isDownPressed()) {
+//       _currentNavigatedFileCount ++;
+//       // break;
+//       loopButtonCheckingCondition = false;
+//     }
+//     else if (isUpPressed()) {
+//       _currentNavigatedFileCount --;
+//       if (_currentNavigatedFileCount < 0) {
+//         _currentNavigatedFileCount = 0;
+//       }
+//       // break;
+//       loopButtonCheckingCondition = false;
+//     }
+//     else if (isRightPressed()) {
+//       if (isFileNamevalid()) {
+//         setFile();
+//         loopButtonCheckingCondition = false;
+//         stateInt = 1; //set the state to navigate a row.
+//         String message = "name valid";
+//         //display lcd message to display the name is valid.
+//         // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
+//         return false;
+//       }
+//     }
+//     else if (isSelectPressed()) {
+//       stateInt = 10;//set state int to config.
+//       loopButtonCheckingCondition = false;
+//     }
+//   }
+//   return true;
+// }
 
 /**
 check if the file name is valid, it must end in .bmp
 */
-bool isFileNamevalid() {
+bool isFileNamevalid(String _tempFileName) {
   String lowerCaseFileName = toLowerCase(_tempFileName);
   if (lowerCaseFileName.endsWith(".bmp")) {
     return true;
@@ -433,12 +475,12 @@ String toLowerCase(String myString) {
   return myString;
 }
 
-/**
-set the file to open
-*/
-void setFile() {
-  _fileToOpen = _tempFileName;
-}
+// /**
+// set the file to open
+// */
+// void setFile() {
+//   _fileToOpen = _tempFileName;
+// }
 
 /**
 next file
@@ -476,9 +518,9 @@ String getFileName(File entry) {
 /**
 file uses file navigator at root.
 */
-void navigateFilesAtRoot() {
-  displayFiles("/");
-}
+// void navigateFilesAtRoot() {
+//   displayFiles("/");
+// }
 
 
 //LED strip handler
@@ -1244,7 +1286,8 @@ void uiNavigateFiles() {
   if (stateInt != 20) {
     return;
   }
-  navigateFilesAtRoot();
+  // navigateFilesAtRoot();
+  displayFiles("/");
 }
 
 /**
@@ -1446,7 +1489,7 @@ void setup() {
   lcd->begin(LCD_COLS, LCD_ROWS);
   delay(1000);
   initializeCard();
-  navigateFilesAtRoot();
+  String _fileToOpen = displayFiles("/");
   
   String lowerCaseName = toLowerCase(_fileToOpen);
   openFile(lowerCaseName);
