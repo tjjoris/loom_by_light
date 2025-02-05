@@ -399,9 +399,8 @@ bool checkButtonPressesInDisplayFiles() {
         loopButtonCheckingCondition = false;
         stateInt = 1; //set the state to navigate a row.
         String message = "name valid";
-        // resetAndDisplayStringLcd(message);
-        // delay(1000);
-        resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
+        //display lcd message to display the name is valid.
+        // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
         return false;
       }
     }
@@ -561,20 +560,6 @@ uint32_t compression;
 // uint32_t importantColors;
 
 
-// /**
-// *constructor, sets instance variables for filename.
-// */
-// BitmapHandler(String filename){
-//   fileOk = false;
-//   bmpFilename = filename;
-//   currentRow = 0;
-// }
-
-
-bool isFileOk() {
-  return fileOk;
-}
-
 void incrementRow() {
   currentRow++;
   if (currentRow >= imageHeight) {
@@ -679,8 +664,8 @@ bool verifyFile() {
     message += ledCount;
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
-    // fileOk = false;
-    // return false;
+    fileOk = false;
+    return false;
   }
   // all OK
   String message;
@@ -1475,16 +1460,22 @@ void setup() {
   while(stateInt!=1) {
 
     uiBrightness();
-  uiOffset();
-  uiLedCount();
-  // showLightsForRow();
-  uiReset();
+    uiOffset();
+    uiLedCount();
+    // showLightsForRow();
+    uiReset();
+    //if the file is not ok possibly because the image width is greater than the LED count.
+    //stay in the config loop.
+    if ((!fileOk) && (stateInt == 1)) {
+      resetAndDisplayStringLcd("file not ok");
+      stateInt = 0;
+      uiIntro();
+    }
   }
+  
+  
 }
 void loop() {
-  // if (!isFileOk()) {
-  //   resetAndDisplayStringLcd("file not ok");
-  //   while(1);
   //   return;
   // }
   // uiIntro();
