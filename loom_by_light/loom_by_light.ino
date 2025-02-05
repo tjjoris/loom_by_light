@@ -340,7 +340,7 @@ String displayFiles(String address) {
     lcd->clear(); //clear the lcd
     //loop that ends when all rows have been displayed.
     while (row < LCD_ROWS) {
-      entry = nextFile(root);//opens the next file.
+      entry = root.openNextFile();//opens the next file.
       fileCount ++;//iterates the count of displayed files.
       //checks if the current file is high enough in the navigated file count to 
       //display on the lcd screen.
@@ -469,12 +469,6 @@ String toLowerCase(String myString) {
 //   _fileToOpen = _tempFileName;
 // }
 
-/**
-next file
-*/
-File nextFile(File root) {
-  return root.openNextFile();
-}
 
 /**
 return true if there is a file opened, else return false.
@@ -1236,7 +1230,7 @@ void uiDisplayRow() {
     return;
   }
   String message;
-  message = "current row: ";
+  message = F("current row: ");
   message += (currentRow + 1);
   resetAndDisplayStringLcd(message);
   showLightsForRow();
