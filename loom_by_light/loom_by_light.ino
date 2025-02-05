@@ -517,16 +517,6 @@ void createStrip() {
   strip->setBrightness(brightness); //set the brightness.
   strip->show(); //turn off all pixels.
 }
-// /**
-// the constructor, constructs the strip object
-// */
-// LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
-//   DEBUG_LN("LblLedStripHandler constructor called.");
-//   strip.begin(); //initialize NeoPixel strip object (REQUIRED)
-//   strip.setBrightness(brightness); //set the brightness.
-//   strip.show(); //turn off all pixels.
-// }
-
 
 /**
 set the brightness
@@ -928,6 +918,20 @@ void showLightsForRow() {
 }
 
 /**
+shows all LEDS at count number starting from the start until the end.
+*/
+void showLedsInBounds(int ledStart, int ledEnd) {
+  for (int i=0; i<ledCount; i++) {
+    if ((i >= ledStart) && (i < ledEnd)) {
+      setPixel(i, true);
+    } else {
+      setPixel(i, false);
+    }
+  }
+  strip->show();
+}
+
+/**
 increase the led count, if its above max, set to 0.
 */
 void increaseLedCount() {
@@ -974,7 +978,7 @@ void decreaseLedOffset() {
     ledOffset = (ledCount - imageWidth);
     EEPROM.put(EEPROM_OFFSET, ledOffset);
   }
-  showLightsForRow();
+  // showLightsForRow();
 }
 
 /**
@@ -1253,10 +1257,6 @@ void uiDisplayRow() {
       uiLoadRowEeprom();
       return;
     }
-    // if (isSelectPressed()) {
-    //   stateInt = 10;//enter config mode.
-    //   break;
-    // }
   }
 }
 
@@ -1302,8 +1302,6 @@ void uiReset() {
       break;
     } else
     if (isSelectPressed()) {
-      // writeAllEepromData(); 
-      // stateInt = 1;
       setStateDepartingConfig();
       break;
     }
@@ -1342,8 +1340,6 @@ void uiBrightness() {
       break;
     } else
     if (isSelectPressed()) {
-      // writeAllEepromData(); 
-      // stateInt = 1;
       setStateDepartingConfig();
       break;
     }
@@ -1362,7 +1358,7 @@ void uiOffset() {
   message = F("offset: ");
   message += ledOffset;
   resetAndDisplayStringLcd(message);
-  showLightsForRow();
+  showLedsInBounds(ledOffset, ledOffset + imageWidth);
   while(1) {
     displayStringLcd(message);
     readButtons();
@@ -1383,8 +1379,6 @@ void uiOffset() {
       break;
     } else
     if (isSelectPressed()) {
-      // writeAllEepromData();
-      // stateInt = 1;
       setStateDepartingConfig();
       break;
     }
@@ -1416,18 +1410,16 @@ void uiLedCount() {
     if (isLeftPressed()) {
       decreaseLedCount();
       recreateLedStripHandler();
-      showLightsForRow();
+      showLedsInBounds(0, ledCount);
       break;
     } else
     if (isRightPressed()) {
       increaseLedCount();
       recreateLedStripHandler();
-      showLightsForRow();
+      showLedsInBounds(0, ledCount);
       break;
     } else
     if (isSelectPressed()) {
-      // writeAllEepromData();
-      // stateInt = 1;
       setStateDepartingConfig();
       break;
     }
