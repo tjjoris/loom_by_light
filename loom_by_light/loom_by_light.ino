@@ -298,9 +298,9 @@ String _tempFileName;
 /**
 get the file to open
 */
-String getFileToOpen() {
-  return _fileToOpen;
-}
+// String getFileToOpen() {
+//   return _fileToOpen;
+// }
 
 /**
 open the directory
@@ -1204,7 +1204,7 @@ void uiIntro() {
     readButtons();
     if ((isUpPressed()) || (isDownPressed())) {
       currentRow = readEepromRow(); //read the current row from the EEPROM.
-      stateInt = 1;
+      stateInt = 10;
       break;
     }
     if (isSelectPressed()) {
@@ -1463,25 +1463,35 @@ void setup() {
   initializeCard();
   navigateFilesAtRoot();
   
-  String lowerCaseName = toLowerCase(getFileToOpen());
+  String lowerCaseName = toLowerCase(_fileToOpen);
   openFile(lowerCaseName);
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
   verifyFile();
   //instantiate light strip handler
   createStrip();
   stateInt = 0;
-}
-void loop() {
-  if (!isFileOk()) {
-    resetAndDisplayStringLcd("file not ok");
-    while(1);
-    return;
-  }
+  
   uiIntro();
-  uiDisplayRow();
-  uiBrightness();
+  while(stateInt!=1) {
+
+    uiBrightness();
   uiOffset();
   uiLedCount();
-  showLightsForRow();
+  // showLightsForRow();
   uiReset();
+  }
+}
+void loop() {
+  // if (!isFileOk()) {
+  //   resetAndDisplayStringLcd("file not ok");
+  //   while(1);
+  //   return;
+  // }
+  // uiIntro();
+  uiDisplayRow();
+  // uiBrightness();
+  // uiOffset();
+  // uiLedCount();
+  // // showLightsForRow();
+  // uiReset();
 }
