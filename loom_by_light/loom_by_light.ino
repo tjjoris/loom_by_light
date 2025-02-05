@@ -27,11 +27,11 @@ Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
 
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
-this version of Loom by Light: 1.6.2
+this version of Loom by Light: 1.6.3
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-February-03
+*@date 2025-February-05
 */
 
 #include <SPI.h>
@@ -523,6 +523,7 @@ set the brightness
 */
 void setLedBrightness() {
   strip->setBrightness(brightness);
+  showLedsInBounds(0, ledCount);
   strip->show();
 }
 
@@ -1302,6 +1303,7 @@ void uiReset() {
       ledCount = 60;
       ledOffset = 0;
       message = F("Resetting...");
+      showLedsInBounds(0, ledCount); //show the min to max led count.
       resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
       setLedBrightness();
       break;
