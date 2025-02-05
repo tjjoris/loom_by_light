@@ -1230,10 +1230,10 @@ void uiDisplayRow() {
       uiLoadRowEeprom();
       return;
     }
-    if (isSelectPressed()) {
-      stateInt = 10;//enter config mode.
-      break;
-    }
+    // if (isSelectPressed()) {
+    //   stateInt = 10;//enter config mode.
+    //   break;
+    // }
   }
 }
 
