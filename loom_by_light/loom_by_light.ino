@@ -398,7 +398,7 @@ String displayFiles(String address) {
           stateInt = 1; //set the state to navigate a row.
           String message = "name valid";
           //display lcd message to display the name is valid.
-          // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
+          resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
           loopDisplayFilesCondition =  false;
         }
       }
@@ -407,7 +407,7 @@ String displayFiles(String address) {
       //   loopButtonCheckingCondition = false;
       // }
     }
-    loopDisplayFilesCondition = true;
+    // loopDisplayFilesCondition = true;
     closeFile(root);//close directory so it can be opened and files freshly iterated again.
   }//end main loop to display files.
   //return the file name of the file to open.
