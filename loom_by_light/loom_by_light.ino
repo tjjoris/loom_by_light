@@ -938,6 +938,11 @@ void increaseLedCount() {
   ledCount ++;
   if (ledCount > LED_COUNT) {
     ledCount = 1;
+    //hide LEDs between min and max led count.
+    for (int i=2; i<LED_COUNT; i++) {
+      setPixel(i, false);
+    }
+    strip->show();
   }
   checkLedOffset();
 }
