@@ -922,8 +922,8 @@ void showLightsForRow() {
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
     setPixel(i, isLightOnAtColumn(i));
-    showStrip();
   }
+  showStrip();
 }
 
 /**
@@ -1232,9 +1232,9 @@ void uiDisplayRow() {
   message = "current row: ";
   message += (currentRow + 1);
   resetAndDisplayStringLcd(message);
+  showLightsForRow();
   while (1) {
     displayStringLcd(message);
-    showLightsForRow();
     readButtons();
     if (isUpPressed()) {
       decrementRow();
@@ -1360,6 +1360,7 @@ void uiOffset() {
   message = "offset: ";
   message += ledOffset;
   resetAndDisplayStringLcd(message);
+  showLightsForRow();
   while(1) {
     displayStringLcd(message);
     readButtons();
@@ -1385,7 +1386,6 @@ void uiOffset() {
       setStateDepartingConfig();
       break;
     }
-    showLightsForRow();
   }
 }
 
