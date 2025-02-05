@@ -27,11 +27,11 @@ Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
 
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
-this version of Loom by Light: 1.6.2
+this version of Loom by Light: 1.6.3
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-February-03
+*@date 2025-February-05
 */
 
 #include <SPI.h>
@@ -292,15 +292,6 @@ bool isAnyButtonPressed() {
 //the file navigator
 int _numFilesInDir = 0;
 int _currentNavigatedFileCount = 0;
-String _fileToOpen;
-String _tempFileName;
-
-/**
-get the file to open
-*/
-String getFileToOpen() {
-  return _fileToOpen;
-}
 
 /**
 open the directory
@@ -309,12 +300,12 @@ File openDirectory(String address) {
   File myFile = SD.open(address);
   String message;
   if (myFile) {
-    message = "directory opened";
+    message = F("directory opened");
     DEBUG_LN(message);
     // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   }
   else {
-    message = "err opening dir";
+    message = F("err opening dir");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   }
@@ -326,7 +317,7 @@ close the file
 */
 void closeFile(File root) {
   root.close();
-  String message = "closing file";
+  String message = F("closing file");
     DEBUG_LN(message);
     // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
 }
@@ -336,89 +327,126 @@ display files within the directory. then waits for button presses to respond.
 up or down will navigate, right will open a file if it's valid, select will 
 go back to the config.
 */
-void displayFiles(String address) {
+String displayFiles(String address) {
+  String fileToOpen;
+  String tempFileName;
   bool loopDisplayFilesCondition = true; //if to continue displaying files.
   File root;
   File entry;
-  while (loopDisplayFilesCondition) {
-    root = openDirectory(address);//open the directory.
-    int fileCount = 0;//file count is the count of displayed files.
-    int row = 0;//row is the row displayed on the lcd screen.
+  while (loopDisplayFilesCondition) { //main loop to display files.
+    root = openDirectory(address);//open the directory, gets back the dir File.
+    int fileCount = 0;// the count of displayed files.
+    int row = 0;//the row displayed on the lcd screen.
     lcd->clear(); //clear the lcd
-    while (row < LCD_ROWS) {//only loop if not exceeded rows to display.
-      entry = nextFile(root);//opens the next file.
+    //loop that ends when all rows have been displayed.
+    while (row < LCD_ROWS) {
+      entry = root.openNextFile();//opens the next file.
       fileCount ++;//iterates the count of displayed files.
       //checks if the current file is high enough in the navigated file count to 
       //display on the lcd screen.
       if (fileCount > _currentNavigatedFileCount) {
         if (isFile(entry)) {//if file is open.
-            String fileNameThisRow = getFileName(entry);
+        //the string for the file name of this row, needed to add "_" if it's the first.
+            String fileNameThisRow = getFileName(entry); 
           if (row == 0) {//if this is the first file in the row, set the temporary file name.
-            _tempFileName = getFileName(entry);
-            fileNameThisRow += "_";
+            tempFileName = getFileName(entry);
+            fileNameThisRow += F("_");
           }
           displayMsgAtRow(fileNameThisRow, row);//display file on lcd
           row ++;//iterate row.
-        } else {//file could not be opened so end loop.
+        } else {//file could not be opened so set loop condition to end loop.
           row = LCD_ROWS;//match loop condition to end loop.
         }
       }
-      closeFile(entry);
-    }
+      closeFile(entry); //close the file opened to get the file name.
+    }//loop has ended that all rows have been displayed.
     lcd->display();//display lcd screen.
     //loop to check button presses, return value is outer loop condition.
-    loopDisplayFilesCondition = checkButtonPressesInDisplayFiles();
-    closeFile(root);//close directory so it can be opened and files freshly iterated again.
-  }
+
+    //the following code reads button presses.
+    bool loopButtonCheckingCondition = true;
+    while (loopButtonCheckingCondition) {
+      readButtons();
+      if (isDownPressed()) {//down is pressed, increment current navigated file count.
+        _currentNavigatedFileCount ++;
+        // break;
+        loopButtonCheckingCondition = false;
+      }
+      else if (isUpPressed()) {//up is pressed, decrement current navigated file count.
+        _currentNavigatedFileCount --;
+        if (_currentNavigatedFileCount < 0) {
+          _currentNavigatedFileCount = 0;
+        }
+        // break;
+        loopButtonCheckingCondition = false;
+      }
+      else if (isRightPressed()) {
+        //right is pressed, a file has been selected.
+        if (isFileNamevalid(tempFileName)) { //if the file name is valid.
+          //set the filename to open
+          fileToOpen = tempFileName; //set the file to open to the current navigated file.
+          loopButtonCheckingCondition = false; //end the loop for checking button presses.
+          stateInt = 1; //set the state to navigate a row.
+          String message = F("name valid"); //set the message that the name is valid.
+          //display lcd message to display the name is valid.
+          resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
+          loopDisplayFilesCondition =  false; //end the loop for displaying files.
+        }
+      }
+    }
+    //close root directory so it can be opened and files freshly iterated again.
+    closeFile(root);
+  }//end main loop to display files.
+  //return the file name of the file to open.
+  return fileToOpen;
 }
 
-/**
-loop until a button has been pressed, this also controls the loop
-it exists inside, in case a file is loaded, or select is pressed.
-*/
-bool checkButtonPressesInDisplayFiles() {
-  bool loopButtonCheckingCondition = true;
-  while (loopButtonCheckingCondition) {
-    readButtons();
-    if (isDownPressed()) {
-      _currentNavigatedFileCount ++;
-      // break;
-      loopButtonCheckingCondition = false;
-    }
-    else if (isUpPressed()) {
-      _currentNavigatedFileCount --;
-      if (_currentNavigatedFileCount < 0) {
-        _currentNavigatedFileCount = 0;
-      }
-      // break;
-      loopButtonCheckingCondition = false;
-    }
-    else if (isRightPressed()) {
-      if (isFileNamevalid()) {
-        setFile();
-        loopButtonCheckingCondition = false;
-        stateInt = 1; //set the state to navigate a row.
-        String message = "name valid";
-        // resetAndDisplayStringLcd(message);
-        // delay(1000);
-        resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
-        return false;
-      }
-    }
-    else if (isSelectPressed()) {
-      stateInt = 10;//set state int to config.
-      loopButtonCheckingCondition = false;
-    }
-  }
-  return true;
-}
+// /**
+// loop until a button has been pressed, this also controls the loop
+// it exists inside, in case a file is loaded, or select is pressed.
+// */
+// bool checkButtonPressesInDisplayFiles() {
+//   bool loopButtonCheckingCondition = true;
+//   while (loopButtonCheckingCondition) {
+//     readButtons();
+//     if (isDownPressed()) {
+//       _currentNavigatedFileCount ++;
+//       // break;
+//       loopButtonCheckingCondition = false;
+//     }
+//     else if (isUpPressed()) {
+//       _currentNavigatedFileCount --;
+//       if (_currentNavigatedFileCount < 0) {
+//         _currentNavigatedFileCount = 0;
+//       }
+//       // break;
+//       loopButtonCheckingCondition = false;
+//     }
+//     else if (isRightPressed()) {
+//       if (isFileNamevalid()) {
+//         setFile();
+//         loopButtonCheckingCondition = false;
+//         stateInt = 1; //set the state to navigate a row.
+//         String message = "name valid";
+//         //display lcd message to display the name is valid.
+//         // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
+//         return false;
+//       }
+//     }
+//     else if (isSelectPressed()) {
+//       stateInt = 10;//set state int to config.
+//       loopButtonCheckingCondition = false;
+//     }
+//   }
+//   return true;
+// }
 
 /**
 check if the file name is valid, it must end in .bmp
 */
-bool isFileNamevalid() {
+bool isFileNamevalid(String _tempFileName) {
   String lowerCaseFileName = toLowerCase(_tempFileName);
-  if (lowerCaseFileName.endsWith(".bmp")) {
+  if (lowerCaseFileName.endsWith(F(".bmp"))) {
     return true;
   }
   return false;
@@ -434,19 +462,13 @@ String toLowerCase(String myString) {
   return myString;
 }
 
-/**
-set the file to open
-*/
-void setFile() {
-  _fileToOpen = _tempFileName;
-}
+// /**
+// set the file to open
+// */
+// void setFile() {
+//   _fileToOpen = _tempFileName;
+// }
 
-/**
-next file
-*/
-File nextFile(File root) {
-  return root.openNextFile();
-}
 
 /**
 return true if there is a file opened, else return false.
@@ -477,9 +499,9 @@ String getFileName(File entry) {
 /**
 file uses file navigator at root.
 */
-void navigateFilesAtRoot() {
-  displayFiles("/");
-}
+// void navigateFilesAtRoot() {
+//   displayFiles("/");
+// }
 
 
 //LED strip handler
@@ -495,23 +517,14 @@ void createStrip() {
   strip->setBrightness(brightness); //set the brightness.
   strip->show(); //turn off all pixels.
 }
-// /**
-// the constructor, constructs the strip object
-// */
-// LblLedStripHandler() : strip(ledCount, LED_PIN, NEO_GRB + NEO_KHZ800) {
-//   DEBUG_LN("LblLedStripHandler constructor called.");
-//   strip.begin(); //initialize NeoPixel strip object (REQUIRED)
-//   strip.setBrightness(brightness); //set the brightness.
-//   strip.show(); //turn off all pixels.
-// }
-
 
 /**
 set the brightness
 */
 void setLedBrightness() {
   strip->setBrightness(brightness);
-  showStrip();
+  showLedsInBounds(0, ledCount);
+  strip->show();
 }
 
 /**
@@ -520,21 +533,14 @@ set a pixel to true or false at a specific location
 void setPixel(int pixelIndex, bool isTrue) {
   if (isTrue) {
     strip->setPixelColor(pixelIndex, strip->Color(0,0,255));
-    DEBUG_MSG("set pixel to true at index ");
+    DEBUG_MSG(F("set pixel to true at index "));
     DEBUG_MSG(pixelIndex);
   }
   else {
     strip->setPixelColor(pixelIndex, strip->Color(0,0,0));
-    DEBUG_MSG("set pixel to false at index ");
+    DEBUG_MSG(F("set pixel to false at index "));
     DEBUG_MSG(pixelIndex);
   }
-}
-
-/**
-display the set lights on the light strip.
-*/
-void showStrip() {
-  strip->show();
 }
 
 
@@ -567,20 +573,6 @@ uint32_t compression;
 // uint32_t totalColors;
 // uint32_t importantColors;
 
-
-// /**
-// *constructor, sets instance variables for filename.
-// */
-// BitmapHandler(String filename){
-//   fileOk = false;
-//   bmpFilename = filename;
-//   currentRow = 0;
-// }
-
-
-bool isFileOk() {
-  return fileOk;
-}
 
 void incrementRow() {
   currentRow++;
@@ -657,7 +649,7 @@ uint32_t read32Bit(){
 bool verifyFile() {
   if (!bmpFile) {
     String message;
-    message = "unable to open file";
+    message = F("unable to open file");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
@@ -665,7 +657,7 @@ bool verifyFile() {
   }
   if (!readFileHeaders()){
     String message;
-    message = "Unable to read file headers";
+    message = F("Unable to read file headers");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
@@ -673,7 +665,7 @@ bool verifyFile() {
   }
   if (!checkFileHeaders()){
     String message;
-    message = "Not compatable file";
+    message = F("Not compatable file");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     fileOk = false;
@@ -682,17 +674,17 @@ bool verifyFile() {
   // //image width check, uncomment this later.
   if (ledCount < imageWidth) {
     String message;
-    message = "Image width greater then LED count ";
+    message = F("Image width greater then LED count ");
     message += ledCount;
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
-    // fileOk = false;
-    // return false;
+    fileOk = false;
+    return false;
   }
   // all OK
   String message;
-  message = "file OK";
-  DEBUG_LN("BMP file all OK");
+  message = F("file OK");
+  DEBUG_LN(message);
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   fileOk = true;
   return true;
@@ -763,14 +755,14 @@ bool checkFileHeaders(){
   // }
   // only working with 24 bit bitmaps
   if (bitsPerPixel != 24){
-    String message = "is not 24 bit bitmap.";
+    String message = F("is not 24 bit bitmap.");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
   }
   // no compression
   if (compression != 0){
-    String message = "bitmap is compressed.";
+    String message = F("bitmap is compressed.");
     DEBUG_LN(message);
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
@@ -779,25 +771,25 @@ bool checkFileHeaders(){
   return true;
 }
 
-/**
-*print file hader values to serial.
-* code sourced from: 
-*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-*/
-void serialPrintHeaders() {
-  DEBUG_MSG("imageOffset : ");
-  DEBUG_LN(imageOffset);
-  DEBUG_MSG("imageWidth : ");
-  DEBUG_LN(imageWidth);
-  DEBUG_MSG("imageHeight : ");
-  DEBUG_LN(imageHeight);
-  DEBUG_MSG("colourPlanes : ");
-  DEBUG_LN(colourPlanes);
-  DEBUG_MSG("bitsPerPixel : ");
-  DEBUG_LN(bitsPerPixel);
-  DEBUG_MSG("compression : ");
-  DEBUG_LN(compression);
-}
+// /**
+// *print file hader values to serial.
+// * code sourced from: 
+// *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
+// */
+// void serialPrintHeaders() {
+//   DEBUG_MSG(F("imageOffset : "));
+//   DEBUG_LN(imageOffset);
+//   DEBUG_MSG("imageWidth : ");
+//   DEBUG_LN(imageWidth);
+//   DEBUG_MSG("imageHeight : ");
+//   DEBUG_LN(imageHeight);
+//   DEBUG_MSG("colourPlanes : ");
+//   DEBUG_LN(colourPlanes);
+//   DEBUG_MSG("bitsPerPixel : ");
+//   DEBUG_LN(bitsPerPixel);
+//   DEBUG_MSG("compression : ");
+//   DEBUG_LN(compression);
+// }
 
 
 /**
@@ -807,13 +799,13 @@ bool openFile(String fileName) {
 bmpFile = SD.open(fileName, FILE_READ);
 String message;
 if (!bmpFile) {
-    message = "Unable to open file"
+    message = F("Unable to open file")
     DEBUG_MSG(message);
     fileOk = false;
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
     return false;
   }
-  message = "file opened";
+  message = F("file opened");
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   return true;
 }
@@ -881,17 +873,17 @@ bool isBitTrueInByte(byte myByte, int bitPos) {
 *initialize the SD card.
 */
 void initializeCard() {
-  DEBUG_MSG("beginning initialization of SD card");
+  DEBUG_MSG(F("beginning initialization of SD card"));
 
   if (!SD.begin(CHIP_SELECT)) {
-    String message = "SD initialization failed";
+    String message = F("SD initialization failed");
     DEBUG_LN(message);
     resetAndDisplayStringLcd(message);
     while (1); //infinate loop to force resetting arduino
   }
-  DEBUG_LN("SD Initalized successfully"); //if you reach here setup successfully
-  DEBUG_LN("----------------------------\n");
-  String message = "SD initialized successfully";
+  DEBUG_LN(F("SD Initalized successfully")); //if you reach here setup successfully
+  DEBUG_LN(F("----------------------------\n"));
+  String message = F("SD initialized successfully");
   resetAndDisplayStringLcd(message);
   displayStringLcd(message);
   delay(400);
@@ -905,7 +897,7 @@ void printBool(bool boolToPrint) {
     DEBUG_WR(1);
   }
   else {
-    DEBUG_MSG(" ");
+    DEBUG_MSG(F(" "));
   }
 }
 
@@ -922,8 +914,22 @@ void showLightsForRow() {
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
     setPixel(i, isLightOnAtColumn(i));
-    showStrip();
   }
+  strip->show();
+}
+
+/**
+shows all LEDS at count number starting from the start until the end.
+*/
+void showLedsInBounds(int ledStart, int ledEnd) {
+  for (int i=0; i<ledCount; i++) {
+    if ((i >= ledStart) && (i < ledEnd)) {
+      setPixel(i, true);
+    } else {
+      setPixel(i, false);
+    }
+  }
+  strip->show();
 }
 
 /**
@@ -933,6 +939,11 @@ void increaseLedCount() {
   ledCount ++;
   if (ledCount > LED_COUNT) {
     ledCount = 1;
+    //hide LEDs between min and max led count.
+    for (int i=2; i<LED_COUNT; i++) {
+      setPixel(i, false);
+    }
+    strip->show();
   }
   checkLedOffset();
 }
@@ -948,7 +959,7 @@ void decreaseLedCount() {
     
     //set the pixel of the led strip that has been removed to false.
     setPixel(ledCount, false); 
-    showStrip(); //show the strip again to update the removed pixel.
+    strip->show();
   }
   checkLedOffset();
 }
@@ -961,7 +972,7 @@ void increaseLedOffset() {
   if (ledOffset > (ledCount - imageWidth)) {
     ledOffset = 0;
   }
-  showLightsForRow();
+  // showLightsForRow();
 }
 
 /**
@@ -973,7 +984,7 @@ void decreaseLedOffset() {
     ledOffset = (ledCount - imageWidth);
     EEPROM.put(EEPROM_OFFSET, ledOffset);
   }
-  showLightsForRow();
+  // showLightsForRow();
 }
 
 /**
@@ -1203,7 +1214,7 @@ void uiIntro() {
   }
   String message;
   message += String(imageWidth);
-  message += "x";
+  message += F("x");
   message += String(imageHeight);
   resetAndDisplayStringLcd(message);
   while(1) {
@@ -1211,7 +1222,7 @@ void uiIntro() {
     readButtons();
     if ((isUpPressed()) || (isDownPressed())) {
       currentRow = readEepromRow(); //read the current row from the EEPROM.
-      stateInt = 1;
+      stateInt = 10;
       break;
     }
     if (isSelectPressed()) {
@@ -1229,12 +1240,12 @@ void uiDisplayRow() {
     return;
   }
   String message;
-  message = "current row: ";
+  message = F("current row: ");
   message += (currentRow + 1);
   resetAndDisplayStringLcd(message);
+  showLightsForRow();
   while (1) {
     displayStringLcd(message);
-    showLightsForRow();
     readButtons();
     if (isUpPressed()) {
       decrementRow();
@@ -1252,10 +1263,6 @@ void uiDisplayRow() {
       uiLoadRowEeprom();
       return;
     }
-    if (isSelectPressed()) {
-      stateInt = 10;//enter config mode.
-      break;
-    }
   }
 }
 
@@ -1266,7 +1273,8 @@ void uiNavigateFiles() {
   if (stateInt != 20) {
     return;
   }
-  navigateFilesAtRoot();
+  // navigateFilesAtRoot();
+  displayFiles(F("/"));
 }
 
 /**
@@ -1277,7 +1285,7 @@ void uiReset() {
     return;
   }
   String message;
-  message = "Reset";
+  message = F("Reset");
   resetAndDisplayStringLcd(message);
   while(1) {
     displayStringLcd(message);
@@ -1294,14 +1302,13 @@ void uiReset() {
       brightness = 1;
       ledCount = 60;
       ledOffset = 0;
-      message = "Resetting...";
+      message = F("Resetting...");
+      showLedsInBounds(0, ledCount); //show the min to max led count.
       resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
       setLedBrightness();
       break;
     } else
     if (isSelectPressed()) {
-      // writeAllEepromData(); 
-      // stateInt = 1;
       setStateDepartingConfig();
       break;
     }
@@ -1317,7 +1324,7 @@ void uiBrightness() {
     return;
   }
   String message;
-  message = "brightness: ";
+  message = F("brightness: ");
   message += String(brightness);
   resetAndDisplayStringLcd(message);
   while(1){
@@ -1340,8 +1347,6 @@ void uiBrightness() {
       break;
     } else
     if (isSelectPressed()) {
-      // writeAllEepromData(); 
-      // stateInt = 1;
       setStateDepartingConfig();
       break;
     }
@@ -1357,9 +1362,10 @@ void uiOffset() {
     return;
   }
   String message;
-  message = "offset: ";
+  message = F("offset: ");
   message += ledOffset;
   resetAndDisplayStringLcd(message);
+  showLedsInBounds(ledOffset, ledOffset + imageWidth);
   while(1) {
     displayStringLcd(message);
     readButtons();
@@ -1380,12 +1386,9 @@ void uiOffset() {
       break;
     } else
     if (isSelectPressed()) {
-      // writeAllEepromData();
-      // stateInt = 1;
       setStateDepartingConfig();
       break;
     }
-    showLightsForRow();
   }
 }
 
@@ -1397,7 +1400,7 @@ void uiLedCount() {
     return;
   }
   String message;
-  message += "LED count: ";
+  message += F("LED count: ");
   message += (String)ledCount;
   resetAndDisplayStringLcd(message);
   while(1) {
@@ -1414,18 +1417,16 @@ void uiLedCount() {
     if (isLeftPressed()) {
       decreaseLedCount();
       recreateLedStripHandler();
-      showLightsForRow();
+      showLedsInBounds(0, ledCount);
       break;
     } else
     if (isRightPressed()) {
       increaseLedCount();
       recreateLedStripHandler();
-      showLightsForRow();
+      showLedsInBounds(0, ledCount);
       break;
     } else
     if (isSelectPressed()) {
-      // writeAllEepromData();
-      // stateInt = 1;
       setStateDepartingConfig();
       break;
     }
@@ -1437,7 +1438,7 @@ display message, and load eeprom row to bitmap handler current row
 */
 void uiLoadRowEeprom() {
   currentRow = readEepromRow();
-  String message = "loading row";
+  String message = F("loading row");
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   stateInt = 1;
 }
@@ -1447,7 +1448,7 @@ display message, and save current row to eeprom
 */
 void uiSaveRowEeprom(int row) {
   String message;
-  message += "saving row: ";
+  message += F("saving row: ");
   message += String(row + 1);
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   stateInt = 1;
@@ -1468,27 +1469,43 @@ void setup() {
   lcd->begin(LCD_COLS, LCD_ROWS);
   delay(1000);
   initializeCard();
-  navigateFilesAtRoot();
+  String _fileToOpen = displayFiles(F("/"));
   
-  String lowerCaseName = toLowerCase(getFileToOpen());
+  String lowerCaseName = toLowerCase(_fileToOpen);
   openFile(lowerCaseName);
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
   verifyFile();
   //instantiate light strip handler
   createStrip();
   stateInt = 0;
+  
+  uiIntro();
+  while(stateInt!=1) {
+
+    uiBrightness();
+    uiOffset();
+    uiLedCount();
+    // showLightsForRow();
+    uiReset();
+    //if the file is not ok possibly because the image width is greater than the LED count.
+    //stay in the config loop.
+    if ((!fileOk) && (stateInt == 1)) {
+      resetAndDisplayStringLcd(F("file not ok"));
+      stateInt = 0;
+      uiIntro();
+    }
+  }
+  
+  
 }
 void loop() {
-  if (!isFileOk()) {
-    resetAndDisplayStringLcd("file not ok");
-    while(1);
-    return;
-  }
-  uiIntro();
+  //   return;
+  // }
+  // uiIntro();
   uiDisplayRow();
-  uiBrightness();
-  uiOffset();
-  uiLedCount();
-  showLightsForRow();
-  uiReset();
+  // uiBrightness();
+  // uiOffset();
+  // uiLedCount();
+  // // showLightsForRow();
+  // uiReset();
 }
