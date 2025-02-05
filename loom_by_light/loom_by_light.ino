@@ -511,7 +511,7 @@ set the brightness
 */
 void setLedBrightness() {
   strip->setBrightness(brightness);
-  showStrip();
+  strip->show();
 }
 
 /**
@@ -528,13 +528,6 @@ void setPixel(int pixelIndex, bool isTrue) {
     DEBUG_MSG("set pixel to false at index ");
     DEBUG_MSG(pixelIndex);
   }
-}
-
-/**
-display the set lights on the light strip.
-*/
-void showStrip() {
-  strip->show();
 }
 
 
@@ -923,7 +916,7 @@ void showLightsForRow() {
     //set the pixel at i, if it is true in lights array at i.
     setPixel(i, isLightOnAtColumn(i));
   }
-  showStrip();
+  strip->show();
 }
 
 /**
@@ -948,7 +941,7 @@ void decreaseLedCount() {
     
     //set the pixel of the led strip that has been removed to false.
     setPixel(ledCount, false); 
-    showStrip(); //show the strip again to update the removed pixel.
+    strip->show();
   }
   checkLedOffset();
 }
