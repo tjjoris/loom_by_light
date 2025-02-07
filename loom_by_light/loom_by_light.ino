@@ -447,29 +447,11 @@ String displayFiles(String address) {
 check if the file name is valid, it must end in .bmp
 */
 bool isFileNamevalid(String _tempFileName) {
-  String lowerCaseFileName = toLowerCase(_tempFileName);
-  if (lowerCaseFileName.endsWith(F(".bmp"))) {
+  if (_tempFileName.endsWith(F(".BMP"))) {
     return true;
   }
   return false;
 }
-
-/**
-convert a string to lower case
-*/
-String toLowerCase(String myString) {
-  for (int i = 0; i < myString.length(); i++) {
-    myString[i] = tolower(myString[i]);
-  }
-  return myString;
-}
-
-// /**
-// set the file to open
-// */
-// void setFile() {
-//   _fileToOpen = _tempFileName;
-// }
 
 
 /**
@@ -482,13 +464,6 @@ bool isFile(File entry) {
     return true;
 }
 
-// /**
-// close the file
-// */
-// void closeFile() {
-//   _entry.close();
-// }
-
 /**
 return the string of the name of the opened file
 */
@@ -497,13 +472,6 @@ String getFileName(File entry) {
   return fileName;
 }
 
-
-/**
-file uses file navigator at root.
-*/
-// void navigateFilesAtRoot() {
-//   displayFiles("/");
-// }
 
 
 //LED strip handler
@@ -1441,8 +1409,7 @@ void setup() {
   delay(500);
   String _fileToOpen = displayFiles(F("/"));
   
-  String lowerCaseName = toLowerCase(_fileToOpen);
-  openFile(lowerCaseName);
+  openFile(_fileToOpen);
   // //verify file, this includes reading the headers which is necessary to decode the bitmap.
   verifyFile();
   //instantiate light strip handler
