@@ -847,12 +847,11 @@ int calculateInitialBinaryShift(int imageWidth) {
 /**
 *is passed 3 colors, checks the combined saturation and returns if the pixel is true or false.
 */
-bool isPixelTrue(uint8_t blue, uint8_t red, uint8_t green) {
-  uint8_t total = blue + red + green;
-  int redInt = (int)red;
+bool isPixelTrue(uint8_t blue, uint8_t green, uint8_t red) {
   int blueInt = (int)blue;
   int greenInt = (int)green;
-  int totalInt = redInt + blueInt + greenInt;
+  int redInt = (int)red;
+  int totalInt = blueInt + greenInt + redInt;
   if (totalInt < 384) {
     return true;
   }
@@ -1263,9 +1262,6 @@ void uiNavigateFiles() {
 ui to reset brightness, offset, and LED count
 */
 void uiResetToDefault() {
-  if (stateInt != 13) {
-    return;
-  }
   String message;
   message = F("Reset");
   resetAndDisplayStringLcd(message);
@@ -1302,9 +1298,6 @@ the UI for the brigtness in the menu, up goes to the last menu setting, down to 
 left decreases the brightness, right increases the brightness, select goes to row mode.
 */
 void uiBrightness() {
-  if (stateInt != 10) {
-    return;
-  }
   String message;
   message = F("brightness: ");
   message += String(brightness);
@@ -1340,9 +1333,6 @@ the led offset setting, display current offset, up goes to previous config, down
 left decreases offset, right increases offset, select goes back to row mode.
 */
 void uiOffset() {
-  if (stateInt != 11) { //in offset config mode.
-    return;
-  }
   String message;
   message = F("offset: ");
   message += ledOffset;
@@ -1378,9 +1368,6 @@ void uiOffset() {
 the ui configure for the led count.
 */
 void uiLedCount() {
-  if (stateInt != 12) { //led count config mode.
-    return;
-  }
   String message;
   message += F("LED count: ");
   message += (String)ledCount;
@@ -1463,15 +1450,26 @@ void setup() {
   stateInt = 0;
   
   uiIntro();
+  //stays in loop while stateInt is not equal to 1 (uiShowRow value). if file is not ok stateInt will not change to 1.
+  //one reason may be because width is greater than LED count, this allows the user to change the LED count before 
+  //opneing the file.
   while(stateInt!=1) {
-
-    uiBrightness();
-    uiOffset();
-    uiLedCount();
-    // showLightsForRow();
-    uiResetToDefault();
-    //if the file is not ok possibly because the image width is greater than the LED count.
-    //stay in the config loop.
+    switch (stateInt) {
+      case 10: //go to ui brightness function.
+        uiBrightness();
+        break;
+      case 11: //go to ui offset function.
+        uiOffset();
+        break;
+      case 12: //go to ui led count function.
+        uiLedCount();
+        break;
+      case 13: //go to ui reset to default function.
+        uiResetToDefault();
+        break;
+    }
+    //this is what resets the stateInt not to 1 in case the file is not ok because the image width is greater than
+    //LED count.
     if ((!fileOk) && (stateInt == 1)) {
       resetAndDisplayStringLcd(F("file not ok"));
       stateInt = 0;
