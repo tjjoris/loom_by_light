@@ -979,6 +979,19 @@ void writeEepromRow(int row) {
 
 
 /**
+set bit at location in byte
+*/
+byte setBitInByte(byte myByte, uint8_t index, bool myBit) {
+  if (myBit) { //if the passed bit is true make the bit at index 1
+    myByte |= (0x01 << (index));
+  }
+  else {//if the passed bit is false make the bit at index 0
+    myByte &= ~(0x01 << (index));
+  }
+  return myByte;
+}
+
+/**
 gets the byte at index number in the byte.
 */
 bool getBitFromByte(byte myByte, uint8_t index) {
