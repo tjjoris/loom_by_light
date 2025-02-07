@@ -42,7 +42,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define CHIP_SELECT 10 //the chip select used for the SD card.
 //the maximum number of LED's that can be configured to be allowed on a light strip,
 // the amount of LEDs is configured by pressing select in the program.
-#define LED_COUNT 144 
+#define MAX_LED_COUNT 144 
 #define LED_PIN 1 //the pin the data line for the addressable LED strip is connected to.
 // NeoPixel brightness, 0 (min) to 255 (max)
 #define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
@@ -76,7 +76,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 //global variables:
 uint8_t brightness;
 int ledOffset;
-int ledCount = (int)LED_COUNT;
+int ledCount = (int)MAX_LED_COUNT;
 LiquidCrystal * lcd;
 uint8_t stateInt = 0;
 
@@ -939,10 +939,10 @@ increase the led count, if its above max, set to 0.
 */
 void increaseLedCount() {
   ledCount ++;
-  if (ledCount > LED_COUNT) {
+  if (ledCount > MAX_LED_COUNT) {
     ledCount = 1;
     //hide LEDs between min and max led count.
-    for (int i=2; i<LED_COUNT; i++) {
+    for (int i=2; i<MAX_LED_COUNT; i++) {
       setLedToBool(i, false);
     }
     strip->show();
@@ -956,7 +956,7 @@ decrease led count, if its below min, set to max.
 void decreaseLedCount() {
   ledCount --;
   if (ledCount < 1) {
-    ledCount = LED_COUNT;
+    ledCount = MAX_LED_COUNT;
   } else {
     
     //set the pixel of the led strip that has been removed to false.
@@ -1036,8 +1036,8 @@ read the led count from the EEPROM. if out of bounds, set to max bounds.
 */
 int readEepromLedCount() {
   EEPROM.get(EEPROM_LED_COUNT, ledCount);
-  if ((ledCount < 1) || (ledCount > LED_COUNT)) {
-    ledCount = LED_COUNT;
+  if ((ledCount < 1) || (ledCount > MAX_LED_COUNT)) {
+    ledCount = MAX_LED_COUNT;
     EEPROM.put(EEPROM_LED_COUNT, ledCount);
   }
   return ledCount;
@@ -1047,8 +1047,8 @@ int readEepromLedCount() {
 write the led count to the EEPROM. if out of bounds, set it to max.
 */
 void writeEepromLedCount(int ledCount) {
-  if ((ledCount < 1) || (ledCount > LED_COUNT)) {
-    ledCount = LED_COUNT;
+  if ((ledCount < 1) || (ledCount > MAX_LED_COUNT)) {
+    ledCount = MAX_LED_COUNT;
   }
   EEPROM.put(EEPROM_LED_COUNT, ledCount);
 }
