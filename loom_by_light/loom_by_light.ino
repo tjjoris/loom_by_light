@@ -987,21 +987,6 @@ uint8_t getBitsFromByte(byte myByte, uint8_t bitCount) {
   return apersandCompare & myByte;
 }
 
-#define NUM_BITS_STATE 5
-/**
-get the state from the stateInt
-*/
-uint8_t getState() {
-  return getBitsFromByte(stateInt, NUM_BITS_STATE);
-}
-
-/**
-get if in row or config mode
-*/
-bool isUIInRow() {
-  return (getBitFromByte(stateInt, 7));
-}
-
 /**
 this is when the ui state is leaving config and going into row.
 first it writes all eeprom data,
