@@ -106,7 +106,7 @@ void resetAndDisplayMessageWithBreakableLoopLcd(String message, int timeAmount) 
   long timeWhenMessageLoopStarted = millis();
   while(millis() < timeWhenMessageLoopStarted + timeAmount) {
     readButtons();
-    displayStringLcd(message);
+    displayStringLcdWithTimer(message);
     if (isAnyButtonPressed()) {
       break;
     }
@@ -120,7 +120,7 @@ void resetAndDisplayStringLcd(String message) {
   lcd->clear();
   timeAtLcdReset = millis();
   charCount = 0;
-  displayStringLcd(message);
+  displayStringLcdWithTimer(message);
 }
 
 
@@ -129,7 +129,7 @@ void resetAndDisplayStringLcd(String message) {
 display the string to the lcd display. It uses the timer timeAtLcdReset to know 
 when to progress to the next phase of the message.
 */
-void displayStringLcd(String message) {
+void displayStringLcdWithTimer(String message) {
   //loop vars
   int row = 0;
   int col = 0;
@@ -814,7 +814,7 @@ void initializeCard() {
   DEBUG_LN(F("----------------------------\n"));
   String message = F("SD initialized successfully");
   resetAndDisplayStringLcd(message);
-  displayStringLcd(message);
+  displayStringLcdWithTimer(message);
   delay(400);
 }
 
@@ -1127,7 +1127,7 @@ void uiIntro() {
   message += String(imageHeight);
   resetAndDisplayStringLcd(message);
   while(1) {
-    displayStringLcd(message);
+    displayStringLcdWithTimer(message);
     readButtons();
     if ((isUpPressed()) || (isDownPressed())) {
       currentRow = readEepromRow(); //read the current row from the EEPROM.
@@ -1154,7 +1154,7 @@ void uiDisplayRow() {
   resetAndDisplayStringLcd(message);
   showLightsForRow();
   while (1) {
-    displayStringLcd(message);
+    displayStringLcdWithTimer(message);
     readButtons();
     if (isUpPressed()) {
       decrementRow();
@@ -1194,7 +1194,7 @@ void uiResetToDefault() {
   message = F("Reset");
   resetAndDisplayStringLcd(message);
   while(1) {
-    displayStringLcd(message);
+    displayStringLcdWithTimer(message);
     readButtons();
     if (isUpPressed()) {
       stateInt = 12;
@@ -1231,7 +1231,7 @@ void uiBrightness() {
   message += String(brightness);
   resetAndDisplayStringLcd(message);
   while(1){
-    displayStringLcd(message);
+    displayStringLcdWithTimer(message);
     readButtons();
     if (isRightPressed()) {
       increaseBrightnessVar();
@@ -1267,7 +1267,7 @@ void uiOffset() {
   resetAndDisplayStringLcd(message);
   showLedsInBounds(ledOffset, ledOffset + imageWidth);
   while(1) {
-    displayStringLcd(message);
+    displayStringLcdWithTimer(message);
     readButtons();
     if (isUpPressed()) {
       stateInt = 10;
@@ -1301,7 +1301,7 @@ void uiLedCount() {
   message += (String)ledCount;
   resetAndDisplayStringLcd(message);
   while(1) {
-    displayStringLcd(message);
+    displayStringLcdWithTimer(message);
     readButtons();
     if (isUpPressed()) {
       stateInt = 11;
@@ -1370,7 +1370,7 @@ void setup() {
   String _fileToOpen = displayFiles(F("/"));
   
   openFile(_fileToOpen);
-  // //verify file, this includes reading the headers which is necessary to decode the bitmap.
+  //verify file, this includes reading the headers which is necessary to decode the bitmap.
   verifyFile();
   //instantiate light strip handler
   createStrip();
@@ -1407,13 +1407,5 @@ void setup() {
   
 }
 void loop() {
-  //   return;
-  // }
-  // uiIntro();
   uiDisplayRow();
-  // uiBrightness();
-  // uiOffset();
-  // uiLedCount();
-  // // showLightsForRow();
-  // uiReset();
 }
