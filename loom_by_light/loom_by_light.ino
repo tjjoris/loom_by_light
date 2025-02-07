@@ -492,20 +492,6 @@ void decrementRow() {
 }
 
 /**
-*read a byte and return it as an unsigned 8 bit int.
-* code was sourced from: 
-*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-*/
-uint8_t read8Bit(){
-  if (!bmpFile) {
-    return 0;
-  }
-  else {
-    return bmpFile.read();
-  }
-}
-
-/**
 *read 2 bytes, and return them as an unsigned 16 bit int.
 * code sourced from: 
 *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
@@ -672,27 +658,6 @@ bool checkFileHeaders(){
   return true;
 }
 
-// /**
-// *print file hader values to serial.
-// * code sourced from: 
-// *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-// */
-// void serialPrintHeaders() {
-//   DEBUG_MSG(F("imageOffset : "));
-//   DEBUG_LN(imageOffset);
-//   DEBUG_MSG("imageWidth : ");
-//   DEBUG_LN(imageWidth);
-//   DEBUG_MSG("imageHeight : ");
-//   DEBUG_LN(imageHeight);
-//   DEBUG_MSG("colourPlanes : ");
-//   DEBUG_LN(colourPlanes);
-//   DEBUG_MSG("bitsPerPixel : ");
-//   DEBUG_LN(bitsPerPixel);
-//   DEBUG_MSG("compression : ");
-//   DEBUG_LN(compression);
-// }
-
-
 /**
 *open the file, print an error message if it is not opened. return true if the file is opened, otherwise false.
 */
@@ -729,18 +694,6 @@ bool isLightOnAtColumn(int column) {
   bmpFile.seek(pixelRowFileOffset);//seek to the pixel row offset.
   bmpFile.read(pixelBuffer, NUM_BYTES_PER_PIXEL);//read into the pixel buffer.
   return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);//return if the pixel is true or not.
-}
-
-/**
-*this find the initial binary shift which additionally shifts the 
-* binary values of the first byte in the lights array.
-*/
-int calculateInitialBinaryShift(int imageWidth) {
-    int initialBinaryShift = 8 - imageWidth;
-  if (initialBinaryShift < 0) {
-    initialBinaryShift = 0;
-  }
-  return initialBinaryShift;
 }
 
 /**
@@ -790,19 +743,6 @@ void initializeCard() {
 }
 
 /**
-print a different character if the value is true or false.
-*/
-void printBool(bool boolToPrint) {
-  if (boolToPrint) {
-    DEBUG_WR(1);
-  }
-  else {
-    DEBUG_MSG(F(" "));
-  }
-}
-
-
-/**
 delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
 */
 void recreateLedStripHandler() {
@@ -810,6 +750,10 @@ void recreateLedStripHandler() {
   createStrip();
 }
 
+/**
+loops through all LEDs in the light strip and either shows or hides that LED based on the if it should be on or off
+determined by isLightOnAtColumn() using the open bitmap, then shows the light strip.
+*/
 void showLightsForRow() {
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
@@ -986,24 +930,10 @@ void writeEepromLedOffset(int offset) {
 }
 
 /**
-check the unsigned int is within bounds.
-*/
-uint8_t checkWithinUint8Bounds(uint8_t value) {
-  if (value <0) {
-      value = 0;
-  } else if (value > 255){
-    value = 255;
-  }
-  return value;
-}
-
-/**
 read the brigthness form the EEPROM. if it is outside the bounds, reset it to 25.
 */
 uint8_t readEepromBrightness() {
   EEPROM.get(EEPROM_BRIGHTNESS, brightness);
-  brightness = checkWithinUint8Bounds(brightness);
-  EEPROM.put(EEPROM_BRIGHTNESS, brightness);
   return brightness;
 }
 
@@ -1012,7 +942,6 @@ make sure brigthness is within bounds, then write the brightness to the EEPROM
 */
 void writeEepromBrightness(uint8_t writeBrightness) {
   brightness = writeBrightness;
-  brightness = checkWithinUint8Bounds(brightness);
   EEPROM.put(EEPROM_BRIGHTNESS, brightness);
 }
 
