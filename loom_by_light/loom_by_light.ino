@@ -403,46 +403,6 @@ String displayFiles(String address) {
   return fileToOpen;
 }
 
-// /**
-// loop until a button has been pressed, this also controls the loop
-// it exists inside, in case a file is loaded, or select is pressed.
-// */
-// bool checkButtonPressesInDisplayFiles() {
-//   bool loopButtonCheckingCondition = true;
-//   while (loopButtonCheckingCondition) {
-//     readButtons();
-//     if (isDownPressed()) {
-//       _currentNavigatedFileCount ++;
-//       // break;
-//       loopButtonCheckingCondition = false;
-//     }
-//     else if (isUpPressed()) {
-//       _currentNavigatedFileCount --;
-//       if (_currentNavigatedFileCount < 0) {
-//         _currentNavigatedFileCount = 0;
-//       }
-//       // break;
-//       loopButtonCheckingCondition = false;
-//     }
-//     else if (isRightPressed()) {
-//       if (isFileNamevalid()) {
-//         setFile();
-//         loopButtonCheckingCondition = false;
-//         stateInt = 1; //set the state to navigate a row.
-//         String message = "name valid";
-//         //display lcd message to display the name is valid.
-//         // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
-//         return false;
-//       }
-//     }
-//     else if (isSelectPressed()) {
-//       stateInt = 10;//set state int to config.
-//       loopButtonCheckingCondition = false;
-//     }
-//   }
-//   return true;
-// }
-
 /**
 check if the file name is valid, it must end in .bmp
 */
