@@ -1337,6 +1337,7 @@ display message, and save current row to eeprom
 */
 void uiSaveRowEeprom(int row) {
   String message;
+  writeEepromRow(row);
   message += F("saving row: ");
   message += String(row + 1);
   resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
