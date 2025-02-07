@@ -79,6 +79,9 @@ int ledOffset;
 int ledCount = (int)MAX_LED_COUNT;
 LiquidCrystal * lcd;
 uint8_t stateInt = 0;
+//the file navigator
+int _numFilesInDir = 0;
+int _currentNavigatedFileCount = 0;
 
 
 
@@ -289,9 +292,8 @@ bool isAnyButtonPressed() {
   return ((isSelectPressed()) || (isLeftPressed()) || (isRightPressed()) || (isUpPressed()) || (isDownPressed()));
 }
 
-//the file navigator
-int _numFilesInDir = 0;
-int _currentNavigatedFileCount = 0;
+
+//many of the following functions are for file navigation.
 
 /**
 open the directory
@@ -310,16 +312,6 @@ File openDirectory(String address) {
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
   }
   return myFile;
-}
-
-/**
-close the file
-*/
-void closeFile(File root) {
-  root.close();
-  String message = F("closing file");
-    DEBUG_LN(message);
-    // resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
 }
 
 /**
@@ -360,7 +352,7 @@ String displayFiles(String address) {
           row = LCD_ROWS;//match loop condition to end loop.
         }
       }
-      closeFile(entry); //close the file opened to get the file name.
+      entry.close();
     }//loop has ended that all rows have been displayed.
     lcd->display();//display lcd screen.
     //loop to check button presses, return value is outer loop condition.
@@ -397,7 +389,7 @@ String displayFiles(String address) {
       }
     }
     //close root directory so it can be opened and files freshly iterated again.
-    closeFile(root);
+    root.close();
   }//end main loop to display files.
   //return the file name of the file to open.
   return fileToOpen;
