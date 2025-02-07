@@ -20,10 +20,20 @@ a bitmap.
 LCD button controls:
 SELECT - toggles between configure mode, and row mode.
 up / down - iterates through rows, configure settings, and file navigation.
-right - selects the file to load in file navigator.
+right - selects the file to load in file navigator/saves the current row when in row mode.
+left - loads the saved row when in row mode.
 left / right - changes the values in the current configure.
 
 Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
+
+The program starts with the file navigator which allows you to navigate the files in the root directory on your SD
+card. You must open a .bmp file to be used with this program.
+After opened it displays the image width and height in pixels, then goes into config mode, which allows you to 
+configure the LED brigthness, image offset (the number of LED's the image is offset from the first one on the left), 
+LED count (the number of LED's in your light strip) and a reset option for resetting the config.
+The program will only continue if the image width is within the LED count bounds.
+Then the program allows iterating through rows, shining LED's on or off based on the saturation of that row
+in the bitmap you've loaded.
 
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
@@ -31,7 +41,7 @@ this version of Loom by Light: 1.6.3
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-February-05
+*@date 2025-February-07
 */
 
 #include <SPI.h>
