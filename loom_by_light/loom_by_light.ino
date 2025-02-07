@@ -316,8 +316,8 @@ File openDirectory(String address) {
 
 /**
 display files within the directory. then waits for button presses to respond.
-up or down will navigate, right will open a file if it's valid, select will 
-go back to the config.
+up or down will navigate, right will open a file if it's valid, 
+Function ends when right button has selected a file, and function returns that file name.
 */
 String displayFiles(String address) {
   String fileToOpen;
@@ -337,15 +337,15 @@ String displayFiles(String address) {
       //checks if the current file is high enough in the navigated file count to 
       //display on the lcd screen.
       if (fileCount > _currentNavigatedFileCount) {
-        if (isFile(entry)) {//if file is open.
+        if (entry) {//if file is open.
         //the string for the file name of this row, needed to add "_" if it's the first.
           String fileNameThisRow;  
           if (row == 0) {//if this is the first file in the row, set the temporary file name.
-            tempFileName = getFileName(entry);
+            tempFileName = entry.name();
             //an arrow to the right indicates the right button opens this file.
             fileNameThisRow = F("->"); //add an arrow indicator for the first row.
           }
-          fileNameThisRow += getFileName(entry);//add the file name for this row.
+          fileNameThisRow += entry.name();//add the file name for this row.
           displayMsgAtRow(fileNameThisRow, row);//display file on lcd
           row ++;//iterate row.
         } else {//file could not be opened so set loop condition to end loop.
@@ -404,27 +404,6 @@ bool isFileNamevalid(String _tempFileName) {
   }
   return false;
 }
-
-
-/**
-return true if there is a file opened, else return false.
-*/
-bool isFile(File entry) {
-    if (!entry) {
-      return false;
-    }
-    return true;
-}
-
-/**
-return the string of the name of the opened file
-*/
-String getFileName(File entry) {
-  String fileName = entry.name();
-  return fileName;
-}
-
-
 
 //LED strip handler
 Adafruit_NeoPixel * strip;
@@ -1174,7 +1153,6 @@ void uiNavigateFiles() {
   if (stateInt != 20) {
     return;
   }
-  // navigateFilesAtRoot();
   displayFiles(F("/"));
 }
 
