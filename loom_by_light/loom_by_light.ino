@@ -1282,7 +1282,7 @@ void uiResetToDefault() {
     }
     if (isRightPressed()) {
       brightness = 1;
-      ledCount = 60;
+      ledCount = MAX_LED_COUNT;
       ledOffset = 0;
       message = F("Resetting...");
       showLedsInBounds(0, ledCount); //show the min to max led count.
