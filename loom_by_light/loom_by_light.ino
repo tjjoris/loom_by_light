@@ -20,10 +20,20 @@ a bitmap.
 LCD button controls:
 SELECT - toggles between configure mode, and row mode.
 up / down - iterates through rows, configure settings, and file navigation.
-right - selects the file to load in file navigator.
+right - selects the file to load in file navigator/saves the current row when in row mode.
+left - loads the saved row when in row mode.
 left / right - changes the values in the current configure.
 
 Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
+
+The program starts with the file navigator which allows you to navigate the files in the root directory on your SD
+card. You must open a .bmp file to be used with this program.
+After opened it displays the image width and height in pixels, then goes into config mode, which allows you to 
+configure the LED brigthness, image offset (the number of LED's the image is offset from the first one on the left), 
+LED count (the number of LED's in your light strip) and a reset option for resetting the config.
+The program will only continue if the image width is within the LED count bounds.
+Then the program allows iterating through rows, shining LED's on or off based on the saturation of that row
+in the bitmap you've loaded.
 
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
@@ -31,7 +41,7 @@ this version of Loom by Light: 1.6.3
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-February-05
+*@date 2025-February-07
 */
 
 #include <SPI.h>
@@ -316,8 +326,8 @@ File openDirectory(String address) {
 
 /**
 display files within the directory. then waits for button presses to respond.
-up or down will navigate, right will open a file if it's valid, select will 
-go back to the config.
+up or down will navigate, right will open a file if it's valid, 
+Function ends when right button has selected a file, and function returns that file name.
 */
 String displayFiles(String address) {
   String fileToOpen;
@@ -337,15 +347,15 @@ String displayFiles(String address) {
       //checks if the current file is high enough in the navigated file count to 
       //display on the lcd screen.
       if (fileCount > _currentNavigatedFileCount) {
-        if (isFile(entry)) {//if file is open.
+        if (entry) {//if file is open.
         //the string for the file name of this row, needed to add "_" if it's the first.
           String fileNameThisRow;  
           if (row == 0) {//if this is the first file in the row, set the temporary file name.
-            tempFileName = getFileName(entry);
+            tempFileName = entry.name();
             //an arrow to the right indicates the right button opens this file.
             fileNameThisRow = F("->"); //add an arrow indicator for the first row.
           }
-          fileNameThisRow += getFileName(entry);//add the file name for this row.
+          fileNameThisRow += entry.name();//add the file name for this row.
           displayMsgAtRow(fileNameThisRow, row);//display file on lcd
           row ++;//iterate row.
         } else {//file could not be opened so set loop condition to end loop.
@@ -404,27 +414,6 @@ bool isFileNamevalid(String _tempFileName) {
   }
   return false;
 }
-
-
-/**
-return true if there is a file opened, else return false.
-*/
-bool isFile(File entry) {
-    if (!entry) {
-      return false;
-    }
-    return true;
-}
-
-/**
-return the string of the name of the opened file
-*/
-String getFileName(File entry) {
-  String fileName = entry.name();
-  return fileName;
-}
-
-
 
 //LED strip handler
 Adafruit_NeoPixel * strip;
@@ -510,20 +499,6 @@ void decrementRow() {
     currentRow = imageHeight - 1;
   }
   isLightOnAtColumn(currentRow); //set the lights array according to the current row.
-}
-
-/**
-*read a byte and return it as an unsigned 8 bit int.
-* code was sourced from: 
-*https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-*/
-uint8_t read8Bit(){
-  if (!bmpFile) {
-    return 0;
-  }
-  else {
-    return bmpFile.read();
-  }
 }
 
 /**
@@ -693,27 +668,6 @@ bool checkFileHeaders(){
   return true;
 }
 
-// /**
-// *print file hader values to serial.
-// * code sourced from: 
-// *https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
-// */
-// void serialPrintHeaders() {
-//   DEBUG_MSG(F("imageOffset : "));
-//   DEBUG_LN(imageOffset);
-//   DEBUG_MSG("imageWidth : ");
-//   DEBUG_LN(imageWidth);
-//   DEBUG_MSG("imageHeight : ");
-//   DEBUG_LN(imageHeight);
-//   DEBUG_MSG("colourPlanes : ");
-//   DEBUG_LN(colourPlanes);
-//   DEBUG_MSG("bitsPerPixel : ");
-//   DEBUG_LN(bitsPerPixel);
-//   DEBUG_MSG("compression : ");
-//   DEBUG_LN(compression);
-// }
-
-
 /**
 *open the file, print an error message if it is not opened. return true if the file is opened, otherwise false.
 */
@@ -750,18 +704,6 @@ bool isLightOnAtColumn(int column) {
   bmpFile.seek(pixelRowFileOffset);//seek to the pixel row offset.
   bmpFile.read(pixelBuffer, NUM_BYTES_PER_PIXEL);//read into the pixel buffer.
   return isPixelTrue(pixelBuffer[0], pixelBuffer[1], pixelBuffer[2]);//return if the pixel is true or not.
-}
-
-/**
-*this find the initial binary shift which additionally shifts the 
-* binary values of the first byte in the lights array.
-*/
-int calculateInitialBinaryShift(int imageWidth) {
-    int initialBinaryShift = 8 - imageWidth;
-  if (initialBinaryShift < 0) {
-    initialBinaryShift = 0;
-  }
-  return initialBinaryShift;
 }
 
 /**
@@ -811,19 +753,6 @@ void initializeCard() {
 }
 
 /**
-print a different character if the value is true or false.
-*/
-void printBool(bool boolToPrint) {
-  if (boolToPrint) {
-    DEBUG_WR(1);
-  }
-  else {
-    DEBUG_MSG(F(" "));
-  }
-}
-
-
-/**
 delte and recreate the LED strip handler with a strop object, likely because the LED count has changed.
 */
 void recreateLedStripHandler() {
@@ -831,6 +760,10 @@ void recreateLedStripHandler() {
   createStrip();
 }
 
+/**
+loops through all LEDs in the light strip and either shows or hides that LED based on the if it should be on or off
+determined by isLightOnAtColumn() using the open bitmap, then shows the light strip.
+*/
 void showLightsForRow() {
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
@@ -1007,24 +940,10 @@ void writeEepromLedOffset(int offset) {
 }
 
 /**
-check the unsigned int is within bounds.
-*/
-uint8_t checkWithinUint8Bounds(uint8_t value) {
-  if (value <0) {
-      value = 0;
-  } else if (value > 255){
-    value = 255;
-  }
-  return value;
-}
-
-/**
 read the brigthness form the EEPROM. if it is outside the bounds, reset it to 25.
 */
 uint8_t readEepromBrightness() {
   EEPROM.get(EEPROM_BRIGHTNESS, brightness);
-  brightness = checkWithinUint8Bounds(brightness);
-  EEPROM.put(EEPROM_BRIGHTNESS, brightness);
   return brightness;
 }
 
@@ -1033,7 +952,6 @@ make sure brigthness is within bounds, then write the brightness to the EEPROM
 */
 void writeEepromBrightness(uint8_t writeBrightness) {
   brightness = writeBrightness;
-  brightness = checkWithinUint8Bounds(brightness);
   EEPROM.put(EEPROM_BRIGHTNESS, brightness);
 }
 
@@ -1077,21 +995,6 @@ uint8_t getBitsFromByte(byte myByte, uint8_t bitCount) {
     apersandCompare = (apersandCompare << 1) + 1;
   }
   return apersandCompare & myByte;
-}
-
-#define NUM_BITS_STATE 5
-/**
-get the state from the stateInt
-*/
-uint8_t getState() {
-  return getBitsFromByte(stateInt, NUM_BITS_STATE);
-}
-
-/**
-get if in row or config mode
-*/
-bool isUIInRow() {
-  return (getBitFromByte(stateInt, 7));
 }
 
 /**
@@ -1174,7 +1077,6 @@ void uiNavigateFiles() {
   if (stateInt != 20) {
     return;
   }
-  // navigateFilesAtRoot();
   displayFiles(F("/"));
 }
 
@@ -1345,30 +1247,35 @@ void uiSaveRowEeprom(int row) {
 }
 
 /**
-*creates bitmap handler object, then opens bitmap file, reads the headers, then loops each row in the bitmap
-*and decodes each row, printing the binary values based on saturation.
+initializes LiquidCrystal, then initializes the SD Card. Then uses displayFiles() to display all files
+at root to the lcd screen for the user to browse. After a file is selected in displayFiles, it's name comes back here
+and it's opened.  It's then verified. The verification sets the imageWidth, imageHeight, and imageOffset values based
+on the bitmap header. The setup then creates an LED strip and goes into the uiIntro. After the uiIntro is done, a loop 
+begins which only ends if the vile is valid relative to variables such as the LED count. this means the program does
+not beign iterating through the main loop unless the image width is within the LED count bounds. The loop after uiIntro
+is the config loop, which uses a switch statment to go between different ui config modes for configuring the brigthness,
+offset (the image offset on the LED strip relavie to the first LED), LED count (the maximum number of LEDs on a strip)
+To change the max allowable ledCount, change LED_COUNT_MAX, this has not been tested above 144. The final ui option
+is a reset to reset the config values to default. This does not reset the current row.
+the 
 */
 void setup() {
-  //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
-  //library, or it interferes with the light strip.
-  DEBUG_BEGIN;
-  //read all eerpom data
-  readAllEepromData();
-  //create lcd
-  lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
-  lcd->begin(LCD_COLS, LCD_ROWS);
-  delay(1000);
-  initializeCard();
-  delay(500);
-  String _fileToOpen = displayFiles(F("/"));
-  
-  openFile(_fileToOpen);
+  //this is Serial.begin(9600) for debug messages if #define DO_DEBUG = 1. 
+  //This having Serial debug active has been known to cause issues for the 
+  //LCD screen and LED strip.
+  DEBUG_BEGIN; 
+  readAllEepromData(); //read all eeprom data.
+  lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7); //instantiate the liquid crystal.
+  lcd->begin(LCD_COLS, LCD_ROWS); //begin the liquid crystal.
+  delay(1000);  //delay.
+  initializeCard(); //initialize the SD card.
+  delay(500); //delay.
+  String fileName = displayFiles(F("/")); //the root name to open.
+  openFile(fileName); //open the root.
   //verify file, this includes reading the headers which is necessary to decode the bitmap.
-  verifyFile();
-  //instantiate light strip handler
-  createStrip();
-  stateInt = 0;
-  
+  verifyFile(); 
+  createStrip(); //instantiate an LED strip.
+  stateInt = 0; //set the state into to the intro state.
   uiIntro();
   //stays in loop while stateInt is not equal to 1 (uiShowRow value). if file is not ok stateInt will not change to 1.
   //one reason may be because width is greater than LED count, this allows the user to change the LED count before 
@@ -1397,7 +1304,12 @@ void setup() {
     }
   }
   
-  
+/**
+The main loop, simply iterates uiDisplayRow which dispalys the current row, and iterates up and down in the row.
+You can also save the current row with the right button, and load the saved row with the left button.
+The saved row is saved in the EEPROM memory so when you shut down the arduino it remembers the saved row when it's
+booted up again, and autmoatically starts at the saved row if it's within bounds.
+*/
 }
 void loop() {
   uiDisplayRow();
