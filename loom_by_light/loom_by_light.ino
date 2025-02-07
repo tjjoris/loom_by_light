@@ -347,11 +347,13 @@ String displayFiles(String address) {
       if (fileCount > _currentNavigatedFileCount) {
         if (isFile(entry)) {//if file is open.
         //the string for the file name of this row, needed to add "_" if it's the first.
-            String fileNameThisRow = getFileName(entry); 
+          String fileNameThisRow;  
           if (row == 0) {//if this is the first file in the row, set the temporary file name.
             tempFileName = getFileName(entry);
-            fileNameThisRow += F("_");
+            //an arrow to the right indicates the right button opens this file.
+            fileNameThisRow = F("->"); //add an arrow indicator for the first row.
           }
+          fileNameThisRow += getFileName(entry);//add the file name for this row.
           displayMsgAtRow(fileNameThisRow, row);//display file on lcd
           row ++;//iterate row.
         } else {//file could not be opened so set loop condition to end loop.
@@ -530,7 +532,7 @@ void setLedBrightness() {
 /**
 set a pixel to true or false at a specific location
 */
-void setPixel(int pixelIndex, bool isTrue) {
+void setLedToBool(int pixelIndex, bool isTrue) {
   if (isTrue) {
     strip->setPixelColor(pixelIndex, strip->Color(0,0,255));
     DEBUG_MSG(F("set pixel to true at index "));
@@ -913,7 +915,7 @@ void recreateLedStripHandler() {
 void showLightsForRow() {
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
-    setPixel(i, isLightOnAtColumn(i));
+    setLedToBool(i, isLightOnAtColumn(i));
   }
   strip->show();
 }
@@ -924,9 +926,9 @@ shows all LEDS at count number starting from the start until the end.
 void showLedsInBounds(int ledStart, int ledEnd) {
   for (int i=0; i<ledCount; i++) {
     if ((i >= ledStart) && (i < ledEnd)) {
-      setPixel(i, true);
+      setLedToBool(i, true);
     } else {
-      setPixel(i, false);
+      setLedToBool(i, false);
     }
   }
   strip->show();
@@ -941,7 +943,7 @@ void increaseLedCount() {
     ledCount = 1;
     //hide LEDs between min and max led count.
     for (int i=2; i<LED_COUNT; i++) {
-      setPixel(i, false);
+      setLedToBool(i, false);
     }
     strip->show();
   }
@@ -958,7 +960,7 @@ void decreaseLedCount() {
   } else {
     
     //set the pixel of the led strip that has been removed to false.
-    setPixel(ledCount, false); 
+    setLedToBool(ledCount, false); 
     strip->show();
   }
   checkLedOffset();
@@ -1147,19 +1149,6 @@ bool getBitFromByte(byte myByte, uint8_t index) {
 }
 
 /**
-set bit at location in byte
-*/
-byte setBitInByte(byte myByte, uint8_t index, bool myBit) {
-  if (myBit) {
-    myByte |= (0x01 << (index));
-  }
-  else {
-    myByte &= ~(0x01 << (index));
-  }
-  return myByte;
-}
-
-/**
 get the value of bits of the bitCount number of bits from 
 the byte
 */
@@ -1177,13 +1166,6 @@ get the state from the stateInt
 */
 uint8_t getState() {
   return getBitsFromByte(stateInt, NUM_BITS_STATE);
-}
-
-/**
-set weither in row mode or config mode
-*/
-void setUIInRow(bool inRow) {
-  stateInt = setBitInByte(stateInt, 7, inRow);
 }
 
 /**
@@ -1280,7 +1262,7 @@ void uiNavigateFiles() {
 /**
 ui to reset brightness, offset, and LED count
 */
-void uiReset() {
+void uiResetToDefault() {
   if (stateInt != 13) {
     return;
   }
@@ -1469,6 +1451,7 @@ void setup() {
   lcd->begin(LCD_COLS, LCD_ROWS);
   delay(1000);
   initializeCard();
+  delay(500);
   String _fileToOpen = displayFiles(F("/"));
   
   String lowerCaseName = toLowerCase(_fileToOpen);
@@ -1486,7 +1469,7 @@ void setup() {
     uiOffset();
     uiLedCount();
     // showLightsForRow();
-    uiReset();
+    uiResetToDefault();
     //if the file is not ok possibly because the image width is greater than the LED count.
     //stay in the config loop.
     if ((!fileOk) && (stateInt == 1)) {
