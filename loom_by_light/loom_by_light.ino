@@ -1237,30 +1237,35 @@ void uiSaveRowEeprom(int row) {
 }
 
 /**
-*creates bitmap handler object, then opens bitmap file, reads the headers, then loops each row in the bitmap
-*and decodes each row, printing the binary values based on saturation.
+initializes LiquidCrystal, then initializes the SD Card. Then uses displayFiles() to display all files
+at root to the lcd screen for the user to browse. After a file is selected in displayFiles, it's name comes back here
+and it's opened.  It's then verified. The verification sets the imageWidth, imageHeight, and imageOffset values based
+on the bitmap header. The setup then creates an LED strip and goes into the uiIntro. After the uiIntro is done, a loop 
+begins which only ends if the vile is valid relative to variables such as the LED count. this means the program does
+not beign iterating through the main loop unless the image width is within the LED count bounds. The loop after uiIntro
+is the config loop, which uses a switch statment to go between different ui config modes for configuring the brigthness,
+offset (the image offset on the LED strip relavie to the first LED), LED count (the maximum number of LEDs on a strip)
+To change the max allowable ledCount, change LED_COUNT_MAX, this has not been tested above 144. The final ui option
+is a reset to reset the config values to default. This does not reset the current row.
+the 
 */
 void setup() {
-  //set serial to dispaly on ide. This cannot be used when using the Neopixel Adafruit light strip
-  //library, or it interferes with the light strip.
-  DEBUG_BEGIN;
-  //read all eerpom data
-  readAllEepromData();
-  //create lcd
-  lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
-  lcd->begin(LCD_COLS, LCD_ROWS);
-  delay(1000);
-  initializeCard();
-  delay(500);
-  String _fileToOpen = displayFiles(F("/"));
-  
-  openFile(_fileToOpen);
+  //this is Serial.begin(9600) for debug messages if #define DO_DEBUG = 1. 
+  //This having Serial debug active has been known to cause issues for the 
+  //LCD screen and LED strip.
+  DEBUG_BEGIN; 
+  readAllEepromData(); //read all eeprom data.
+  lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7); //instantiate the liquid crystal.
+  lcd->begin(LCD_COLS, LCD_ROWS); //begin the liquid crystal.
+  delay(1000);  //delay.
+  initializeCard(); //initialize the SD card.
+  delay(500); //delay.
+  String fileName = displayFiles(F("/")); //the root name to open.
+  openFile(fileName); //open the root.
   //verify file, this includes reading the headers which is necessary to decode the bitmap.
-  verifyFile();
-  //instantiate light strip handler
-  createStrip();
-  stateInt = 0;
-  
+  verifyFile(); 
+  createStrip(); //instantiate an LED strip.
+  stateInt = 0; //set the state into to the intro state.
   uiIntro();
   //stays in loop while stateInt is not equal to 1 (uiShowRow value). if file is not ok stateInt will not change to 1.
   //one reason may be because width is greater than LED count, this allows the user to change the LED count before 
@@ -1289,7 +1294,12 @@ void setup() {
     }
   }
   
-  
+/**
+The main loop, simply iterates uiDisplayRow which dispalys the current row, and iterates up and down in the row.
+You can also save the current row with the right button, and load the saved row with the left button.
+The saved row is saved in the EEPROM memory so when you shut down the arduino it remembers the saved row when it's
+booted up again, and autmoatically starts at the saved row if it's within bounds.
+*/
 }
 void loop() {
   uiDisplayRow();
