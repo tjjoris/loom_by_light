@@ -42,7 +42,7 @@ https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 #define CHIP_SELECT 10 //the chip select used for the SD card.
 //the maximum number of LED's that can be configured to be allowed on a light strip,
 // the amount of LEDs is configured by pressing select in the program.
-#define LED_COUNT 144 
+#define MAX_LED_COUNT 144 
 #define LED_PIN 1 //the pin the data line for the addressable LED strip is connected to.
 // NeoPixel brightness, 0 (min) to 255 (max)
 #define LCD_ROWS 2 //the number of character rows on the lcd screen, this is how many lines fit on the lcd screen.
@@ -76,7 +76,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 //global variables:
 uint8_t brightness;
 int ledOffset;
-int ledCount = (int)LED_COUNT;
+int ledCount = (int)MAX_LED_COUNT;
 LiquidCrystal * lcd;
 uint8_t stateInt = 0;
 
@@ -347,11 +347,13 @@ String displayFiles(String address) {
       if (fileCount > _currentNavigatedFileCount) {
         if (isFile(entry)) {//if file is open.
         //the string for the file name of this row, needed to add "_" if it's the first.
-            String fileNameThisRow = getFileName(entry); 
+          String fileNameThisRow;  
           if (row == 0) {//if this is the first file in the row, set the temporary file name.
             tempFileName = getFileName(entry);
-            fileNameThisRow += F("_");
+            //an arrow to the right indicates the right button opens this file.
+            fileNameThisRow = F("->"); //add an arrow indicator for the first row.
           }
+          fileNameThisRow += getFileName(entry);//add the file name for this row.
           displayMsgAtRow(fileNameThisRow, row);//display file on lcd
           row ++;//iterate row.
         } else {//file could not be opened so set loop condition to end loop.
@@ -530,7 +532,7 @@ void setLedBrightness() {
 /**
 set a pixel to true or false at a specific location
 */
-void setPixel(int pixelIndex, bool isTrue) {
+void setLedToBool(int pixelIndex, bool isTrue) {
   if (isTrue) {
     strip->setPixelColor(pixelIndex, strip->Color(0,0,255));
     DEBUG_MSG(F("set pixel to true at index "));
@@ -913,7 +915,7 @@ void recreateLedStripHandler() {
 void showLightsForRow() {
   for (int i=0; i<ledCount; i++) {
     //set the pixel at i, if it is true in lights array at i.
-    setPixel(i, isLightOnAtColumn(i));
+    setLedToBool(i, isLightOnAtColumn(i));
   }
   strip->show();
 }
@@ -924,9 +926,9 @@ shows all LEDS at count number starting from the start until the end.
 void showLedsInBounds(int ledStart, int ledEnd) {
   for (int i=0; i<ledCount; i++) {
     if ((i >= ledStart) && (i < ledEnd)) {
-      setPixel(i, true);
+      setLedToBool(i, true);
     } else {
-      setPixel(i, false);
+      setLedToBool(i, false);
     }
   }
   strip->show();
@@ -937,11 +939,11 @@ increase the led count, if its above max, set to 0.
 */
 void increaseLedCount() {
   ledCount ++;
-  if (ledCount > LED_COUNT) {
+  if (ledCount > MAX_LED_COUNT) {
     ledCount = 1;
     //hide LEDs between min and max led count.
-    for (int i=2; i<LED_COUNT; i++) {
-      setPixel(i, false);
+    for (int i=2; i<MAX_LED_COUNT; i++) {
+      setLedToBool(i, false);
     }
     strip->show();
   }
@@ -954,11 +956,11 @@ decrease led count, if its below min, set to max.
 void decreaseLedCount() {
   ledCount --;
   if (ledCount < 1) {
-    ledCount = LED_COUNT;
+    ledCount = MAX_LED_COUNT;
   } else {
     
     //set the pixel of the led strip that has been removed to false.
-    setPixel(ledCount, false); 
+    setLedToBool(ledCount, false); 
     strip->show();
   }
   checkLedOffset();
@@ -1034,8 +1036,8 @@ read the led count from the EEPROM. if out of bounds, set to max bounds.
 */
 int readEepromLedCount() {
   EEPROM.get(EEPROM_LED_COUNT, ledCount);
-  if ((ledCount < 1) || (ledCount > LED_COUNT)) {
-    ledCount = LED_COUNT;
+  if ((ledCount < 1) || (ledCount > MAX_LED_COUNT)) {
+    ledCount = MAX_LED_COUNT;
     EEPROM.put(EEPROM_LED_COUNT, ledCount);
   }
   return ledCount;
@@ -1045,8 +1047,8 @@ int readEepromLedCount() {
 write the led count to the EEPROM. if out of bounds, set it to max.
 */
 void writeEepromLedCount(int ledCount) {
-  if ((ledCount < 1) || (ledCount > LED_COUNT)) {
-    ledCount = LED_COUNT;
+  if ((ledCount < 1) || (ledCount > MAX_LED_COUNT)) {
+    ledCount = MAX_LED_COUNT;
   }
   EEPROM.put(EEPROM_LED_COUNT, ledCount);
 }
@@ -1147,19 +1149,6 @@ bool getBitFromByte(byte myByte, uint8_t index) {
 }
 
 /**
-set bit at location in byte
-*/
-byte setBitInByte(byte myByte, uint8_t index, bool myBit) {
-  if (myBit) {
-    myByte |= (0x01 << (index));
-  }
-  else {
-    myByte &= ~(0x01 << (index));
-  }
-  return myByte;
-}
-
-/**
 get the value of bits of the bitCount number of bits from 
 the byte
 */
@@ -1177,13 +1166,6 @@ get the state from the stateInt
 */
 uint8_t getState() {
   return getBitsFromByte(stateInt, NUM_BITS_STATE);
-}
-
-/**
-set weither in row mode or config mode
-*/
-void setUIInRow(bool inRow) {
-  stateInt = setBitInByte(stateInt, 7, inRow);
 }
 
 /**
@@ -1280,7 +1262,7 @@ void uiNavigateFiles() {
 /**
 ui to reset brightness, offset, and LED count
 */
-void uiReset() {
+void uiResetToDefault() {
   if (stateInt != 13) {
     return;
   }
@@ -1300,7 +1282,7 @@ void uiReset() {
     }
     if (isRightPressed()) {
       brightness = 1;
-      ledCount = 60;
+      ledCount = MAX_LED_COUNT;
       ledOffset = 0;
       message = F("Resetting...");
       showLedsInBounds(0, ledCount); //show the min to max led count.
@@ -1469,6 +1451,7 @@ void setup() {
   lcd->begin(LCD_COLS, LCD_ROWS);
   delay(1000);
   initializeCard();
+  delay(500);
   String _fileToOpen = displayFiles(F("/"));
   
   String lowerCaseName = toLowerCase(_fileToOpen);
@@ -1486,7 +1469,7 @@ void setup() {
     uiOffset();
     uiLedCount();
     // showLightsForRow();
-    uiReset();
+    uiResetToDefault();
     //if the file is not ok possibly because the image width is greater than the LED count.
     //stay in the config loop.
     if ((!fileOk) && (stateInt == 1)) {
