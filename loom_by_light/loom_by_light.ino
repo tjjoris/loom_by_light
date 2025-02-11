@@ -29,7 +29,7 @@ Configure is opened once the file is selected, configures the settings such as m
 image LED offset (the offset the image is on the led strip), brightness, and reset configure to default.
 These settings are stored in the arduino's memory when it is shut off.
 up/down - change configure mode.
-left/right - increment, decrement value.
+left/right - decrement, increment value.
 select - exit configure mode
 
 Row Navigation:
@@ -40,7 +40,9 @@ right - save the current row number (this is remembered when the arduino is shut
 left - load the saved row number.
 
 Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
-Note: if you are not using the LCD used in the development of this you may need to change the PIN's, see Line 76.
+Note: if you are not using the LCD used in the development of this you may need to change the PIN's, see Line 78: 
+const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
+Note: the LED strip is connected to pin D01, to change this change Line 74: #define LED_PIN 1
 
 The hardware was purchased from QKits electronics: https://store.qkits.com/
 Adruino: Arduino UNO R3 Clone
@@ -113,9 +115,9 @@ int _currentNavigatedFileCount = 0;
 
 //lcd display variables
 long timeAtLcdReset;
-#define LCD_CYCLE_DURATION 1000
-#define LCD_SHORT_MESSAGE_DURATION 1000
-#define LCD_MED_MESSAGE_DURATION 2000
+#define LCD_CYCLE_DURATION 1000 //the amount of time before the a message cycles to the next part of the message.
+#define LCD_SHORT_MESSAGE_DURATION 1000 //the amount of time a short duration message is displayed.
+#define LCD_MED_MESSAGE_DURATION 2000 //the amount of time a medium duratin message is displayed.
 uint8_t charCount = 0; //the character count in the message string.
 
 /**
@@ -1015,8 +1017,9 @@ void uiIntro() {
     return;
   }
   String message;
+  message += F("W:");
   message += String(imageWidth);
-  message += F("x");
+  message += F(" H:");
   message += String(imageHeight);
   resetAndDisplayStringLcd(message);
   while(1) {
