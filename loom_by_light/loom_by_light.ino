@@ -17,24 +17,30 @@ bitmap displayed on an addressable LED strip as either off or on.
 of 2 colours to use on each loom heddle, thereby creating custom 2d loom images based off 
 a bitmap.
 
-LCD button controls:
-SELECT - toggles between configure mode, and row mode.
-up / down - iterates through rows, configure settings, and file navigation.
-right - selects the file to load in file navigator/saves the current row when in row mode.
-left - loads the saved row when in row mode.
-left / right - changes the values in the current configure.
+Program instructions:
+
+File Navigation: 
+the program starts allowing you to navigate files in the SD card's root.
+up/down - navigates files
+right - selects the bitmap to load.
+
+Configure:
+Configure is opened once the file is selected, configures the settings such as max LED count, 
+image LED offset (the offset the image is on the led strip), brightness, and reset configure to default.
+These settings are stored in the arduino's memory when it is shut off.
+up/down - change configure mode.
+left/right - increment, decrement value.
+select - exit configure mode
+
+Row Navigation:
+Once the bitmap is opened you navigate rows of the bitmap and they are displayed on the LED strip as on or off.
+The saved row is automatically loaded if one exists in memory.
+up/down - decrement, increment a row (the iteration loops at the end).
+right - save the current row number (this is remembered when the arduino is shut down).
+left - load the saved row number.
 
 Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
-
-The program starts with the file navigator which allows you to navigate the files in the root directory on your SD
-card. You must open a .bmp file to be used with this program.
-After opened it displays the image width and height in pixels, then goes into config mode, which allows you to 
-configure the LED brigthness, image offset (the number of LED's the image is offset from the first one on the left), 
-LED count (the number of LED's in your light strip) and a reset option for resetting the config.
-The program will only continue if the image width is within the LED count bounds.
-Then the program allows iterating through rows, shining LED's on or off based on the saturation of that row
-in the bitmap you've loaded.
-
+Note: if you are not using the LCD used in the development of this you may need to change the PIN's, see Line 76.
 
 The hardware was purchased from QKits electronics: https://store.qkits.com/
 Adruino: Arduino UNO R3 Clone
@@ -972,7 +978,7 @@ int readEepromRow() {
   // int rowRead = 0;
   EEPROM.get(EEPROM_ROW, currentRow);
   if ((currentRow <0) | (currentRow >= imageHeight)) {
-    currentRow = 0;
+    currentRow = imageHeight - 1;
   }
   return currentRow;
 }
