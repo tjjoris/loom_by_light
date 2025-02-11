@@ -84,7 +84,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 #define EEPROM_LED_COUNT 5
 #define NUM_BYTES_PER_PIXEL 3 //the number of bytes per a pixel in a bitmap.
 
-//to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
+//to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show. Note: program is unreliable with debug on.
 #define DO_DEBUG 0
 
 #if DO_DEBUG == 1
@@ -465,7 +465,7 @@ void setLedToBool(int pixelIndex, bool isTrue) {
   }
   else {
     strip->setPixelColor(pixelIndex, strip->Color(0,0,0));
-    DEBUG_MSG(F("set pixel to false at index "));
+    DEBUG_MSG("set pixel to false at index ");
     DEBUG_MSG(pixelIndex);
   }
 }
@@ -691,7 +691,7 @@ bool openFile(String fileName) {
 bmpFile = SD.open(fileName, FILE_READ);
 String message;
 if (!bmpFile) {
-    message = F("Unable to open file")
+    message = F("Unable to open file");
     DEBUG_MSG(message);
     fileOk = false;
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
