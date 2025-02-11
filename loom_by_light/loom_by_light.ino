@@ -842,7 +842,6 @@ void increaseLedOffset() {
   if (ledOffset > (ledCount - imageWidth)) {
     ledOffset = 0;
   }
-  // showLightsForRow();
 }
 
 /**
@@ -854,7 +853,6 @@ void decreaseLedOffset() {
     ledOffset = (ledCount - imageWidth);
     EEPROM.put(EEPROM_OFFSET, ledOffset);
   }
-  // showLightsForRow();
 }
 
 /**
@@ -1024,7 +1022,7 @@ void uiIntro() {
   while(1) {
     displayStringLcdWithTimer(message);
     readButtons();
-    if ((isUpPressed()) || (isDownPressed())) {
+    if ( isAnyButtonPressed()) {
       currentRow = readEepromRow(); //read the current row from the EEPROM.
       stateInt = 10;
       break;
@@ -1037,7 +1035,9 @@ void uiIntro() {
 }
 
 /**
-the display row ui function
+the display row ui function, used in main loop, displays the LEDs for the current row in the bitmap,
+up and down iterates through a row, right saves the row,
+left loads the saved row.
 */
 void uiDisplayRow() {
   if (stateInt != 1) {
