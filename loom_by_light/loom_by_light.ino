@@ -35,6 +35,8 @@ The program will only continue if the image width is within the LED count bounds
 Then the program allows iterating through rows, shining LED's on or off based on the saturation of that row
 in the bitmap you've loaded.
 
+The hardware this is created with is an WS2812 addressable LED light strip, 
+
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
 this version of Loom by Light: 1.6.3
@@ -978,37 +980,8 @@ void writeEepromRow(int row) {
 }
 
 
-/**
-set bit at location in byte
-*/
-byte setBitInByte(byte myByte, uint8_t index, bool myBit) {
-  if (myBit) { //if the passed bit is true make the bit at index 1
-    myByte |= (0x01 << (index));
-  }
-  else {//if the passed bit is false make the bit at index 0
-    myByte &= ~(0x01 << (index));
-  }
-  return myByte;
-}
 
-/**
-gets the byte at index number in the byte.
-*/
-bool getBitFromByte(byte myByte, uint8_t index) {
-  return (myByte >> (index)) & 0x01;
-}
 
-/**
-get the value of bits of the bitCount number of bits from 
-the byte
-*/
-uint8_t getBitsFromByte(byte myByte, uint8_t bitCount) {
-  uint8_t apersandCompare = 1;
-  for (int i = 0; i< bitCount - 1; i++) {
-    apersandCompare = (apersandCompare << 1) + 1;
-  }
-  return apersandCompare & myByte;
-}
 
 /**
 this is when the ui state is leaving config and going into row.
