@@ -17,23 +17,41 @@ bitmap displayed on an addressable LED strip as either off or on.
 of 2 colours to use on each loom heddle, thereby creating custom 2d loom images based off 
 a bitmap.
 
-LCD button controls:
-SELECT - toggles between configure mode, and row mode.
-up / down - iterates through rows, configure settings, and file navigation.
-right - selects the file to load in file navigator/saves the current row when in row mode.
-left - loads the saved row when in row mode.
-left / right - changes the values in the current configure.
+Program instructions:
+
+File Navigation: 
+the program starts allowing you to navigate files in the SD card's root.
+up/down - navigates files
+right - selects the bitmap to load.
+
+Configure:
+Configure is opened once the file is selected, configures the settings such as max LED count, 
+image LED offset (the offset the image is on the led strip), brightness, and reset configure to default.
+These settings are stored in the arduino's memory when it is shut off.
+up/down - change configure mode.
+left/right - decrement, increment value.
+select - exit configure mode
+
+Row Navigation:
+Once the bitmap is opened you navigate rows of the bitmap and they are displayed on the LED strip as on or off.
+The saved row is automatically loaded if one exists in memory.
+up/down - decrement, increment a row (the iteration loops at the end).
+right - save the current row number (this is remembered when the arduino is shut down).
+left - load the saved row number.
 
 Note: the bitmap to be opened must be 24 bits per pixel and not compressed.
+Note: if you are not using the LCD used in the development of this you may need to change the PIN's, see Line 78: 
+const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
+Note: the LED strip is connected to pin D01, to change this change Line 74: #define LED_PIN 1
 
-The program starts with the file navigator which allows you to navigate the files in the root directory on your SD
-card. You must open a .bmp file to be used with this program.
-After opened it displays the image width and height in pixels, then goes into config mode, which allows you to 
-configure the LED brigthness, image offset (the number of LED's the image is offset from the first one on the left), 
-LED count (the number of LED's in your light strip) and a reset option for resetting the config.
-The program will only continue if the image width is within the LED count bounds.
-Then the program allows iterating through rows, shining LED's on or off based on the saturation of that row
-in the bitmap you've loaded.
+The hardware was purchased from QKits electronics: https://store.qkits.com/
+Adruino: Arduino UNO R3 Clone
+Addressable LED Strip: WS2812 
+LCD shield with buttons: D1 ROBOT LCD Keypad Shield 2x16 SKU: SHLCD01
+Screw terminal shield SKU: PSSXB
+SD card holder and RTC shield SKU: SHDATALG
+
+
 
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
@@ -41,7 +59,7 @@ this version of Loom by Light: 1.6.3
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-February-07
+*@date 2025-February-11
 */
 
 #include <SPI.h>
@@ -68,7 +86,7 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for t
 #define EEPROM_LED_COUNT 5
 #define NUM_BYTES_PER_PIXEL 3 //the number of bytes per a pixel in a bitmap.
 
-//to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show.
+//to turn on debug, set DO_DEBUG to 1, else Serial debug messages will not show. Note: program is unreliable with debug on.
 #define DO_DEBUG 0
 
 #if DO_DEBUG == 1
@@ -97,9 +115,9 @@ int _currentNavigatedFileCount = 0;
 
 //lcd display variables
 long timeAtLcdReset;
-#define LCD_CYCLE_DURATION 1000
-#define LCD_SHORT_MESSAGE_DURATION 1000
-#define LCD_MED_MESSAGE_DURATION 2000
+#define LCD_CYCLE_DURATION 1000 //the amount of time before the a message cycles to the next part of the message.
+#define LCD_SHORT_MESSAGE_DURATION 1000 //the amount of time a short duration message is displayed.
+#define LCD_MED_MESSAGE_DURATION 2000 //the amount of time a medium duratin message is displayed.
 uint8_t charCount = 0; //the character count in the message string.
 
 /**
@@ -449,7 +467,7 @@ void setLedToBool(int pixelIndex, bool isTrue) {
   }
   else {
     strip->setPixelColor(pixelIndex, strip->Color(0,0,0));
-    DEBUG_MSG(F("set pixel to false at index "));
+    DEBUG_MSG("set pixel to false at index ");
     DEBUG_MSG(pixelIndex);
   }
 }
@@ -675,7 +693,7 @@ bool openFile(String fileName) {
 bmpFile = SD.open(fileName, FILE_READ);
 String message;
 if (!bmpFile) {
-    message = F("Unable to open file")
+    message = F("Unable to open file");
     DEBUG_MSG(message);
     fileOk = false;
     resetAndDisplayMessageWithBreakableLoopLcd(message, LCD_SHORT_MESSAGE_DURATION);
@@ -826,7 +844,6 @@ void increaseLedOffset() {
   if (ledOffset > (ledCount - imageWidth)) {
     ledOffset = 0;
   }
-  // showLightsForRow();
 }
 
 /**
@@ -838,7 +855,6 @@ void decreaseLedOffset() {
     ledOffset = (ledCount - imageWidth);
     EEPROM.put(EEPROM_OFFSET, ledOffset);
   }
-  // showLightsForRow();
 }
 
 /**
@@ -962,7 +978,7 @@ int readEepromRow() {
   // int rowRead = 0;
   EEPROM.get(EEPROM_ROW, currentRow);
   if ((currentRow <0) | (currentRow >= imageHeight)) {
-    currentRow = 0;
+    currentRow = imageHeight - 1;
   }
   return currentRow;
 }
@@ -978,24 +994,8 @@ void writeEepromRow(int row) {
 }
 
 
-/**
-gets the byte at index number in the byte.
-*/
-bool getBitFromByte(byte myByte, uint8_t index) {
-  return (myByte >> (index)) & 0x01;
-}
 
-/**
-get the value of bits of the bitCount number of bits from 
-the byte
-*/
-uint8_t getBitsFromByte(byte myByte, uint8_t bitCount) {
-  uint8_t apersandCompare = 1;
-  for (int i = 0; i< bitCount - 1; i++) {
-    apersandCompare = (apersandCompare << 1) + 1;
-  }
-  return apersandCompare & myByte;
-}
+
 
 /**
 this is when the ui state is leaving config and going into row.
@@ -1017,14 +1017,15 @@ void uiIntro() {
     return;
   }
   String message;
+  message += F("W:");
   message += String(imageWidth);
-  message += F("x");
+  message += F(" H:");
   message += String(imageHeight);
   resetAndDisplayStringLcd(message);
   while(1) {
     displayStringLcdWithTimer(message);
     readButtons();
-    if ((isUpPressed()) || (isDownPressed())) {
+    if ( isAnyButtonPressed()) {
       currentRow = readEepromRow(); //read the current row from the EEPROM.
       stateInt = 10;
       break;
@@ -1037,7 +1038,9 @@ void uiIntro() {
 }
 
 /**
-the display row ui function
+the display row ui function, used in main loop, displays the LEDs for the current row in the bitmap,
+up and down iterates through a row, right saves the row,
+left loads the saved row.
 */
 void uiDisplayRow() {
   if (stateInt != 1) {
