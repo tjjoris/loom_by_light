@@ -35,7 +35,15 @@ The program will only continue if the image width is within the LED count bounds
 Then the program allows iterating through rows, shining LED's on or off based on the saturation of that row
 in the bitmap you've loaded.
 
-The hardware this is created with is an WS2812 addressable LED light strip, 
+
+The hardware was purchased from QKits electronics: https://store.qkits.com/
+Adruino: Arduino UNO R3 Clone
+Addressable LED Strip: WS2812 
+LCD shield with buttons: D1 ROBOT LCD Keypad Shield 2x16 SKU: SHLCD01
+Screw terminal shield SKU: PSSXB
+SD card holder and RTC shield SKU: SHDATALG
+
+
 
 *The program is written by Luke Johnson, commissioned by Elizabeth Johnson, 
 the organizer of the project.
@@ -43,7 +51,7 @@ this version of Loom by Light: 1.6.3
 *some of the code was modified after being sourced from bitsnbytes.co.uk:
 https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette
 *@author Luke Johnson
-*@date 2025-February-07
+*@date 2025-February-11
 */
 
 #include <SPI.h>
