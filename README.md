@@ -53,7 +53,7 @@ The saved row is automatically loaded if one exists in memory.
   const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7; //the pin values for the lcd display.
 - The LED strip is connected to pin D01, to change this change Line 74: #define LED_PIN 1
 
-## All hardware was purchased from QKits electronics: [QKits] (https://store.qkits.com/)
+## All hardware was purchased from QKits electronics: [QKits](https://store.qkits.com/)
 
 - Adruino: Arduino UNO R3 Clone
 - Addressable LED Strip: WS2812
@@ -65,6 +65,5 @@ The saved row is automatically loaded if one exists in memory.
 
 - The program is written by Luke Johnson, organized by Elizabeth Johnson.
 - this version of Loom by Light: 1.6.3
-- some of the code was modified after being sourced from [bitsnbytes.co.uk]
-  (https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette)
+- some of the code was modified after being sourced from [bitsnbytes.co.uk](https://bytesnbits.co.uk/bitmap-image-handling-arduino/#google_vignette)
 - last edit date: 2025-February-11
